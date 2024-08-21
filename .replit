@@ -1,5 +1,5 @@
 entrypoint = "index.js"
-modules = ["nodejs-20"]
+modules = ["nodejs-20", "python-3.10"]
 hidden = [".config", "package-lock.json"]
 
 [gitHubImport]
@@ -18,3 +18,7 @@ ignorePorts = false
 
 [objectStorage]
 defaultBucketID = "replit-objstore-dfc036d2-f315-4a87-877d-ec3cea3d75ed"
+
+[[ports]]
+localPort = 8080
+externalPort = 80

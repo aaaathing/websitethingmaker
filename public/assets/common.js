@@ -5,12 +5,12 @@ This script is used in most pages of this website
 It also contains code that used to be used when there was login but is not used now
 */
 
-const origin = "https://aaaathing.github.io"
+/*const origin = "https://aaaathing.github.io"
 if(location.origin !== origin && location.origin !== "http://localhost"){
   fetch(origin+"/test").then(() => {
     location.href = origin + location.pathname
   })
-}
+}*/
 
 const {floor, ceil, abs, round} = Math
 
@@ -30,8 +30,7 @@ document.body.style.filter = "grayscale("+(1-(userCount/50))+")"*/
   document.body.insertAdjacentHTML("beforeend",'<svg style="display:none;"><filter id="wavy2"><feTurbulence x="0" y="0" baseFrequency="0.01" numOctaves="5" seed="1" /><feDisplacementMap in="SourceGraphic" scale="'+desertedness+'" /></filter></svg>')
   document.body.style.filter += "url(#wavy2)"
 }*/
-//const userInfo = USERDATA
-const userInfo = null
+const userInfo = USERDATA
 
 function urlBase64ToUint8Array(base64String) {
   const padding = '='.repeat((4 - base64String.length % 4) % 4);
@@ -48,7 +47,7 @@ function urlBase64ToUint8Array(base64String) {
   return outputArray;
 }
 
-/*const publicVapidKey = 'BC97-wjdng136e_0JIJV3CHzcPKzfJsaCMscJrkoB1GMuyOJY8AvJg70WmGY5io5mPUEaBEbHrizKUvqqFagd5g';
+const publicVapidKey = 'BC97-wjdng136e_0JIJV3CHzcPKzfJsaCMscJrkoB1GMuyOJY8AvJg70WmGY5io5mPUEaBEbHrizKUvqqFagd5g';
 
 async function subscribe() {
   if(!swRegister) return Swal.fire({
@@ -91,13 +90,13 @@ if(navigator.serviceWorker) navigator.serviceWorker.register('/sw.js', {
   swRegister = r
   windowLoadedForPush++
   mentionNotifications()
-})*/
+})
 
 var script = document.createElement("script")
 script.src = "/assets/localforage.js"
 document.body.appendChild(script)
 let localforageScript = script
-/*let windowLoadedForPush = 0
+let windowLoadedForPush = 0
 localforageScript.addEventListener("load", function(){
   windowLoadedForPush++
   mentionNotifications()
@@ -141,7 +140,7 @@ async function mentionNotifications(){
       }
     })
   }  
-}*/
+}
 
 
 //====================NAVBAR===============
@@ -177,8 +176,8 @@ navbar.innerHTML = `
       <a onclick="setTheme('glow')">Glow</a>
     </div>
   </div>
-`
-/*<span id="adminNav"></span>
+  
+  <span id="adminNav"></span>
 
   <a class="right" id="loggedIn" href="/login">Log in</a>
   <div class="dropdown" id="usernameDropdown" style="display:none; float:right;">
@@ -188,7 +187,8 @@ navbar.innerHTML = `
       <a id="usernameDropdown-profile">Profile</a>
     </div>
   </div>
-  <a class="right" id="notifs" href="/notifs">Notifications</a>*/
+  <a class="right" id="notifs" href="/notifs">Notifications</a>
+`
 document.body.prepend(navbar)
 
 var style=document.createElement("style")
@@ -290,7 +290,7 @@ async function setTheme(theme){
     }
   }
   return "";
-}
+}*/
 
 function findUnread(n){
   var a = 0
@@ -298,7 +298,7 @@ function findUnread(n){
     if(!n[i].read) a++
   }
   if(a > 0) return a
-}*/
+}
 function addBanner(text, bg = "white", color = "black"){
   var div = document.createElement("div")
   div.style.padding = "10px"
@@ -310,21 +310,21 @@ function addBanner(text, bg = "white", color = "black"){
   document.body.prepend(div)
 }
 
-/*var el = document.getElementById("loggedIn")
+var loggedInEl = document.getElementById("loggedIn")
 var notifs = document.getElementById("notifs")
 notifs.style.display = "none"
 var logged = userInfo && userInfo.username
-if(el && logged){
+if(loggedInEl && logged){
   var usernameEl = document.querySelector("#usernameDropdown .dropdown-name")
   if(usernameEl){
-    el.style.display = "none"
+    loggedInEl.style.display = "none"
     document.getElementById("usernameDropdown").style.display = ""
     usernameEl.innerHTML = logged
     usernameEl.href = "/account"
     document.querySelector("#usernameDropdown-profile").href="/user?user="+escape(logged)
   }else{
-    el.innerHTML = logged
-    el.href = "/account"
+    loggedInEl.innerHTML = logged
+    loggedInEl.href = "/account"
   }
   notifs.style.display = ""
   if(userInfo.notifs){
@@ -346,7 +346,7 @@ if(el && logged){
 /*
 var logged = getCookie("username")
 if(logged){
-  el.innerHTML = logged
+  loggedInEl.innerHTML = logged
 }*/
 
 var script = document.createElement("script")
@@ -720,7 +720,7 @@ function formatGetAttributeArr(e,a){
     if(i[0] === a) return i
   }
 }*/
-let mcAssetsUrl = "https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.20.0/assets/minecraft/textures/"
+const mcAssetsUrl = "https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.20.0/assets/minecraft/textures/"
 const HTMLSafeElements = new Set(["h1","h2","h3","h4","h5","h6","p","img","video","audio","a","ul","ol","li","pre","code","br","b","i","big","center","small","span","strike","strong","sub","sup","table","tbody","td","tfoot","th","thead","tr","hr","button","details","summary"])
 const HTMLSafeAttributes = new Set(["align","alt","width","height","href","src","media","title","style","target","controls","loop"])
 const HTMLEvalAttributes = new Set(["onclick","onmousemove","onmousedown","onmouseup","onmouseover","onmouseout","onmouseenter","onmouseleave","onmousewheel","onwheel"])

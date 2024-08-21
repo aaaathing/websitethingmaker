@@ -62,7 +62,7 @@ module.exports = {
   },
   _newTimeout:function(key,value){
     return this.timeouts[key] = {
-      time:Date.now(), promises:[], canBeSet:true,
+      time:Date.now()-1000, promises:[], canBeSet:true,
       nextValue:value, operation:null
     }
   },
@@ -125,6 +125,7 @@ module.exports = {
       var data = [], str = ""
       var file = bucket.file(key+".json")
       if(!(await file.exists())[0]) return resolve(null)
+
       var stream = file.createReadStream();
       stream.on("data", r => data.push(r))
       stream.on("end",function(){
@@ -145,6 +146,24 @@ module.exports = {
     var file = bucket.file(path)
     if(!(await file.exists())[0]) return null
     return (await file.download())[0]
+  },
+  getStream:function(key){
+    var file = bucket.file(key)
+    return file.createReadStream();
+  },
+  setStream:function(path,value){
+    return new Promise(function(resolve,reject){
+      var file = bucket.file(path)
+      const stream = file.createWriteStream();
+    
+      stream.on('error', reject);
+    
+      stream.on('finish', () => {
+        resolve(true)
+      });
+    
+      value.pipe(stream)
+    })
   },
   delete: function(key){
     if(this.timeouts[key]){
