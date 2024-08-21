@@ -10,6 +10,23 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@types/node": "^18.0.6"
+    "@google-cloud/storage": "^7.12.1",
+    "@replit/database": "^3.0.1",
+    "@replit/node-fetch": "^3.1.0",
+    "@types/node": "^18.0.6",
+    "bcrypt": "^5.1.1",
+    "canvas": "^2.11.2",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "level": "^8.0.1",
+    "mime-types": "^2.1.35",
+    "new-line": "^1.1.1",
+    "nocache": "^4.0.0",
+    "nodemailer": "^6.9.14",
+    "request-ip": "^3.3.0",
+    "web-push": "^3.6.7",
+    "websocket": "^1.0.35"
   }
 }

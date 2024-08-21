@@ -1,14 +1,28 @@
 const {Storage} = require('@google-cloud/storage');
-const storage = new Storage({keyFilename:'keen-gift-358103-a9a7b519a8ad.json'});
-
-const {performance} = require('perf_hooks');
+const storage = new Storage({
+  credentials:{
+    audience: "replit",
+    subject_token_type: "access_token",
+    token_url: "http://127.0.0.1:1106/token",
+    type: "external_account",
+    credential_source: {
+      url: "http://127.0.0.1:1106/credential",
+      format: {
+        type: "json",
+        subject_token_field_name: "access_token"
+      }
+    },
+    universe_domain: "googleapis.com"
+  },
+  projectId:""
+});
 
 // Creates a client from a Google service account key
 // const storage = new Storage({keyFilename: 'key.json'});
 
-const bucket = storage.bucket("thingmaker-repl-co"), backupBucket = storage.bucket("minekhan-backup")
+const bucket = storage.bucket("replit-objstore-dfc036d2-f315-4a87-877d-ec3cea3d75ed")
 
-function backup(key,value){
+/*function backup(key,value){
   return new Promise(function(resolve,reject){
     const stream = backupBucket.file(key+".json").createWriteStream({resumable:false});
   
@@ -20,7 +34,7 @@ function backup(key,value){
   
     stream.end(value);
   })
-}
+}*/
 
 module.exports = {
   storage,
@@ -29,11 +43,12 @@ module.exports = {
     var t = this.timeouts[n]
     var now = Date.now()
     if(t.canBeSet && now - t.time >= 1000){
-      if(t.hasNextValue){
-        t.hasNextValue = false
+      if(t.operation){
+        let operation = t.operation
+        t.operation = null
         t.time = now
         t.canBeSet = false
-        this._set(n,t.nextValue).then(r => {
+        operation().then(r => {
           t.canBeSet = true
           for(var i of t.promises) i.resolve()
           t.promises.length = 0
@@ -48,12 +63,16 @@ module.exports = {
   _newTimeout:function(key,value){
     return this.timeouts[key] = {
       time:Date.now(), promises:[], canBeSet:true,
-      nextValue:value, hasNextValue: false
+      nextValue:value, operation:null
     }
   },
   _set:function(key,value){
     return new Promise(function(resolve,reject){
-      const stream = bucket.file(key+".json").createWriteStream({resumable:false});
+      const stream = bucket.file(key+".json").createWriteStream({
+        resumable:false,
+        metadata:{
+        }
+      });
     
       stream.on('error', reject);
     
@@ -75,14 +94,13 @@ module.exports = {
       let t = this.timeouts[key]
       if(!this.timeouts[key]) t = me._newTimeout(key,value)
       t.nextValue = value
-      t.hasNextValue = true
+      t.operation = () => me._set(key,value)
       t.promises.push({
         resolve: () => resolve(true),
         reject
       })
       this.updateTimeout(key)//it may be able to upload so update it
     })
-    
   },
   setFile:function(path,value){
     return new Promise(function(resolve,reject){
@@ -128,16 +146,22 @@ module.exports = {
     if(!(await file.exists())[0]) return null
     return (await file.download())[0]
   },
-  delete:async function(key){
-    try{
-      if(key.startsWith("post:") || key.startsWith("map:") || key.startsWith("rp:")){
-        await backup(await this.get(key))
-      }
-      await bucket.file(key+".json").delete()
-    }catch(e){
-      return e
+  delete: function(key){
+    if(this.timeouts[key]){
+      this.updateTimeout(key)
     }
-    return true
+    let me = this
+    return new Promise((resolve,reject) => {
+      let t = this.timeouts[key]
+      if(!this.timeouts[key]) t = me._newTimeout(key,value)
+      t.nextValue = null
+      t.operation = () => bucket.file(key+".json").delete({ignoreNotFound:true})
+      t.promises.push({
+        resolve: () => resolve(true),
+        reject
+      })
+      this.updateTimeout(key)//it may be able to upload so update it
+    })
   },
   getToObj:function(key,obj){
     return this.get(key).then(r => obj[key] = r)
