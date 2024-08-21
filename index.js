@@ -75,6 +75,8 @@ const serverInfo = [
 
 const d = ["2-people","2-people2","Notch","TomMustBe12"]
 
+if(!process.env.REPLIT_DEPLOYMENT) throw new Error("don't run 2 at once")
+
 const express = require('express');
 const app = express();
 var cookieParser = require('cookie-parser');
@@ -1368,7 +1370,7 @@ router.post("/server/wikiPage", getPostData,async function(req,res){
     pwd: req.body.pwd,
     created: Date.now()
   }
-  await fs.promises.writeFile(path,JSON.stringify(page))
+  db.set("wiki/"+req.body.name.replace(/\//g,"."), page)
   res.json({success:true})
   Log("New wiki page called","<a href='/wiki/page/"+page.name+"' target='_blank'>"+page.name.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")+"</a>")
 })
@@ -2913,8 +2915,8 @@ function setPassword(username,pwd){
   })
 }
 
-let serverPort = app.listen(8080, function(){
-  Log("App server is running on port 8080");
+let serverPort = app.listen(8080, '0.0.0.0', function(){
+  Log("Server running");
 });
 
 //WebSocket
