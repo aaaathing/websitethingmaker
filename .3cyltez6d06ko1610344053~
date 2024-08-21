@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Live Website Chat</title>
+    <link rel="icon" href="https://cdn-icons-png.flaticon.com/128/876/876170.png">
+    <link rel="stylesheet" href="https://thingmaker.us.eu.org/style.css">
+    <style>
+      h1 {
+        font-family: Open Sans;
+        text-align: center;
+      }
+      p {
+        font-family: Arial;
+        text-align: center;
+      }
+      body {
+        padding: 25px;
+      }
+      #chat-container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 10px;
+        overflow-y: scroll;
+        height: 400px;
+      }
+      button {
+        background-color: #4caf50;
+        color: #ffffff;
+        border: none;
+        border-radius: 5px;
+        padding: 10px 20px;
+        margin-left: 10px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+
+      button:hover {
+        background-color: #45a049;
+      }
+      input {
+        flex: 1;
+        justify-content: center;
+        border: none;
+        outline: none;
+        font-size: 16px;
+        padding: 0 10px;
+      }
+      .everything-div {
+        justify-content: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="everything-div">
+    <h1>Welcome to the Live WebSocket Chat</h1>
+    <div id="chat-container">
+      <!-- The chat messages will be displayed here -->
+    </div>
+    <input type="text" id="message-input" placeholder="Type your message here..." onkeydown="handleKeyPress(event)"/>
+    <button onclick="sendMessage()">Send</button>
+
+    <script>
+      // WebSocket connection
+      const webSocket = new WebSocket('wss://wschat.awhatcott.repl.co');
+      // Connection count
+      let connectionCount = 0;
+      // Function to append a new message to the chat container
+      function appendMessage(message) {
+        const chatContainer = document.getElementById('chat-container');
+        const newMessage = document.createElement('p');
+        newMessage.textContent = message;
+        chatContainer.appendChild(newMessage);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      }
+
+      function appendHtmlMessage(message) {
+        const chatContainer = document.getElementById('chat-container');
+        const newMessage = document.createElement('p');
+        newMessage.innerHTML = message;
+        newMessage.style.color = "blue";
+        chatContainer.appendChild(newMessage);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      }
+
+      let user = null;
+
+      //Beginning get user
+      
+      // Get url
+      const url = 'https://thingmaker.us.eu.org/server/getUser';
+
+      // Function to fetch the URL content and display it
+      function fetchURLContent() {
+        fetch(url)
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error('Network response was not ok');
+            }
+            return response.text();
+          })
+          .then((text) => {
+            // Display the text content in the 'content' div
+            if(!text) {
+              location.replace("nope.html");
+            } else {
+            user = text;
+            }
+          })
+          .catch((error) => {
+            console.error('Error fetching URL:', error);
+          });
+      }
+
+      // Call the function to fetch thingy
+      fetchURLContent();
+
+      //End get user
+
+      function getUsers() {
+        console.log("not done");
+      }
+
+      // Function to send a message through WebSocket
+      function sendMessage() {
+        const input = document.getElementById('message-input');
+        const message = input.value;
+        if (message.trim() !== '') {
+          if(user === "TomMustBe12") {
+          webSocket.send('[CREATOR] ' + user + ': ' + message);
+          } else if(user === "2-people" || user === "2-people2") {
+          webSocket.send('[ADMIN] ' + user + ': ' + message);
+          } else if(user === null) {
+          webSocket.send('[HACKER] ' + user + ': ' + message);
+          } else {
+          webSocket.send(user + ': ' + message);
+          }
+          input.value = '';
+          appendMessage('You: ' + message);
+        } else {
+          appendHtmlMessage('You can\'t send a message with no characters.')
+        }
+      }
+
+      function sendServerMessage(msg) {
+        const message = msg;
+        
+          webSocket.send('SERVER: ' + message);
+        
+      }
+
+      function handleKeyPress(event) {
+        if (event.key === 'Enter') {
+          sendMessage();
+        }
+      }
+
+      // WebSocket event listeners
+      webSocket.addEventListener('open', (ws) => {
+        appendHtmlMessage('Connected to the chat! Make sure to follow the <a href="rules.html">rules</a>.');
+      });
+
+      webSocket.addEventListener('message', (event) => {
+        const message = event.data;
+        appendMessage(message);
+      });
+
+      webSocket.addEventListener('close', () => {
+        appendMessage('Connection closed!');
+      });
+
+      webSocket.addEventListener('error', (error) => {
+        appendMessage('Error occurred: ' + error.message);
+      });
+    </script>
+    </div>
+  </body>
+</html>

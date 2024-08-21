@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<!--
+Fullscreen OS
+That's the name
+
+v1.2.3
+If you change this version number, also change the one in the text.
+
+Password is: "chicky is the best"
+
+How to use:
+* Click on a icon on the desktop to open a window
+* Drag the top of a window.to move it
+* Click the x of a window to close it
+-->
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Fullscreen OS</title>
+    <style>
+      body, html{
+        height:100%;
+        margin:0;
+        padding:0;
+        
+        overflow:hidden;
+      }
+      body{
+        background:gray
+      }
+      #canvas{
+        display:block;
+        background:white;
+      }
+      
+      #browser{
+        position:absolute;
+        display:flex;
+        flex-direction:column;
+        
+      }
+      #browser iframe{
+        width:100%;
+        height:100%;
+        background:white;
+        border:none;
+      }
+      #browser #input-area{
+        border-bottom:1px solid gray;
+        background:#ccc;
+        padding:10px;
+        display:flex;
+        flex-direction:row;
+      }
+      #browser .back, #browser .forward{
+        padding:5px;
+        border-radius:100%;
+      }
+      #browser .back:hover, #browser .forward:hover{
+        background:#aaa;
+      }
+      #browser input{
+        width:100%;
+        background:100%;
+        border-radius:5px;
+        padding:4px;
+        background:white;
+        border:none;
+        outline:none;
+        font-size:16px;
+      }
+      #browser input:focus{
+        outline:1px solid #0af;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="canvas" oncontextmenu="return false"></canvas>
+    <div id="browser" style="display:none;">
+      <div id="input-area">
+        <div class="back">
+          <svg width="10" height="10">
+            <line x1="0" y1="5" x2="10" y2="5" style="stroke:black;stroke-width:2;" />
+            <line x1="3" y1="2" x2="0" y2="5" style="stroke:black;stroke-width:2;" />
+            <line x1="3" y1="8" x2="0" y2="5" style="stroke:black;stroke-width:2;" />
+          </svg>
+        </div>
+        <div class="forward">
+          <svg width="10" height="10">
+            <line x1="0" y1="5" x2="10" y2="5" style="stroke:black;stroke-width:2;" />
+            <line x1="7" y1="2" x2="10" y2="5" style="stroke:black;stroke-width:2;" />
+            <line x1="7" y1="8" x2="10" y2="5" style="stroke:black;stroke-width:2;" />
+          </svg>
+        </div>
+        <input placeholder="URL">
+      </div>
+      <iframe></iframe>
+    </div>
+    <script>
+      var canvas = document.getElementById("canvas");
+      var ctx = canvas.getContext("2d");
+      
+      window.onresize = function(){
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        ctx.imageSmoothingEnabled = false;
+      }
+      window.onresize();
+      
+      var mouseX = 0, mouseY = 0;
+      window.onmousemove = function(e){
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+      }
+      var mouseDown = false;
+      canvas.onclick = function(){
+        mouseDown = true;
+      }
+      
+      var mousePress = false;
+      canvas.onmousedown = function(){mousePress=true};
+      canvas.onmouseup = function(){mousePress=false};
+      canvas.addEventListener("touchstart", canvas.onmousedown);
+      canvas.addEventListener("touchend", canvas.onmouseup);
+      
+      var TEXT = "text";
+      var HAND = "pointer";
+      var DEFAULT = "auto";
+      function cursor(type){
+        canvas.style.cursor = type;
+      }
+      
+      /*The code for fullscreen os begins here*/
+      
+      function createImage(url){
+        var img = new Image();
+        img.src = url;
+        return img;
+      }
+      
+      var images = {
+        snake:createImage("https://littlebigsnake.com/img/sharing_img.png")
+      }
+      
+      var backgrounds = [
+        "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Bachalpsee_reflection.jpg/250px-Bachalpsee_reflection.jpg",
+        /*"https://www.kasandbox.org/programming-images/animals/birds_rainbow-lorakeets.png",
+        "https://www.kasandbox.org/programming-images/animals/cat.png",
+        "https://www.kasandbox.org/programming-images/animals/dog_sleeping-puppy.png",
+        "https://www.kasandbox.org/programming-images/animals/horse.png",
+        "https://www.kasandbox.org/programming-images/animals/komodo-dragon.png",
+        "https://www.kasandbox.org/programming-images/animals/rabbit.png",
+        "https://www.kasandbox.org/programming-images/animals/shark.png",
+        "https://www.kasandbox.org/programming-images/animals/snake_green-tree-boa.png",
+        "https://www.kasandbox.org/programming-images/landscapes/beach-waves-at-sunset.png",
+        "https://www.kasandbox.org/programming-images/landscapes/beach-sunset.png",
+        "https://www.kasandbox.org/programming-images/landscapes/beach-with-palm-trees.png",
+        "https://www.kasandbox.org/programming-images/landscapes/clouds-from-plane.png",
+        "https://www.kasandbox.org/programming-images/landscapes/fields-of-wine.png",
+        "https://www.kasandbox.org/programming-images/landscapes/lava.png",
+        "https://www.kasandbox.org/programming-images/landscapes/mountain_matterhorn.png",
+        "https://www.kasandbox.org/programming-images/landscapes/mountains-in-hawaii.png",
+        "https://www.kasandbox.org/programming-images/food/bananas.png",
+        "https://www.kasandbox.org/programming-images/food/berries.png",
+        "https://www.kasandbox.org/programming-images/food/cake.png",
+        "https://www.kasandbox.org/programming-images/food/croissant.png",
+        "https://www.kasandbox.org/programming-images/food/fruits.png",
+        "https://www.kasandbox.org/programming-images/food/grapes.png",
+        "https://www.kasandbox.org/programming-images/food/strawberries.png",
+        "https://www.kasandbox.org/programming-images/food/tomatoes.png",
+        "https://www.kasandbox.org/programming-images/animals/cheetah.png",
+        "https://www.kasandbox.org/programming-images/animals/butterfly.png",
+        "https://www.kasandbox.org/programming-images/animals/butterfly_monarch.png",
+        "https://www.kasandbox.org/programming-images/animals/crocodiles.png",
+        "https://www.kasandbox.org/programming-images/animals/dogs_collies.png",
+        "https://www.kasandbox.org/programming-images/animals/fox.png",
+        "https://www.kasandbox.org/programming-images/animals/horse.png",
+        "https://www.kasandbox.org/programming-images/animals/penguins.png",
+        "https://www.kasandbox.org/programming-images/animals/retriever.png",
+        "https://www.kasandbox.org/programming-images/animals/spider.png",
+        "https://www.kasandbox.org/programming-images/landscapes/beach-at-dusk.png",
+        "https://www.kasandbox.org/programming-images/landscapes/beach-in-hawaii.png",
+        "https://www.kasandbox.org/programming-images/landscapes/beach.png",
+        "https://www.kasandbox.org/programming-images/landscapes/crop-circle.png",
+        "https://www.kasandbox.org/programming-images/landscapes/fields-of-grain.png",
+        "https://www.kasandbox.org/programming-images/landscapes/lake.png",
+        "https://www.kasandbox.org/programming-images/landscapes/lotus-garden.png",
+        "https://www.kasandbox.org/programming-images/landscapes/mountains-sunset.png",
+        "https://www.kasandbox.org/programming-images/landscapes/sand-dunes.png",
+        "https://www.kasandbox.org/programming-images/landscapes/waterfall_niagara-falls.png",*/
+      ]
+      var background = new Image()
+      function changeBG(){
+        var randomBG = Math.floor(Math.random()*(backgrounds.length))
+        background.src = backgrounds[randomBG]
+        setTimeout(changeBG, 100000)
+      }
+      changeBG();
+      
+      var battery = navigator.getBattery ? navigator.getBattery() : null;
+      if(battery){
+        battery.then(x => battery=x);
+      }else{
+        battery = {};
+      }
+      
+      function getTime(){
+        var date = new Date();
+        var now = Date.now()
+        var sec = date.getSeconds()
+        var min = date.getMinutes()
+        var hor = date.getHours();
+        var day = date.getDay();
+        var ampm = hor > 12 ? "PM" : "AM"
+        hor = hor % 12; if(hor === 0){hor = 12}
+        var monthDay = date.getDate();
+        var month = date.getMonth()+1;
+        var year = date.getFullYear()
+        
+        var weekday;
+        switch(day){
+          case 1:
+            weekday = "Monday"
+            break;
+          case 2:
+            weekday = "Tuesday"
+            break;
+          case 3:
+            weekday = "Wednesday"
+            break;
+          case 4:
+            weekday = "Thursday"
+            break;
+          case 5:
+            weekday = "Friday"
+            break;
+          case 6:
+            weekday = "Saturday"
+            break;
+          case 7:
+            weekday = "Sunday"
+            break;
+          default:
+            weekday = "Unknown"
+        }
+        
+        var monthName = ["Januaray", "Febuaray", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"][month-1];
+        
+        return{
+          now:now,
+          sec:sec,
+          min:min,
+          hor:hor,
+          day:day,
+          ampm:ampm,
+          weekday:weekday,
+          date:monthDay,
+          month:month,
+          monthName:monthName,
+          year:year
+        }
+      }
+      
+      class OSWindow{
+        constructor(data, x,y,w,h, assignedData){
+          this.x = x || data.windowX || Math.random()*canvas.width;
+          this.y = y || data.windowY || 100;
+          this.w = w || data.windowW || 400;
+          this.h = h || data.windowH || 200;
+          
+          this.closeWindow = false;
+          
+          this.icon = data.icon;
+          this.type = data.type;
+          this.name = data.name;
+          this.data = data.data;
+          if(data.type === "js"){
+            this.init = data.init;
+            this.draw = data.draw;
+            this.vars = Object.assign({}, data.vars);
+            this.onclose = data.onclose;
+            
+            this.init(this.vars, this, assignedData);
+          }
+          if(data.type === "folder"){
+            this.files = data.files;
+          }
+          
+          this.mouseDown = false;
+          this.windowDragged = false;
+          this.dragOffestX = 0;
+          this.dragOffsetY = 0;
+        }
+        render(){
+          var mousex = mouseX - this.x;
+          var mousey = mouseY - this.y;
+          if(mousex < 0)mousex = -1;
+          if(mousey < 0)mousey = -1;
+          
+          ctx.clearRect(this.x, this.y, this.w, this.h)
+          ctx.fillStyle = "#ccc";
+          ctx.fillRect(this.x, this.y, this.w, 30);
+          ctx.strokeStyle = "black";
+          ctx.lineWidth = "4px";
+          ctx.strokeRect(this.x, this.y, this.w, this.h)
+          
+          ctx.fillStyle = "black"
+          ctx.textAlign = "center"
+          ctx.font = "20px Arial"
+          ctx.fillText(this.name, this.x+(this.w/2), this.y+20)
+          
+          if(this.type === "js"){
+            this.draw(this.vars, this);
+          }else if(this.type === "txt"){
+            ctx.font = "20px Arial";
+            ctx.textAlign = "left"
+            var text = this.data.split("\n");
+            for(var i = 0; i<text.length; i++){
+              ctx.fillText(text[i], this.x+10, this.y+60+(i*20))
+            }
+          }else if(this.type === "folder"){
+            var x = this.x-100, y = this.y + 150;
+            for(var i = 0; i<this.files.length; i++){
+              x += 150;
+              if(x+100 > this.x+this.w){
+                x = this.x;
+                y += 150;
+              }
+              var file = this.files[i];
+              icons[file.type](x,y, file.icon);
+              ctx.textAlign = "center";
+              ctx.font = "20px Arial"
+              ctx.strokeStyle = "black";
+              ctx.lineWidth = "4"
+              ctx.strokeText(file.name, x,y);
+              ctx.fillStyle = "white"
+              ctx.fillText(file.name, x,y)
+              
+              var windowHere = windowAt(mouseX, mouseY);
+              if(!windowHere || windowHere === this){
+                if(mouseX > x-50 && mouseY > y-100 && mouseX < x+50 && mouseY < y){
+                  ctx.fillStyle = "#0000ff22";
+                  ctx.fillRect(x-50, y-100, 100, 100);
+                  if(mouseDown){
+                    openWindows.push(new OSWindow(file, Math.random()*canvas.width,100));
+                    mouseDown = false;
+                  }
+                }
+              }
+            }
+          }else{
+            
+          }
+          
+          //close button
+          ctx.beginPath();
+          ctx.strokeStyle = "red";
+          ctx.lineWidth = "2px";
+          ctx.moveTo((this.x+this.w)-30, this.y+10);
+          ctx.lineTo((this.x+this.w)-10, this.y+25);
+          ctx.moveTo((this.x+this.w)-10, this.y+10);
+          ctx.lineTo((this.x+this.w)-30, this.y+25);
+          ctx.stroke()
+          if(mouseX > (this.x+this.w)-30 && mouseX < (this.x+this.w)-10 && mouseY > this.y+10 && mouseY < this.y+25){
+            ctx.fillStyle = "#0000ff22";
+            ctx.fillRect((this.x+this.w)-30, this.y+10, 20, 15);
+            if(mouseDown){
+              mouseDown = false;
+              this.closeWindow = true;
+            }
+          }
+          
+          //drag window
+          if(this.mouseDown !== mousePress){
+            if(mousex > 0 && mousex < this.w-40 && mousey > 0 && mousey < 30 && mousePress && (this === frontWindow() )){
+              this.windowDragged = true;
+              this.dragOffsetX = mousex;
+              this.dragOffsetY = mousey;
+            }
+            if(!mousePress){
+              this.windowDragged = false;
+            }
+            
+            this.mouseDown = mousePress;
+          }
+          if(this.windowDragged){
+            cursor("move")
+            this.x = mouseX - this.dragOffsetX // - (this.w/2);
+            this.y = mouseY - this.dragOffsetY // - 15;
+            mouseDown = false;
+          }
+          
+          if(this.closeWindow && this.onclose) this.onclose(this.vars,this);
+        }
+        hilite(){
+          ctx.fillStyle = "#0000ff22";
+          ctx.fillRect(this.x, this.y, this.w, this.h);
+        }
+      }
+      
+      class Button{
+        constructor(x,y,w,h,label,onclick){
+          this.x = x || 0;
+          this.y = y || 0;
+          this.w = w||w===0 ? w : 100;
+          this.h = h||h===0 ? h : 100;
+          
+          this.label = label || "";
+          this.onclick = onclick;
+          
+          this.border = "transparent";
+          this.background = "black";
+          this.color = "white";
+          
+          this.hoverBackground = "#666"
+          
+          this.fontSize = 30;
+        }
+        render(){
+          ctx.lineWidth = 1;
+          ctx.strokeStyle = this.border;
+          ctx.fillStyle = this.background;
+          ctx.fillRect(this.x,this.y,this.w,this.h);
+          ctx.strokeRect(this.x,this.y,this.w,this.h);
+          
+          var clicked=false;
+          if(mouseX > this.x && mouseY > this.y && mouseX < this.x+this.w && mouseY < this.y+this.h){
+            ctx.fillStyle = this.hoverBackground;
+            ctx.fillRect(this.x,this.y,this.w,this.h);
+            clicked=mouseDown;
+          }
+          
+          ctx.font = this.fontSize+"px Arial";
+          ctx.textAlign = "center";
+          ctx.fillStyle = this.color;
+          ctx.fillText(this.label, this.x+(this.w/2),this.y+this.h-(this.h/3));
+          
+          if(clicked && typeof this.onclick === "function"){
+            this.onclick();
+          }
+          
+        }
+      }
+      
+      var icons = {
+        txt:function(x,y){
+          ctx.strokeStyle = "black";
+          ctx.lineWidth = "2";
+          ctx.fillStyle = "#eee";
+          //ctx.fillRect(x-30,y-80,60,60);
+          
+          ctx.beginPath();
+          ctx.moveTo(x-30, y-80);
+          ctx.lineTo(x-30, y-20);
+          ctx.lineTo(x+30, y-20);
+          ctx.lineTo(x+30, y-70);
+          ctx.lineTo(x+20, y-80);
+          ctx.lineTo(x-30, y-80);
+          ctx.fill();
+          
+          ctx.moveTo(x+30, y-70);
+          ctx.lineTo(x+20, y-70);
+          ctx.lineTo(x+20, y-80);
+          ctx.fill();
+          
+          ctx.lineWidth = "2";
+          ctx.moveTo(x-25, y-75);
+          ctx.lineTo(x+20, y-75);
+          ctx.moveTo(x-25, y-70);
+          ctx.lineTo(x+25, y-70);
+          ctx.moveTo(x-25, y-65);
+          ctx.lineTo(x+25, y-65);
+          ctx.stroke();
+        },
+        folder:function(x,y){
+          ctx.strokeStyle = "black"
+          ctx.lineWidth = "1px";
+          
+          ctx.beginPath()
+          ctx.moveTo(x-40, y-80);
+          ctx.bezierCurveTo(x-10,y-80,x-10,y-80,x-10,y-70)
+          ctx.lineTo(x+40, y-70)
+          ctx.lineTo(x+40, y-30)
+          ctx.lineTo(x-40, y-30)
+          ctx.lineTo(x-40, y-80)
+          ctx.stroke();
+          ctx.fillStyle = "#ffa"
+          ctx.fill();
+        },
+        js:function(x,y, icon){
+          if(icon){
+            icon(x,y)
+            return;
+          }
+          ctx.fillStyle = "white";
+          ctx.fillRect(x-40,y-80,80,60);
+          ctx.strokeStyle = "black";
+          ctx.lineWidth = "1";
+          ctx.strokeRect(x-40,y-80,80,60);
+          ctx.fillStyle = "#aff"
+          ctx.fillRect(x-35, y-75, 30, 50)
+          ctx.strokeStyle = "black";
+          ctx.strokeRect(x+5, y-75, 30, 50)
+          ctx.beginPath();
+          ctx.moveTo(x+10, y-70);
+          ctx.lineTo(x+30, y-70);
+          ctx.moveTo(x+10, y-65);
+          ctx.lineTo(x+30, y-65);
+          ctx.moveTo(x+10, y-60);
+          ctx.lineTo(x+30, y-60);
+          ctx.stroke();
+        }
+      }
+      
+      var files = [
+        {
+          name:"Features",
+          type:"txt",
+          data:"Fullscreen OS\nThat's the name\n\nv1.2.3\n\nHow to use:\n• Click on a icon on the desktop to open a window\n• Drag the top of a window to move it\n• Click the x of a window to close it\n\nText Features:\n• \"\\n\" turns into a new line.\n• You can use almost any character in a text file.",
+          windowW:800,
+          windowH:400,
+          x:1,
+          y:1
+        },
+        {
+          name:"Games",
+          type:"folder",
+          files:[
+            {
+              name:"simple game",
+              type:"js",
+              icon:function(x,y){
+                ctx.fillStyle = "white"
+                ctx.fillRect(x-30, y-80, 60,60)
+                ctx.strokeStyle = "red";
+                ctx.lineWidth = "2";
+                ctx.strokeRect(x-30, y-80, 60, 60);
+              },
+              vars:{score:0},
+              init:function(vars, win){
+                ctx.fillStyle = "red";
+                ctx.fillRect(0,0, canvas.width, canvas.height);
+                win.x = 0;
+                win.y = 0;
+                win.w = canvas.width;
+                win.h = canvas.height;
+              },
+              draw:function(vars, win){
+                ctx.textAlign = "left";
+                ctx.font = "50px Arial";
+                ctx.fillStyle = "black";
+                ctx.fillText("if(mouseIsPressed){", win.x, win.y+100)
+                ctx.fillText("  score = score + 1;", win.x, win.y+150)
+                ctx.fillText("}", win.x, win.y+200);
+
+                if(mousePress){
+                  vars.score ++;
+                }
+
+                if(vars.score > 1000){
+                  ctx.fillStyle = "green"
+                  ctx.fillRect(win.x,win.y+30,win.w, win.h-30)
+                  ctx.fillStyle = "black";
+                  ctx.font = "30px Arial";
+                  ctx.fillText("you win", win.x,win.y+30)
+                }
+
+                ctx.font = "30px Arial";
+                ctx.fillText("score: "+vars.score, win.x+(win.w/2), win.y+50)
+              }
+            },
+            {
+              name:"snake",
+              type:"js",
+              icon:function(x,y){
+                ctx.drawImage(images.snake, x-40, y-80, 80, 40)
+              },
+              vars:{},
+              init:function(vars,win){
+                win.closeWindow = true;
+                open("https://littlebigsnake.com");
+              },
+              draw:function(vars,win){}
+            }
+          ],
+          x:1,
+          y:2
+        },
+        {
+          name:"Web browser",
+          type:"js",
+          vars:{
+            history:["about:blank"],
+            historyIdx:0,
+            prevURL:"about:blank",
+            elem: document.getElementById("browser"),
+            iframe: document.querySelector("#browser iframe"),
+            input: document.querySelector("#browser input")
+          },
+          init:function(vars, win){
+            if(vars.elem.style.display === ""){ //another browser window is open
+              vars.cantOpen = true;
+              win.closeWindow = true;
+              return;
+            }
+            
+            win.x = "0";
+            win.y = 0;
+            
+            vars.elem.style.display = "";
+            vars.elem.style.left = win.x+"px";
+            vars.elem.style.top = win.y+30+"px";
+            vars.elem.style.width = win.w+"px";
+            vars.elem.style.height = win.h-30+"px";
+            
+            vars.iframe.src = "about:blank";
+            
+            vars.input.onkeydown = function(e){
+              if(e.key === "Enter"){
+                var prefixs = ["https://", "http://", "file://", "wws://", "about:"];
+                var hasPrefix = false;
+                for(var i=0; i<prefixs.length; i++){
+                  if(this.value.indexOf(prefixs[i]) === 0){
+                    hasPrefix = true;
+                  }
+                }
+                if(!hasPrefix) this.value = "https://" + this.value;
+                vars.iframe.src = this.value;
+                this.value = vars.iframe.src;
+                this.blur();
+                
+                vars.history.splice(vars.historyIdx+1, vars.history.length - vars.historyIdx);
+              }
+            }
+            
+            document.querySelector("#browser .back").onclick = function(){
+              vars.historyIdx --;
+              if(vars.historyIdx < 0){
+                vars.historyIdx = 0;
+              }
+            }
+            document.querySelector("#browser .forward").onclick = function(){
+              vars.historyIdx ++;
+              if(vars.historyIdx >= vars.history.length){
+                vars.historyIdx = vars.history.length-1;
+              }
+            }
+            
+          },
+          draw:function(vars, win){
+            if(vars.prevX !== win.x){
+              vars.prevX = win.x;
+              vars.elem.style.left = win.x+"px";
+            }
+            if(vars.prevY !== win.y){
+              vars.prevY = win.y;
+              vars.elem.style.top = win.y+30+"px";
+            }
+            
+            var iframeURL = vars.iframe.src;
+            try{  iframeURL = vars.iframe.contentWindow.location.href  }catch{}
+            if(iframeURL !== vars.prevURL){
+              vars.prevURL = iframeURL;
+              vars.input.value = iframeURL;
+              
+              vars.history.push(iframeURL);
+              vars.historyIdx = vars.history.length - 1;
+            }
+            
+            if(vars.prevHistoryIdx !== vars.historyIdx){
+              vars.prevHistoryIdx = vars.historyIdx;
+              vars.iframe.src = vars.history[vars.historyIdx];
+              vars.prevURL = vars.iframe.src;
+              vars.input.value = vars.iframe.src;
+            }
+          },
+          onclose:function(vars,win){
+            if(!vars.cantOpen){
+              vars.elem.style.display = "none";
+            }
+            
+            vars.iframe.src = "";
+          },
+          windowX:0,
+          windowY:0,
+          windowW:canvas.width,
+          windowH:canvas.height-60,
+          x:2,
+          y:1,
+          icon:function(x,y){
+            y -= 60;
+            ctx.strokeStyle = "black";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.ellipse(x, y, 30, 30, 0, 0, 2*Math.PI);
+            ctx.stroke();
+          }
+        },
+        {
+          name:"File explorer",
+          type:"js",
+          vars:{
+            directory:[],
+            files:files,
+            getFilesFrom:function(w){
+              var c = files;
+              for(var i = 0; i < w.length; i++){
+                var d = w[i];
+                c = c[d].files;
+                if(!c){
+                  break;
+                }
+              }
+              return c;
+            }
+          },
+          init:function(vars,win){
+            vars.files = files;
+          },
+          draw:function(vars,win){
+            for(var i = 0; i<vars.files.length; i++){
+              var Y = (i*10) + win.y;
+              var X = win.x;
+              
+              ctx.fillStyle = "white";
+              if(mouseX > X && mouseX < X+win.w && mouseY > Y && mouseY < Y+10){
+                ctx.fillStyle = "#aff";
+              }
+              ctx.fillRect(X,Y,win.w, 10);
+            }
+          },
+          x:1,
+          y:3
+        }
+      ]
+      var openWindows = [];
+      
+      function windowAt(x,y, isIndex){
+        var w = -1;
+        for(var i=0; i<openWindows.length; i++){
+          var win = openWindows[i];
+          if(x > win.x && y > win.y && x < win.x+win.w && y < win.y+win.h){
+            w = i;
+          }
+        }
+        if(isIndex){
+          return w;
+        }
+        return openWindows[w];
+      }
+      function frontWindow(){
+        return openWindows[openWindows.length-1]
+      }
+      function windowGoToFront(n){
+        if((n !== openWindows.length-1) && n > -1){
+          openWindows.push(openWindows.splice(n,1)[0]);
+        }
+      }
+      
+      var prevToolbarWindow = "";
+      var currentToolbarWindow = "";
+      function toolbarWindow(what){
+        if(what === prevToolbarWindow){
+          currentToolbarWindow = "";
+        }else{
+          currentToolbarWindow = what;
+        }
+      }
+      var toolbarButtons = {
+        time: new Button(0,0,120,60,"time",()=>{toolbarWindow("time")}), //x and y set later
+        battery: new Button(0,0,40,60,"",()=>{toolbarWindow("battery")})
+      };
+      function toolbar(){
+        //toolbar
+        ctx.fillStyle = "#222222dd";
+        ctx.fillRect(0, canvas.height-60, canvas.width, 60)
+        for(var i = 0; i<openWindows.length; i++){
+          var type = openWindows[i].type;
+          var x = (i*100)+50, y = canvas.height;
+          icons[type](x+50, y+20, openWindows[i].icon);
+          if(mouseX > x+20 && mouseX < x+80 && mouseY > y-60){
+            ctx.fillStyle = "#0000ff22";
+            ctx.fillRect(x+20, y-60, 60,60);
+            openWindows[i].hilite();
+            if(mouseDown && !windowAt(mouseX, mouseY)){
+              windowGoToFront(i);
+            }
+          }
+        }
+        
+        if(mouseDown){
+          prevToolbarWindow = currentToolbarWindow;
+          currentToolbarWindow = ""; //buttons will replace this if clicked
+        }
+        var time = getTime();
+        toolbarButtons.time.x = canvas.width-120;
+        toolbarButtons.time.y = canvas.height-60;
+        toolbarButtons.time.label = time.hor+":"+(time.min<10?"0"+time.min:time.min)+" "+time.ampm;
+        toolbarButtons.time.render();
+        
+        
+        toolbarButtons.battery.x = canvas.width-120-40;
+        toolbarButtons.battery.y = canvas.height-60;
+        toolbarButtons.battery.render();
+        ctx.strokeStyle = "white";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(canvas.width-120-30, canvas.height-50, 20, 40)
+        ctx.fillStyle = "white";
+        ctx.fillRect(canvas.width-120-25, canvas.height-55, 10, 5);
+        ctx.fillRect(canvas.width-120-30, canvas.height-50+(40-(battery.level*40)), 20, (battery.level*40))
+        
+        
+        if(currentToolbarWindow === "time"){
+          ctx.fillStyle = "black";
+          ctx.fillRect(canvas.width-200,canvas.height-200,200,140);
+          
+          ctx.fillStyle = "white";
+          ctx.font = "50px Arial";
+          ctx.textAlign = "left";
+          ctx.fillText("Time",canvas.width-190, canvas.height-150)
+          
+          ctx.font = "20px Arial";
+          ctx.fillText(time.weekday+"  "+time.hor+":"+(time.min<10?"0"+time.min:time.min)+":"+(time.sec<10?"0"+time.sec:time.sec)+" "+time.ampm, canvas.width-190, canvas.height-80, 180);
+        }
+        
+        if(currentToolbarWindow === "battery"){
+          ctx.fillStyle = "black";
+          ctx.fillRect(canvas.width-260,canvas.height-210,260,150);
+          
+          ctx.fillStyle = "white";
+          ctx.font = "50px Arial";
+          ctx.textAlign = "left";
+          ctx.fillText("Battery",canvas.width-250, canvas.height-160)
+          
+          ctx.font = "20px Arial";
+          ctx.fillText(battery.level*100 + "%", canvas.width-250, canvas.height-130);
+          
+          ctx.fillText("Your battery is "+(battery.charging ? "" : "not ")+"charging", canvas.width-250, canvas.height-100, 240);
+          
+          if(battery.charging){
+            if(battery.level !== 1){
+              ctx.fillText(battery.chargingTime+" seconds until fully charged", canvas.width-250, canvas.height-70, 240);
+            }
+          }else{
+            ctx.fillText(battery.dischargingTime+" seconds until battery is dead", canvas.width-250, canvas.height-70, 240);
+          }
+          
+        }
+      }
+      
+      function OS(){
+        //render the desktop
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(background, 0, 0, canvas.width,canvas.height);
+        
+        //icons
+        for(var i = 0; i<files.length; i++){
+          var file = files[i];
+          var x = file.x * 150, y = file.y * 150;
+          icons[file.type](x,y, file.icon);
+          ctx.textAlign = "center";
+          ctx.font = "20px Arial"
+          ctx.strokeStyle = "black";
+          ctx.lineWidth = "4"
+          ctx.strokeText(file.name, x,y);
+          ctx.fillStyle = "white"
+          ctx.fillText(file.name, x,y)
+          
+          if(!windowAt(mouseX, mouseY)){
+            if(mouseX > x-50 && mouseY > y-100 && mouseX < x+50 && mouseY < y){
+              ctx.fillStyle = "#0000ff22";
+              ctx.fillRect(x-50, y-100, 100, 100);
+              if(mouseDown){
+                openWindows.push(new OSWindow(file));
+              }
+            }
+          }
+        }
+        
+        //windows
+        for(var i = 0; i<openWindows.length; i++){
+          openWindows[i].render();
+          if(openWindows[i].closeWindow){
+            openWindows.splice(i,1);
+            i--;
+          }
+        }
+        
+        //toolbar
+        toolbar();
+        
+        if(mousePress || mouseDown){
+          var windowToFront = windowAt(mouseX, mouseY, true);
+          if((windowToFront !== openWindows.length-1) && windowToFront > -1){
+            openWindows.push(openWindows.splice(windowToFront,1)[0]);
+          }
+        }
+      }
+      
+      var scene = "lock";
+      var blur = 0;
+      var loginBox = "";
+      var loginBoxFocus = false;
+      var loginBoxBlink = 0;
+      function lockScreen(){
+        if(scene === "lock"){
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(background, 0, 0, canvas.width,canvas.height);
+          
+          var time = getTime();
+          
+          var now = time.now
+          var sec = time.sec
+          var min = time.min
+          var hor = time.hor
+          var day = time.day
+          var ampm = time.ampm
+          var weekday = time.weekday;
+          
+          ctx.fillStyle = "white";
+          ctx.font = "100px Arial";
+          ctx.fillText( hor+":"+(min<10?"0"+min:min)+" "+ampm, 10, canvas.height - 100);
+          ctx.font = "50px Arial";
+          ctx.fillText(weekday+", "+time.monthName+" "+time.date, 10, canvas.height - 50);
+          
+          if(mouseDown){
+            scene = "tologin";
+          }
+        }else if(scene === "tologin"){
+          blur += 0.5;
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.filter = "blur("+blur+"px)";
+          ctx.drawImage(background, 0, 0, canvas.width,canvas.height);
+          ctx.filter = "none";
+          
+          var textPos = (blur / 4) * canvas.height;
+          var time = getTime();
+          var now = time.now
+          var sec = time.sec
+          var min = time.min
+          var hor = time.hor
+          var day = time.day
+          var ampm = time.ampm
+          var weekday = time.weekday;
+          ctx.textAlign = "left";
+          ctx.fillStyle = "white";
+          ctx.font = "100px Arial";
+          ctx.fillText( hor+":"+(min<10?"0"+min:min)+" "+ampm, 10, canvas.height - 100 - textPos);
+          ctx.font = "50px Arial";
+          ctx.fillText(weekday+", "+time.monthName+" "+time.date, 10, canvas.height - 50 - textPos);
+          
+          if(blur > 20){
+            scene = "login";
+          }
+        }else if(scene === "login"){
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.filter = "blur(20px)";
+          ctx.drawImage(background, 0, 0, canvas.width,canvas.height);
+          ctx.filter = "none";
+          
+          window.onkeypress = function(e){
+            if(e.key.length === 1){
+              loginBox += e.key;
+            }
+            loginBoxFocus = true;
+          }
+          window.onkeydown = function(e){
+            var key = e.key;
+            if(key === "Backspace" || key === "Delete"){
+              loginBox = loginBox.substring(0, loginBox.length - 1);
+            }
+            if(key === "Enter"){
+              if(loginBox === "chicky is the best"){
+                scene = "toOS"
+              }
+            }
+            loginBoxBlink = 0;
+          }
+          
+          if(loginBoxFocus){
+            ctx.fillStyle = "white";
+            ctx.strokeStyle = "black"
+          }else{
+            ctx.fillStyle = "black";
+            ctx.strokeStyle = "white"
+          }
+          ctx.lineWidth = "2";
+          var boxX = canvas.width/4, boxY = (canvas.height/2) - 30;
+          var boxW = canvas.width/2, boxH = 60;
+          ctx.fillRect(boxX, boxY, boxW, boxH);
+          ctx.strokeRect(boxX, boxY, boxW, boxH);
+          
+          if(loginBoxFocus){ctx.fillStyle = "black"}else{ctx.fillStyle = "white"}
+          ctx.font = "50px Arial";
+          ctx.textAlign = "left";
+          if(loginBox === ""){
+            ctx.fillStyle = "#aaa"
+            ctx.fillText("Password", boxX, boxY+45);
+          }else{
+            ctx.fillText(loginBox, boxX, boxY+45);
+          }
+          
+          loginBoxBlink++;
+          if(loginBoxBlink > 100){
+            loginBoxBlink = 1;
+          }
+          if(loginBoxBlink < 50 && loginBoxFocus){
+            var caretPos = boxX + ctx.measureText(loginBox).width;
+            ctx.beginPath()
+            ctx.moveTo(caretPos, boxY);
+            ctx.lineTo(caretPos, boxY+boxH);
+            ctx.stroke();
+          }
+          
+          if(mouseDown)loginBoxFocus = false;
+          if(mouseX > boxX && mouseX < boxX+boxW && mouseY > boxY && mouseY < boxY+boxH){
+            cursor(TEXT);
+            if(mouseDown){
+              loginBoxFocus = true;
+              loginBoxBlink = 0;
+            }
+          }
+        }else if(scene === "toOS"){
+          window.onkeypress = null;
+          window.onkeydown = null;
+          blur --;
+          if(blur < 1){
+            scene = "os"
+          }
+          
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.filter = "blur("+blur+"px)";
+          ctx.drawImage(background, 0, 0, canvas.width,canvas.height);
+          ctx.filter = "none";
+        }
+      }
+      
+      function updt(){
+        try{
+          cursor(DEFAULT);
+          if(scene === "os"){
+            OS();
+          }else{
+            lockScreen();
+          }
+          mouseDown = false;
+          requestAnimationFrame(updt);
+        }catch(e){
+          alert(e)
+        }
+      }
+      updt();
+    </script>
+  </body>
+</html>

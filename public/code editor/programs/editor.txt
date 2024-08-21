@@ -1,0 +1,176 @@
+{"url":"editor.txt","name":"Script editor","type":"html"}
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Programming language</title>
+        <style>
+          :root{
+            --canv-width:240px;
+            --canv-height:180px;
+          }
+          *{
+            box-sizing:border-box;
+          }
+          body,html{
+            margin:0;
+            padding:0;
+            height:100%;
+          }
+          #display_holder{
+            width:70%;
+            margin:auto;
+          }
+          #display_holder #top_row{
+            width:100%;
+            background:#eee;
+            padding:10px 20px;
+          }
+          #display_holder #top_row span{
+            margin-right:20px;
+          }
+          #display_holder #canvas_holder{
+            width:100%;
+            background:black;
+            border:2px solid #bbb;
+          }
+          #display_holder #canvas_holder canvas{
+            height:calc(1.5 * var(--canv-height) );
+            width:calc(1.5 * var(--canv-width) );
+            margin-left:calc((100% - (1.5 * var(--canv-width) )) / 2);
+            background:white;
+          }
+          #code_holder{
+            margin-top:50px !important;
+            width:70%;
+            height:200px;
+            margin:auto;
+            border:1px solid;
+          }
+          #code_holder #toolbar{
+            background:#eee;
+            padding:10px 20px;
+          }
+          #code_holder #editor{
+            height:100%;
+            outline:none;
+          }
+        </style>
+    </head>
+    <body>
+      <div id="display_holder" >
+        <div id="top_row">
+          <span onclick="goTo('code')">Go to code</span>
+          <span>Start</span>
+        </div>
+        <div id="canvas_holder">
+            <canvas id="result_display" width="240" height="180"></canvas>
+        </div>
+      </div>
+      
+      <div id="code_holder" style="display:none;">
+        <div id="toolbar">
+          <span onclick="goTo('stage')">Close code</span>
+        </div>
+        <div id="editor" contenteditable>
+          Code
+        </div>
+      </div>
+      
+      <script>
+        function getTextNodeAtPosition(root, index){
+            const NODE_TYPE = NodeFilter.SHOW_TEXT;
+            var treeWalker = document.createTreeWalker(root, NODE_TYPE, function next(elem) {
+                if(index > elem.textContent.length){
+                    index -= elem.textContent.length;
+                    return NodeFilter.FILTER_REJECT
+                }
+                return NodeFilter.FILTER_ACCEPT;
+            });
+            var c = treeWalker.nextNode();
+            return {
+                node: c? c: root,
+                position: index
+            };
+        }
+        function SyntaxHilite(code){
+            var colors = [
+              {
+                style:"color:purple;",
+                syntaxs:["function","var","let","const","true","false"]
+              },
+              {
+                style:"color:blue;",
+                syntaxs:["if","else","for","while","new","1","2","3","4","5","6","7","8","9","0"]
+              },
+              {
+                style:"color:#0aa;",
+                syntaxs:["this", "window", "document", "Number", "String", "Bollean"]
+              }
+            ]
+            
+            if(typeof code !== "string"){
+              code = String(code)
+            }
+            
+            code = code.split("\"")
+            var quot
+            for(quot = 0; quot < code.length; quot++){
+              if( (quot % 2) === 0){
+                code[quot] += "<span style=\"color:green;\">"
+              }else if(code[quot+1] || code[quot+1]===0){
+                code[quot+1] = "</span>" + code[quot+1]
+              }
+            }
+            code = code.join("\"")
+            if(quot % 2 === 1){
+              code += "</span>"
+            }
+            
+            
+            for(var coln = 0; coln < colors.length; coln++){
+              var color = colors[coln];
+              var syntaxs = color.syntaxs;
+              for(var stxn = 0; stxn < syntaxs.length; stxn++){
+                var regexp = new RegExp(syntaxs[stxn], "g")
+                code = code.replace(regexp, "<span style='"+color.style+"'>"+syntaxs[stxn]+"</span>")
+              }
+            }
+            
+            return code
+          }
+        
+        var canvas =  document.getElementById("result_display")
+        var editor = document.getElementById("editor")
+        var codeHolder = document.getElementById("code_holder")
+        var stage = document.getElementById("display_holder")
+        editor.oninput = function(){
+          var selection = window.getSelection();
+          var range = selection.getRangeAt(0);
+          range.setStart(this, 0);
+          var len = range.toString().length;
+          
+          
+          this.innerHTML = SyntaxHilite(this.textContent)
+          
+          var pos = getTextNodeAtPosition(this, len);
+          selection.removeAllRanges();
+          var range = new Range();
+          range.setStart(pos.node ,pos.position);
+          selection.addRange(range);
+        }
+        
+        function goTo(what){
+          if(what === "code"){
+            stage.style.display="none"
+            codeHolder.style.display="block"
+          }
+          if(what === "stage"){
+            stage.style.display="block"
+            codeHolder.style.display="none"
+          }
+        }
+        
+      </script>
+    </body>
+</html>

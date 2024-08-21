@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html><head>
+    <title>html editor</title>
+    <meta charset="UTF-8">
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body,html{
+        scroll-behavior:smooth;
+        height:100%;
+      }
+      /* Style the body */
+      body {
+        font-family: Arial, Helvetica, sans-serif;
+        margin: 0;
+      }
+      .navbar{
+        overflow:hidden;
+        background:#333;
+        height:47px;
+      }
+      .navbar a{
+        float: left;
+        display: block;
+        color: white;
+        text-align: center;
+        padding: 14px 20px;
+        text-decoration: none;
+        cursor:pointer;
+      }
+      /* Right-aligned link */
+      .navbar .right {
+        float: right;
+      }
+      .navbar .logo{
+        background:#1abc9c;
+      }
+      .navbar input{
+        padding: 6px 10px;
+        margin:8px 20px;
+        float:left;
+      }
+      /* Change color on hover */
+      .navbar a:hover {
+        background-color: #ddd;
+        color: black;
+      }
+      
+      #contentBG{
+        background:#eee;
+        padding:0px 10%;
+        min-height:calc(100% - 47px);
+      }
+      #content{
+        background:white;
+        padding:10px 20px;
+        height:100%;
+      }
+      h1{
+        font-size:50px;
+        margin:0px;
+        text-align:center;
+      }
+
+      #container{
+        margin:50px 50px;
+        border:1px solid gray;
+      }
+      #editor{
+        height:400px;
+        width:calc(100% - 500px);
+        float:left;
+      }
+      #iframe{
+        height:400px;
+        width:500px;
+        display:inline-block;
+        border-left:1px solid gray;
+      }
+      #bottomContainer{
+        padding:10px;
+        border-top:1px solid gray;
+      }
+      button{
+        padding:10px 20px;
+        border-radius:13px;
+        border:8px double white;
+        background:blue;
+        color:white;
+        cursor:pointer;
+      }
+      button:hover{
+        border:8px solid white;
+      }
+      #bottom{
+        margin:50px;
+      }
+      #settingsModalBG{
+        display:none;
+        z-index:10;
+        position:fixed;
+        top:0;
+        left:0;
+        background:rgba(0,0,0, 50%);
+        width:100%;
+        height:100%;
+      }
+      #settingsModal{
+        margin:5%;
+        background:white;
+        padding:20px;
+      }
+      #settingsModal{
+        font-size:30px;
+        line-height:50px;
+      }
+    </style>
+  </head>
+  <body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js"></script>
+    <div id="contentBG">
+      <div id="content">
+        <h1>HTML Editor</h1>
+        <a href="Programs.html">My Programs</a>
+
+        <div id="container">
+          <div id="editor"></div>
+          <iframe id="iframe" frameborder="0"></iframe>
+          <br>
+          <div id="bottomContainer">
+            <button id="save">Save</button>
+            <button id="delete">Delete</button>
+            <button id="restart" onclick="update()">Reload</button>
+          </div>
+        </div>
+        <div id="bottom">
+          <button id="settings">Settings</button>
+        </div>
+      </div>
+    </div>
+    <div id="settingsModalBG">
+      <div id="settingsModal">
+        <h1>Settings</h1>
+        
+        <label for="width">Width</label>
+        <select id="width" value="500">
+          <option value="400">400</option>
+          <option value="500">500</option>
+          <option value="600">600</option>
+        </select><br>
+
+        <label for="height">Height</label>
+        <select id="height" value="400">
+          <option value="400">400</option>
+          <option value="500">500</option>
+          <option value="600">600</option>
+        </select><br>
+
+        <button id="settingConfirm">OK</button>
+      </div>
+    </div>
+    <script src="/assets/common.js"></script>
+    <script>
+      function setup(){
+        window.editor = ace.edit("editor");
+        editor.getSession().setMode("ace/mode/html");
+        editor.setValue(`<!DOCTYPE html>
+<html>
+  <head>
+    <title>Webpage</title>
+    <meta charset="UTF-8">
+  </head>
+  <body>
+    
+  </body>
+</html>`,1); //1 = moves cursor to end
+
+        editor.getSession().on('change', function() {
+          update();
+        });
+
+        editor.focus();
+  
+  
+        editor.setOptions({
+          fontSize: "15px",
+          showLineNumbers: true,
+          showGutter: true,
+          vScrollBarAlwaysVisible:false,
+          enableBasicAutocompletion: true, 
+          enableLiveAutocompletion: true
+        });
+
+        editor.setShowPrintMargin(true);
+        editor.setBehavioursEnabled(true);
+      }
+      function update(){
+        var idoc = document.getElementById("iframe").contentWindow.document;
+        idoc.open();
+        idoc.write(editor.getValue());
+        idoc.close();
+      }
+      function getParameterByName(name, url = window.location.href) {
+        name = name.replace(/[\[\]]/g, '\\$&');
+        var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+        results = regex.exec(url);
+        if (!results) return null;
+        if (!results[2]) return '';
+        return decodeURIComponent(results[2].replace(/\+/g, ' '));
+      }
+
+      function updatLocalStorage(arr){
+        arr = arr.join("|");
+        localStorage.setItem("Programs", arr);
+      }
+
+      window.onload=function(){
+        setup();
+        
+        var save = document.getElementById("save");
+        var delet = document.getElementById("delete");
+
+        var param = getParameterByName("program");
+        var program = localStorage.getItem("Programs");
+        if(program && param){
+          program = program.split("|");
+          editor.setValue(unescape(program[parseInt(param)]));
+        }
+
+        save.onclick=function(){
+          var program = localStorage.getItem("Programs");
+          if((!program)&&(program !== "")){program=""};
+          program = program.split("|");
+
+          var which = parseInt(param);
+          program[which] = editor.getValue();
+          if(param){
+            program[which] = escape(program[which]);
+          }else{
+            program.push(escape(editor.getValue()) );
+            alert("Saved as new");
+            window.location.href="html.html?program="+(program.length-1);
+          }
+
+          updatLocalStorage(program);
+        }
+        delet.onclick=function(){
+          if(confirm("Are you sure you want to delete this program?")){
+            var program = localStorage.getItem("Programs");
+            program = program.split("|");
+
+            program.splice(parseInt(param),1);
+            updatLocalStorage(program);
+            
+            window.location.href="Programs.html";
+          }
+        }
+
+        var settingBtn = document.getElementById("settings");
+        settingBtn.onclick=function(){
+          document.getElementById("settingsModalBG").style.display="block";
+          
+        };
+
+        var settingConfirm = document.getElementById("settingConfirm");
+        settingConfirm.onclick=function(){
+          document.getElementById("settingsModalBG").style.display="";
+          var iframe = document.getElementById("iframe");
+          var editor = document.getElementById("editor");
+
+          var w = document.getElementById("settingsModalBG").getElementsByTagName("select")[0].value;
+          var h = document.getElementById("settingsModalBG").getElementsByTagName("select")[1].value;
+
+          editor.style.width = "calc(100% - " +w+ "px)";
+          editor.style.height = h+"px";
+
+          iframe.style.width = w+"px";
+          iframe.style.height = h+"px";
+        };
+      }
+
+     window.onbeforeunload = function(){
+       //return "Are you sure you want to leave?";
+     }
+    </script>
+  </body>
+</html>

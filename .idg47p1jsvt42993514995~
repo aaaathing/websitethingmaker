@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<button id="stuff">Generate name</button>
+<div id="names"></div>
+<script>
+  async function randomUsername(){
+    let {default:wordGenerator} = await import("/assets/word.js")
+    let str = ""
+    for(let i=0; i<10; i++){
+      str += wordGenerator.generateName()+"<br>"
+    }
+    document.querySelector("#names").innerHTML = str
+  }
+  document.querySelector("#stuff").onclick = randomUsername
+</script>

@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>TV Guys</title>
+      <style>
+        body,html{
+          margin:0px;
+          padding:0px;
+        }
+        #navigation{
+          position:sticky;
+          top:0px;
+          left:0px;
+          background:lightgray;
+          padding:20px;
+        }
+        #navigation h1{
+          margin:0px;
+          z-index:10;
+          margin-bottom:20px;
+        }
+        #navigation .navigate{
+          background:lightgray;
+          padding:10px;
+          color:black;
+          cursor:pointer;
+          transition:0.5s;
+        }
+        #navigation .navigate:hover{
+          background:gray;
+        }
+        #menu{
+          padding:10px;
+        }
+        .videoFit{
+          width:100%;
+          height:100%;
+        }
+        #watchContainer{
+          padding:10px;
+        }
+        #watchContainer #video{
+          position:relative;
+        }
+        #watchContainer #vidSide{
+          width:70%;
+          height:calc(100% - 50px);
+          float:left;
+        }
+        #watchContainer #vidBG{
+          position:relative;
+          background:black;
+          width:100%;
+        }
+        #watchContainer #vidSide #vidTitle{
+          margin:0px;
+        }
+        #watchContainer #playStatusIcon{
+          color:white;
+          background:black;
+          position:absolute;
+          top:50%;
+          left:40%;
+          padding:10px;
+        }
+        #watchContainer #side{
+          color:black;
+        }
+        #watchContainer #side #nextVid{
+          background:lightgray;
+          padding:10px;
+          cursor:pointer;
+        }
+        #watchContainer #side #nextVid:hover{
+          background:gray;
+        }
+        #youtube{
+          padding:10px;
+        }
+        #youtube #ytFrame{
+          border:1px solid black;
+        }
+        #youtube #vidSide{
+          float:left;
+        }
+        .vidBtn{
+          width:200px;
+          height:100px;
+        }
+        .vidDiv{
+          cursor:pointer;
+          display:inline-block;
+          border:1px solid lightgray;
+        }
+        .vidDiv span{
+          color:blue;
+          margin:0px 10px;
+        }
+        .vidDiv:hover span{text-decoration:underline;}
+        .vidDiv video{
+          width:200px;
+          height:100px;
+          display:block;
+        }
+      </style>
+    </head>
+    <body>
+      <div id="navigation">
+        <h1>TV Guys</h1>
+        <a class="navigate" onclick="closeVid()">Home</a>
+      </div>
+      
+      <div id="menu">
+        <h3>Free videos you can watch</h3>
+      </div>
+        
+      <div id="watchContainer">
+        <div id="vidSide">
+          <div id="vidBG">
+            <video class="videoFit" id="video" onclick="togglePlay()" controls>
+              <source id="vidSrc">
+            </video>
+            <div id="playStatusIcon"></div>
+          </div><br>
+          <h2 id="vidTitle"></h2>
+        </div>
+        <div id="side">
+          <h3>Next video:</h3>
+          <a id="nextVid"></a>
+        </div>
+      </div>
+      
+      <div id="youtube">
+        <div id="vidSide">
+          <iframe id="ytFrame" width="640" height="360" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+          <h2 id="ytTitle"></h2>
+        </div>
+        <div id="side">Nothing here</div>
+      </div>
+        
+          <script>
+            //our free videos
+            var videos=[
+                {
+                  name:"Intro to programming",
+                  url:"https://cdn.kastatic.org/ka-youtube-converted/FCMxA3m_Imc.mp4/FCMxA3m_Imc.mp4"
+                },{
+                  name:"Forset on beach",
+                  url:"https://cdn.videvo.net/videvo_files/video/free/2017-08/small_watermarked/170724_15_Setangibeach_preview.webm"
+                },{
+                  name:"Easy obsidian",
+                  url:"file:///C:/users/dongwei/desktop/Minecraft_files/Videos/obisdian.mp4"
+                },{
+                  name:"Quick platformer",
+                  url:"file:///C:/users/dongwei/desktop/Minecraft_files/Videos/platformer.mp4"
+                },{
+                  name:"Music",
+                  url:"file:///C:/users/dongwei/desktop/Minecraft_files/Music/Cold Blue - Astron.mp3"
+                }
+            ];
+            //youtube videos
+            var youtubes=[
+                {
+                  name:"20 Stupid Minecraft Things that Actually Work",
+                  url:"https://www.youtube.com/embed/4ywa8hOVgss"
+                },{
+                  name:"Fastest Appel Speedruns | Jan 2021",
+                  url:"https://www.youtube.com/embed/gqcc0IyBaFg"
+                },{
+                  name:"MINECRAFT BLOCKS VS REAL LIFE ROCKS",
+                  url:"https://www.youtube.com/embed/CbAm9dafWls"
+                },{
+                  name:"",
+                  url:"https://www.youtube.com/embed/ugdOOzWlvsE"
+                },{
+                  name:"Rick Astley steps on stickbug lol",
+                  url:"https://www.youtube.com/embed/jxuWJWr80Tg"
+                },{
+                  name:"Rick Astley eats stickbug lol",
+                  url:"https://www.youtube.com/embed/nJpiAhYLsvQ"
+                },{name:"stickbug on Rick Astley's head",url:"https://www.youtube.com/embed/gqUuFhk_Or4"}
+            ];
+            //put buttons for videos
+            var i;
+            for(i=0; i<videos.length; i++){
+                var btn=document.createElement("div");
+                btn.setAttribute("onclick","playVid("+(i)+")" );
+                btn.setAttribute("class","vidDiv");
+
+                var vid = document.createElement("video")
+                vid.src = videos[i].url
+                btn.appendChild(vid)
+
+                var tit = document.createElement("span")
+                tit.innerHTML=videos[i].name;
+                btn.appendChild(tit)
+                
+                document.getElementById("menu").appendChild(btn)
+            }
+
+            document.getElementById("menu").innerHTML+="<h3>Better</h3>";
+            for(i=0; i<youtubes.length; i++){
+                var btn=document.createElement("button");
+                btn.innerHTML=youtubes[i].name;
+                btn.setAttribute("onclick","playYoutube("+(i)+")" );
+                btn.setAttribute("class","vidBtn");
+                
+                document.getElementById("menu").appendChild(btn)
+            }
+            
+            
+            //current video
+            var cuVideo=0;
+            
+            //elements
+            var youtube = document.getElementById("youtube");
+            var ytFrame = document.getElementById("ytFrame");
+            var ytTitle = document.getElementById("ytTitle");
+
+            var video = document.getElementById("video");
+            var vidContain=document.getElementById("watchContainer");
+            var vidSrc=document.getElementById("vidSrc");
+            var menu=document.getElementById("menu");
+            var vidClickIcon=document.getElementById("playStatusIcon");
+            var nextVid=document.getElementById("nextVid");
+            var vidTitle=document.getElementById("vidTitle");
+            
+            //hide stuff
+            vidContain.style.display="none";
+            youtube.style.display="none";
+            vidClickIcon.style.display="none";
+            
+            //when video ends
+            video.addEventListener("ended",playNextVid)
+            
+            //functions
+            function playVid(n){
+                cuVideo=n;
+                var theVideo=videos[n];
+                var theNextVid=videos[n + 1];
+                
+                menu.style.display="none";
+                youtube.style.display="none";
+                
+                vidSrc.src=theVideo.url;
+                video.load();
+                
+                vidContain.style.display="";
+                
+                vidTitle.innerHTML=theVideo.name;
+                document.title=theVideo.name;
+                
+                if(theNextVid){
+                    nextVid.innerHTML=theNextVid.name;
+                    nextVid.onclick=function(){
+                        playNextVid();
+                    };
+                }
+            }
+
+
+            function playYoutube(n){
+                var theVideo=youtubes[n];
+                
+                menu.style.display="none";
+                vidContain.style.display="none";
+                
+                ytFrame.src=theVideo.url;
+                
+                youtube.style.display="";
+
+                ytTitle.innerHTML=theVideo.name;
+                document.title=theVideo.name;
+            }
+            function playNextVid(){
+                if(videos[cuVideo+1]){
+                    playVid(cuVideo+1);
+                }
+            }
+            function closeVid(){
+                document.title="Tv Guys";
+                vidContain.style.display="none";
+                youtube.style.display="none";
+                menu.style.display="";
+                ytFrame.src="";
+                video.pause();
+                
+            }
+            function togglePlay(){
+                if(video.paused){
+                    //video.play()
+                    
+                    vidClickIcon.innerHTML="Playing";
+                    vidClickIcon.style.display="block";
+                    
+                    setTimeout(function(){
+                        vidClickIcon.style.display="none";
+                    },500)
+                }else{
+                    //video.pause
+                    
+                    vidClickIcon.innerHTML="Paused";
+                    vidClickIcon.style.display="block";
+                    
+                    setTimeout(function(){
+                        vidClickIcon.style.display="none";
+                    },500)
+                }
+                
+            }
+        </script>
+  </body>
+</html>

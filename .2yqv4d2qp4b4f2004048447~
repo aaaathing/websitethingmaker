@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Randomizer</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="assets/common.css">
+    <style>
+      h1{
+        font-size:50px;
+        margin:0px;
+        text-align:center;
+      }
+      table, td, th{
+        border:1px solid black;
+      }
+      table{
+        width:100%;
+      }
+      td,th{
+        padding:10px 20px;
+      }
+      table input{
+        width:100%;
+      }
+      td, th{
+        overflow-wrap: break-word;
+        word-wrap: break-word;
+        word-break: break-all;
+        table-layout: fixed;
+      }
+      .selected{
+        background:yellow;
+      }
+
+      hr{
+        margin:30px 0;
+        border:2px outset #aaa;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="contentBG">
+      <div id="content">
+        <h1>Awesome Randomizer!</h1>
+        <span id="number">The random number from 0 to 1</span><hr>
+        <h3>Choose your minimum and maximum</h3>
+        <label for="min">Min: </label>
+        <input id="min" type="number"><br>
+        <label for="max">Max: </label>
+        <input id="max" type="number"><br>
+        <span id="minmaxnum">The random number between min and max</span><hr>
+        <h3>Pick a random thing from a list</h3>
+        <table id="list">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Value</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table><br>
+        <span id="listRes">The one picked from the list</span><hr>
+        <button onclick="main()">Randomize!</button>
+      </div>
+    </div>
+    <script src="/assets/common.js"></script>
+    <script>
+      function minmax(min,max,n){
+        return (n*(max-min))+min
+      }
+      function main(){
+        var n = Math.random()
+        document.querySelector("#number").innerHTML = "The random number from 0 to 1 is "+n
+
+        var min = parseInt(document.querySelector("#min").value)
+        var max = parseInt(document.querySelector("#max").value)
+        document.querySelector("#minmaxnum").innerHTML = "The random number from "+min+" to "+max+" is "+minmax(min,max, n)+" and the short number is "+Math.round(minmax(min,max, n))
+
+        if(list.length){
+          updateList()
+          var n = Math.round(minmax(0,list.length-1, n))
+          document.querySelectorAll("#list tbody tr")[n].classList.add("selected")
+
+          document.querySelector("#listRes").innerHTML = "The one picked from the list is "+list[n]
+        }
+      }
+
+      var tb = document.querySelector("#list tbody")
+      var list = []
+      function updateList(){
+        var str = ""
+        for(var i=0; i<list.length; i++){
+          str += 
+`<tr>
+  <td>${i}</td>
+  <td>${list[i]} <a onclick="deleteListItem(${i})" style="float:right;">Delete</a> </td>
+</tr>`
+        }
+        str += "<tr><td colspan='2'><a id='newListItemLink' onclick='addListInput()'>New</a></td></tr>"
+        tb.innerHTML = str
+      }
+      updateList()
+      function addListInput(){
+        var a = document.querySelector("#newListItemLink")
+        a.outerHTML = `<input id="newListItemInput" placeholder="New Item" onkeydown="if(event.key==='Enter') addListItem(this.value)">`
+        a = document.querySelector("#newListItemInput")
+        a.focus()
+      }
+      function addListItem(v){
+        list.push(v)
+        updateList()
+      }
+      function deleteListItem(i){
+        list.splice(i,1)
+        updateList()
+      }
+    </script>
+  </body>
+</html>

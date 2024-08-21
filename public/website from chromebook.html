@@ -1,0 +1,197 @@
+<!doctype html>
+<html>
+	<head>
+		<title>My website</title>
+		<style>
+			body, html{
+				margin:0;
+				padding:0;
+				scroll-behavior:smooth;
+			}
+			.header {
+  			padding: 80px; 
+  			text-align: center; 
+  			background: #1abc9c; /* green background */
+  			color: white; 
+			}
+			/* Style the top navigation bar */
+			.navbar {
+  			overflow: hidden; /* Hide overflow */
+  			background-color: #333; /* Dark background color */
+			}
+
+			/* Style the navigation bar links */
+			.navbar a {
+			  float: left; /* Make sure that the links stay side-by-side */
+			  display: block; /* Change the display to block, for responsive reasons */
+			  color: white; /* White text color */
+			  text-align: center; /* Center the text */
+			  padding: 14px 20px; /* Add some padding */
+			  text-decoration: none; /* Remove underline */
+			}
+
+			/* Right-aligned link */
+			.navbar a.right {
+  			float: right; /* Float a link to the right */
+			}
+
+			/* Change color on hover/mouse-over */
+			.navbar a:hover {
+  			background-color: #ddd; /* Grey background color */
+  			color: black; /* Black text color */
+			}
+			.current{
+				background:green;
+				color:white!important;
+			}
+			/* Ensure proper sizing */
+			* {
+  			box-sizing: border-box;
+			}
+
+			/* Column container */
+			.row {
+  			display: flex;
+  			flex-wrap: wrap;
+			}
+			/* Create two unequal columns that sits next to each other */
+			/* Sidebar/left column */
+			.side {
+  			flex: 30%; /* Set the width of the sidebar */
+  			background-color: #f1f1f1; /* Grey background color */
+  			padding: 20px; /* Some padding */
+			}
+/* Style the search box */
+#mySearch {
+  width: 100%;
+  font-size: 18px;
+  padding: 11px;
+  border: 1px solid #ddd;
+}
+
+/* Style the navigation menu */
+#myMenu {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* Style the navigation links */
+#myMenu li a {
+  padding: 12px;
+  text-decoration: none;
+  color: black;
+  display: block
+}
+
+#myMenu li a:hover {
+  background-color: #bbb;
+}
+			/* Main column */
+			.main {
+  			flex: 70%; /* Set the width of the main content */
+  			background-color: white; /* White background color */
+  			padding: 20px; /* Some padding */
+			}
+			/* Responsive layout - when the screen is less than 700px wide, make the two columns stack on top of each other instead of next to each other */
+			@media screen and (max-width: 700px) {
+  			.row {
+    			flex-direction: column;
+  			}
+			}
+
+			/* Responsive layout - when the screen is less than 400px wide, make the navigation links stack on top of each other instead of next to each other */
+			@media screen and (max-width: 400px) {
+  			.navbar a {
+    			float: none;
+    			width: 100%;
+  			}
+			}
+			.footer {
+  			padding: 20px; /* Some padding */
+  			text-align: center; /* Center text*/
+  			background: #ddd; /* Grey background */
+			}
+			#img1{
+				background-image:url("file:///home/chronos/u-99df7cdf98d8d7c88eddaf64da4876e23e35a834/MyFiles/icons/tree.jpg");
+				height:500px;
+				font-size:50px;
+				-webkit-text-stroke: 2px black;
+				color:white;
+				text-align: center;
+				padding: 50% 0;
+				background-repeat:no-repeat;
+			}
+			.coolrot{
+				border:10px ridge gray;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="header">
+			<h1>My awesome website</h1>
+			<p>A website created by me that I want to make.</p>
+		</div>
+		<div class="navbar">
+  		<a href="#" class="current">Home</a>
+  		<a href="#">Ooh</a>
+  		<a href="#">Ahh</a>
+  		<a href="#" class="right">Login</a>
+		</div>
+		<div class="row">
+  		<div class="side">
+				
+				<input type="text" id="mySearch" onkeyup="myFunction()" placeholder="Search.." title="Type in a category">
+				
+				<ul id="myMenu">
+					<li><a href="#" class="current">Website HOME</a></li>
+  				<li><a href="#">HTML</a></li>
+  				<li><a href="#">CSS</a></li>
+  				<li><a href="#">JavaScript</a></li>
+  				<li><a href="#">PHP</a></li>
+  				<li><a href="#">Python</a></li>
+					<li><a href="#">jQuery</a></li>
+  				<li><a href="#">SQL</a></li>
+  				<li><a href="#">Bootstrap</a></li>
+  				<li><a href="#">Node.js</a></li>
+					<li><a href="#lilguy">Meet Little Guy</a></li>
+				</ul>
+				<script>
+function myFunction() {
+  // Declare variables
+  var input, filter, ul, li, a, i;
+  input = document.getElementById("mySearch");
+  filter = input.value.toUpperCase();
+  ul = document.getElementById("myMenu");
+  li = ul.getElementsByTagName("li");
+
+  // Loop through all list items, and hide those who don't match the search query
+  for (i = 0; i < li.length; i++) {
+    a = li[i].getElementsByTagName("a")[0];
+    if (a.innerHTML.toUpperCase().indexOf(filter) > -1) {
+      li[i].style.display = "";
+    } else {
+      li[i].style.display = "none";
+    }
+  }
+}
+				</script>
+			</div>
+  		<div class="main">
+				<p>Hey! What's up? You wanna play??? Yah, let's do it!!!</p>
+				<p>Hi! Click <a href="https://w3schools.com">ME</a> to get surprised!</p>
+				<p>Now scroll down to find that guy</p>
+				<p id="img1">Scroll down</p>
+				<img id="lilguy" src="file:///home/chronos/u-99df7cdf98d8d7c88eddaf64da4876e23e35a834/MyFiles/icons/little%20guy.png"> Hi, My name is Little Guy
+				<hr>
+				<p>Oooh, his name is Little Guy!!! How cute!!!</p>
+				<div class="coolrot">Ahh, the 3d texture!</div>
+			</div>
+		</div>
+		<div class="footer">
+  		<h2>Oohhhh!!! You read 'em all!!! Your winning like a winston!!!</h2>
+			<p>What is a winston anyways???</p>
+			<h4>Introducing the <a href="https://youtu.be">Website</a> :) you see? a happy face. how nice</h4>
+		</div>
+	</body>
+</html>

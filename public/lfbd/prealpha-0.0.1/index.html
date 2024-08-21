@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<title>Leafbuild</title>
+<meta charset="utf-8">
+<style>
+	*{
+		box-sizing: border-box;
+	}
+	body,html{
+		margin:0;
+		width:100%;
+		height:100%;
+		font-family:serif;
+		font-size:24px;
+		overflow:hidden;
+	}
+	button{
+		background:#aaa;
+		color:black;
+		padding:32px;
+		border:2px solid #444;
+		font-size:24px;
+		font-family:serif;
+		cursor:pointer;
+	}
+	button:hover{
+		background:lightgreen;
+		color:green;
+		border-color:brown;
+	}
+	.screen{
+		position:absolute;
+		top:0;
+		left:0;
+		width:100%;
+		height:100%;
+		background:white;
+	}
+	.screen.full{
+		padding:16px;
+		overflow:auto;
+		text-align:center;
+	}
+	.screen.full button{
+		width:100%;
+	}
+	.screen.center{
+		display: flex;
+		flex-direction: column;
+  	align-items: center;
+		justify-content: space-between;
+		padding:10%;
+	}
+	.screen.center button{
+		width:50%;
+	}
+	.hidden{display: none!important;}
+</style>
+<script type="json" id="translate">
+{
+"title":"Leafbuild",
+"connectionLost":"Connection lost!",
+"back":"Back",
+"connecting":"Connecting...",
+"resume":"Resume",
+"exit":"Exit"
+}
+</script>
+<div id="errorScreen" style="position:absolute;z-index:100;top:0;left:0;width:100%;height:100%;display:none;background:darkblue;color:white;overflow-wrap: break-word;overflow:auto;padding:16px;font-family:monospace;">
+	<script>
+		let errorScreen = document.querySelector("#errorScreen")
+    // If there is an error, show error screen
+		errorScreen.innerHTML = "<h1>Error!</h1><div id='errorData'></div><br><br><button onclick='errorScreen.style.display=\"none\"'>Hide</button>"
+		let errorData = document.querySelector("#errorData")
+    const errors = []
+    function logError(e){
+      if(typeof e === "string") e = {message:e}
+			e.asdf_error_time = Date.now()
+      errors.push(e)
+			let html = "<br><div style='border:1px solid white; padding:8px;'>"
+			if(e.stack){
+				html += e.stack.replace(/\n/g,"<br>").replace(/ /g,"&nbsp;")
+			}else{
+				html += e.message
+				if(e.lineno || e.colno) html += "<br>Error occured at "
+				if(e.lineno) html += "line "+e.lineno
+				if(e.colno) html += " column "+e.colno
+			}
+			html += "</div>"
+			errorData.insertAdjacentHTML('beforeend',html)
+      errorScreen.style.display = "block"
+    }
+    addEventListener("error", logError)
+		addEventListener("unhandledrejection", e => logError(e.reason))
+	</script>
+</div>
+<div id="mainMenu" class="screen full">
+	<h1 data-translate="title"></h1>
+	<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quid sequatur, quid repugnet, vident. Nulla profecto est, quin suam vim retineat a primo ad extremum. Immo videri fortasse. Non enim, si omnia non sequebatur, idcirco non erat ortus illinc. Duo Reges: constructio interrete. Sic vester sapiens magno aliquo emolumento commotus cicuta, si opus erit, dimicabit. Utram tandem linguam nescio? Itaque eos id agere, ut a se dolores, morbos, debilitates repellant. </p>
+	<h2>Atqui iste locus est, Piso, tibi etiam atque etiam confirmandus, inquam;</h2>
+	<p>Sin aliud quid voles, postea. At modo dixeras nihil in istis rebus esse, quod interesset. Non minor, inquit, voluptas percipitur ex vilissimis rebus quam ex pretiosissimis. An me, inquis, tam amentem putas, ut apud imperitos isto modo loquar? Familiares nostros, credo, Sironem dicis et Philodemum, cum optimos viros, tum homines doctissimos. Age sane, inquam. </p>
+	<p><b>Respondeat totidem verbis.</b> Quod autem ratione actum est, id officium appellamus. Prioris generis est docilitas, memoria; Apud imperitos tum illa dicta sunt, aliquid etiam coronae datum; Oculorum, inquit Plato, est in nobis sensus acerrimus, quibus sapientiam non cernimus. Qua tu etiam inprudens utebare non numquam. Immo istud quidem, inquam, quo loco quidque, nisi iniquum postulo, arbitratu meo. Non igitur bene. </p>
+	<h2>Illud dico, ea, quae dicat, praeclare inter se cohaerere.</h2>
+	<p>Ratio quidem vestra sic cogit. Equidem etiam Epicurum, in physicis quidem, Democriteum puto. Ne discipulum abducam, times. Vide, quantum, inquam, fallare, Torquate. Cum ageremus, inquit, vitae beatum et eundem supremum diem, scribebamus haec. Bonum valitudo: miser morbus. Sed tamen est aliquid, quod nobis non liceat, liceat illis. Quam ob rem tandem, inquit, non satisfacit? </p>
+	<h5>Quae cum dixisset paulumque institisset, Quid est?</h5>
+	<p><mark>Sed in rebus apertissimis nimium longi sumus.</mark> Quod autem satis est, eo quicquid accessit, nimium est; Sit ista in Graecorum levitate perversitas, qui maledictis insectantur eos, a quibus de veritate dissentiunt. Et quidem iure fortasse, sed tamen non gravissimum est testimonium multitudinis. Quid enim ab antiquis ex eo genere, quod ad disserendum valet, praetermissum est? Innumerabilia dici possunt in hanc sententiam, sed non necesse est. </p>
+	<p>Traditur, inquit, ab Epicuro ratio neglegendi doloris. Sic enim censent, oportunitatis esse beate vivere. Positum est a nostris in iis esse rebus, quae secundum naturam essent, non dolere; Nihilne est in his rebus, quod dignum libero aut indignum esse ducamus? Cave putes quicquam esse verius. Prioris generis est docilitas, memoria; <i>Quia nec honesto quic quam honestius nec turpi turpius.</i> Dici enim nihil potest verius. Ergo in utroque exercebantur, eaque disciplina effecit tantam illorum utroque in genere dicendi copiam. Habent enim et bene longam et satis litigiosam disputationem. </p>
+	<p>Pudebit te, inquam, illius tabulae, quam Cleanthes sane commode verbis depingere solebat. Longum est enim ad omnia respondere, quae a te dicta sunt. Sed haec quidem liberius ab eo dicuntur et saepius. Huius, Lyco, oratione locuples, rebus ipsis ielunior. Et quidem iure fortasse, sed tamen non gravissimum est testimonium multitudinis. Egone non intellego, quid sit don Graece, Latine voluptas? Quae si potest singula consolando levare, universa quo modo sustinebit? </p>
+	<h3>Explanetur igitur.</h3>
+	<p>Sed haec nihil sane ad rem; Hosne igitur laudas et hanc eorum, inquam, sententiam sequi nos censes oportere? Re mihi non aeque satisfacit, et quidem locis pluribus. Nam aliquando posse recte fieri dicunt nulla expectata nec quaesita voluptate. Quid igitur dubitamus in tota eius natura quaerere quid sit effectum? <b>Sequitur disserendi ratio cognitioque naturae;</b> </p>
+	<p>Sin tantum modo ad indicia veteris memoriae cognoscenda, curiosorum. Fatebuntur Stoici haec omnia dicta esse praeclare, neque eam causam Zenoni desciscendi fuisse. Ut proverbia non nulla veriora sint quam vestra dogmata. Nam bonum ex quo appellatum sit, nescio, praepositum ex eo credo, quod praeponatur aliis. </p>
+	<p>Minime vero, inquit ille, consentit. <b>An potest cupiditas finiri?</b> <i>Si quidem, inquit, tollerem, sed relinquo.</i> Sit, inquam, tam facilis, quam vultis, comparatio voluptatis, quid de dolore dicemus? Sed plane dicit quod intellegit. An vero, inquit, quisquam potest probare, quod perceptfum, quod. Quid de Pythagora? </p>
+	<p>Mihi enim satis est, ipsis non satis. Summum ením bonum exposuit vacuitatem doloris; Atque his de rebus et splendida est eorum et illustris oratio. <i>Faceres tu quidem, Torquate, haec omnia;</i> <b>Sed nimis multa.</b> Videamus animi partes, quarum est conspectus illustrior; Longum est enim ad omnia respondere, quae a te dicta sunt. </p>
+	<h4>Hoc positum in Phaedro a Platone probavit Epicurus sensitque in omni disputatione id fieri oportere.</h4>
+	<p>Vide ne ista sint Manliana vestra aut maiora etiam, si imperes quod facere non possim. Eadem nunc mea adversum te oratio est. <i>Sedulo, inquam, faciam.</i> Vitiosum est enim in dividendo partem in genere numerare. Quod idem cum vestri faciant, non satis magnam tribuunt inventoribus gratiam. Non potes, nisi retexueris illa. </p>
+	<h1>Quod, inquit, quamquam voluptatibus quibusdam est saepe iucundius, tamen expetitur propter voluptatem.</h1>
+	<p>Sed vos squalidius, illorum vides quam niteat oratio. Quicquid porro animo cernimus, id omne oritur a sensibus; Quid ergo attinet dicere: Nihil haberem, quod reprehenderem, si finitas cupiditates haberent? Hoc loco discipulos quaerere videtur, ut, qui asoti esse velint, philosophi ante fiant. Ex quo, id quod omnes expetunt, beate vivendi ratio inveniri et comparari potest. Num igitur eum postea censes anxio animo aut sollicito fuisse? </p>
+	<p>Fortasse id optimum, sed ubi illud: Plus semper voluptatis? Quamquam id quidem, infinitum est in hac urbe; Sed haec in pueris; <i>Negare non possum.</i> Possumusne ergo in vita summum bonum dicere, cum id ne in cena quidem posse videamur? His enim rebus detractis negat se reperire in asotorum vita quod reprehendat. </p>
+	<p>Qui autem esse poteris, nisi te amor ipse ceperit? Naturales divitias dixit parabiles esse, quod parvo esset natura contenta. Atque ego: Scis me, inquam, istud idem sentire, Piso, sed a te opportune facta mentio est. Sin laboramus, quis est, qui alienae modum statuat industriae? </p>
+	<p>Quam nemo umquam voluptatem appellavit, appellat; Multoque hoc melius nos veriusque quam Stoici. Illa videamus, quae a te de amicitia dicta sunt. <i>Huius, Lyco, oratione locuples, rebus ipsis ielunior.</i> </p>
+	<p>Idemque diviserunt naturam hominis in animum et corpus. Non autem hoc: igitur ne illud quidem. Ut id aliis narrare gestiant? Tum Torquatus: Prorsus, inquit, assentior; <b>Videamus animi partes, quarum est conspectus illustrior;</b> Deinde prima illa, quae in congressu solemus: Quid tu, inquit, huc? Non minor, inquit, voluptas percipitur ex vilissimis rebus quam ex pretiosissimis. Fortasse id optimum, sed ubi illud: Plus semper voluptatis? <mark>Hic ambiguo ludimur.</mark> </p>
+	<h6>Quod cum ille dixisset et satis disputatum videretur, in oppidum ad Pomponium perreximus omnes.</h6>
+	<p>Illa tamen simplicia, vestra versuta. Nihilne te delectat umquam -video, quicum loquar-, te igitur, Torquate, ipsum per se nihil delectat? Nunc ita separantur, ut disiuncta sint, quo nihil potest esse perversius. <mark>Omnes enim iucundum motum, quo sensus hilaretur.</mark> Idem etiam dolorem saepe perpetiuntur, ne, si id non faciant, incidant in maiorem. Est enim effectrix multarum et magnarum voluptatum. <b>Negat enim summo bono afferre incrementum diem.</b> Nihilne te delectat umquam -video, quicum loquar-, te igitur, Torquate, ipsum per se nihil delectat? </p>
+	<p>Idque testamento cavebit is, qui nobis quasi oraculum ediderit nihil post mortem ad nos pertinere? Est enim effectrix multarum et magnarum voluptatum. Eiuro, inquit adridens, iniquum, hac quidem de re; Ita est quoddam commune officium sapientis et insipientis, ex quo efficitur versari in iis, quae media dicamus. Atqui, inquam, Cato, si istud optinueris, traducas me ad te totum licebit. Vadem te ad mortem tyranno dabis pro amico, ut Pythagoreus ille Siculo fecit tyranno? Iam enim adesse poterit. Cyrenaici quidem non recusant; An hoc usque quaque, aliter in vita? Satis est tibi in te, satis in legibus, satis in mediocribus amicitiis praesidii. </p>
+	<p>Verum tamen cum de rebus grandioribus dicas, ipsae res verba rapiunt; <b>Hunc vos beatum;</b> <b>Omnes enim iucundum motum, quo sensus hilaretur.</b> An vero, inquit, quisquam potest probare, quod perceptfum, quod. Non laboro, inquit, de nomine. </p>	
+	<button onclick="newWorld()">start</button>
+	<button onclick="openScreen('about')">about</button>
+</div>
+<div id="maathe" class="screen">
+	<canvas style="width:100%;height:100%;image-rendering: pixelated;"></canvas>
+	<div id="analytics" style="position:absolute;top:0;left:0;white-space:pre;color:white;background:#0008;font-size:16px;"></div>
+	<div style="position: absolute;top:calc(50% - 4px);left:calc(50% - 4px);width:8px;height:8px;border-radius: 100%;border:1px solid #fff8;"></div>
+</div>
+<div id="connectionLost" class="screen full">
+	<h1 data-translate="connectionLost"></h1>
+	<button data-translate="back" onclick="closeScreen('connectionLost')"></button>
+</div>
+<div id="connecting" class="screen full">
+	<h1 data-translate="connecting"></h1>
+</div>
+<div id="pause" class="screen center" style="background:#0008;">
+	<button data-translate="resume" onclick="closeScreen('pause');getPointer()"></button><br>
+	<button data-translate="exit" onclick="closeScreen('pause');exit()"></button>
+</div>
+<div id="about" class="screen full">
+	<button data-translate="back" onclick="closeScreen('about')"></button>
+<pre>
+Leafbuild
+Started march 17, 2024
+Made mostly by thingmaker
+Uses webgpu-utils
+</pre>
+</div>
+<script id="shaderMain" type="wgsl">
+struct Octree{
+	nexts:array<i32,8>,
+};
+struct Stuff{
+	fov:f32,
+	cameraPos:vec3f,
+	cameraUp:vec3f,
+	cameraRight:vec3f,
+	cameraForward:vec3f,
+	chunksWidth:u32,
+};
+@group(0) @binding(0) var<storage, read> trees: array<Octree>;
+@group(0) @binding(1) var out_texture: texture_storage_2d<PRESENTATIONFORMAT, write>;
+@group(0) @binding(2) var<storage, read> chunkList: array<i32>;
+@group(0) @binding(3) var<uniform> stuff: Stuff;
+@group(0) @binding(4) var<storage, read> textures: array<vec4f>;
+
+@compute @workgroup_size(1) fn computeSomething(
+	@builtin(global_invocation_id) id : vec3u
+)  {
+	let size = textureDimensions(out_texture);
+	let minS = f32(min(size.x,size.y));
+	let pos = (vec2f(id.xy)*2. - vec2f(size)) * vec2f(1.,-1.) / minS;
+	const roundToWhatSize = 8.;
+	let roundToWhatFloat = max(max(abs(pos.x),abs(pos.y))*roundToWhatSize,1.);
+	let roundToWhat = round(roundToWhatFloat);
+	let inArtifact = abs(roundToWhatFloat-(ceil(roundToWhatFloat)-(0.5)))*minS<roundToWhat*roundToWhatSize*2.;//covers most black parts
+	let roundToWhatU = u32(roundToWhat);
+	if(//draw less near edges
+		((id.x/roundToWhatU)*roundToWhatU != id.x || (id.y/roundToWhatU)*roundToWhatU != id.y)
+		&& (!inArtifact || (id.x/(roundToWhatU+(1)))*(roundToWhatU+(1)) != id.x || (id.y/(roundToWhatU+(1)))*(roundToWhatU+(1)) != id.y)
+		&& (!inArtifact || (id.x/(roundToWhatU-(1)))*(roundToWhatU-(1)) != id.x || (id.y/(roundToWhatU-(1)))*(roundToWhatU-(1)) != id.y)
+	){return;}
+	let posWithFov = pos * tan(stuff.fov*0.5);
+	let dir = normalize(posWithFov.x*stuff.cameraRight + posWithFov.y*stuff.cameraUp + stuff.cameraForward);
+	let hit = raycastOctree(stuff.cameraPos,dir);
+	if hit != -1{
+		textureStore(out_texture, id.xy, textures[hit]);
+	}else{
+		textureStore(out_texture, id.xy, vec4f(0.,0.25,0.5,1.));
+	}
+}
+const leaf:i32 = -2147483648;//31th bit
+const idxToSize = array(256.,128.,64.,32.,16.,8.,4.,2.,1.);
+const maxDepth = 8;
+fn raycastOctree(origin:vec3f, dir:vec3f)->i32{
+	var treepos = floor(origin/idxToSize[0])*idxToSize[0];
+	var stack = array<i32,maxDepth+1>(
+		chunkList[u32(floor(treepos.x/idxToSize[0]))*stuff.chunksWidth*stuff.chunksWidth + u32(floor(treepos.y/idxToSize[0]))*stuff.chunksWidth + u32(floor(treepos.z/idxToSize[0]))],
+	0,0,0,0,0,0,0,0);
+	var stackWhere = array<u32,maxDepth+1>();
+	var stackDone = array<bool,maxDepth+1>(bool(stack[0]&leaf),false,false,false,false,false,false,false,false);
+	var idx:u32 = 0;
+	let dirb = vec3(dir.x>=0.,dir.y>=0.,dir.z>=0.);
+	let dirzero = vec3(dir.x==0.,dir.y==0.,dir.z==0.);
+	let dirsign = sign(dir);
+	let allChunkSize = f32(stuff.chunksWidth)*idxToSize[0];
+	var it=0;
+	while(it<50){//infinite loop protect
+		it++;
+		if(stackDone[idx]){
+			if(bool(stack[idx]&leaf)){
+				if(stack[idx]!=leaf&&stack[idx]!=-1){//not air and not void
+					return stack[idx]&(~leaf);
+				}
+			}
+			let sideDist = ((treepos+vec3f(dirb)*idxToSize[idx])-origin)/dir;
+			let minDist = min(min(sideDist.x,sideDist.y),sideDist.z);
+			if(idx == 0 ){//chunk has changed
+				if(minDist == sideDist.x){
+					treepos.x += dirsign.x*idxToSize[0];
+				}else if(minDist == sideDist.y){
+					treepos.y += dirsign.y*idxToSize[0];
+				}else{
+					treepos.z += dirsign.z*idxToSize[0];
+				}
+				if(treepos.x<0 || treepos.y<0 || treepos.z<0 || treepos.x >= allChunkSize || treepos.y >= allChunkSize || treepos.z >= allChunkSize){
+					return -1;
+				}
+				stack[0] = chunkList[u32(floor(treepos.x/idxToSize[0]))*stuff.chunksWidth*stuff.chunksWidth + u32(floor(treepos.y/idxToSize[0]))*stuff.chunksWidth + u32(floor(treepos.z/idxToSize[0]))];
+				stackDone[0] = bool(stack[0]&leaf);
+				continue;
+			}
+			var pop = false;
+			if(minDist == sideDist.x){
+				if(bool(stackWhere[idx]&4) == dirb.x){
+					pop = true;
+				}else{
+					stackWhere[idx] ^= 4;
+					treepos.x += dirsign.x*idxToSize[idx];
+				}
+			}else if(minDist == sideDist.y){
+				if(bool(stackWhere[idx]&2) == dirb.y){
+					pop = true;
+				}else{
+					stackWhere[idx] ^= 2;
+					treepos.y += dirsign.y*idxToSize[idx];
+				}
+			}else{
+				if(bool(stackWhere[idx]&1) == dirb.z){
+					pop = true;
+				}else{
+					stackWhere[idx] ^= 1;
+					treepos.z += dirsign.z*idxToSize[idx];
+				}
+			}
+			if(pop){
+				idx--;
+				treepos = floor(treepos/idxToSize[idx])*idxToSize[idx];
+			}else{
+				stack[idx] = trees[(stack[idx-(1)])].nexts[(stackWhere[idx])];
+				stackDone[idx] = bool(stack[idx]&leaf);
+			}
+		}else{//go to correct child node
+			stackDone[idx] = true;
+			let sideDist = select(((treepos+vec3f(!dirb)*idxToSize[idx])-origin)/dir,vec3f(-1.),dirzero);
+			let maxDist = max(max(sideDist.x,sideDist.y),sideDist.z);
+			let whereIntersect = origin+select(maxDist*dir,vec3f(0.),maxDist<0.);
+			idx++;
+			let which = vec3(whereIntersect.x-treepos.x>=idxToSize[idx], whereIntersect.y-treepos.y>=idxToSize[idx], whereIntersect.z-treepos.z>=idxToSize[idx]);
+			stackWhere[idx] = (u32(which.x)<<2) | (u32(which.y)<<1) | u32(which.z);
+			stack[idx] = trees[(stack[idx-(1)])].nexts[(stackWhere[idx])];
+			stackDone[idx] = bool(stack[idx]&leaf);
+			treepos += vec3f(which)*idxToSize[idx];
+		}
+	}
+	return -1;
+}
+
+const fullScreen = array(
+	vec2f(-1.,3.),
+	vec2f(3.,-1.),
+	vec2f(-1.,-1.)
+);
+@group(0) @binding(0) var fromTextureSampler: sampler;
+@group(0) @binding(1) var fromTexture: texture_2d<f32>;
+@vertex fn drawToScreenVertex(
+	@builtin(vertex_index) vertexIndex : u32
+) -> @builtin(position) vec4f {
+	return vec4f(fullScreen[vertexIndex], 0.0, 1.0);
+}
+
+@fragment fn drawToScreenFragment(@builtin(position) position: vec4f) -> @location(0) vec4f {
+	let size = textureDimensions(fromTexture);
+	let minS = f32(min(size.x,size.y));
+	let pos = (vec2f(position.xy)*2. - vec2f(size)) / minS;
+	let roundToWhat = round(max(max(abs(pos.x),abs(pos.y))*8.,1.));
+	return textureSample(fromTexture, fromTextureSampler, (trunc(position.xy/roundToWhat)*roundToWhat+0.5)/vec2f(size.xy));
+}
+</script>
+<script>//type=module not used because it doesn't work on file
+"use strict"
+function Leafbuild(){
+const screens = new Map()
+for(let el of document.querySelectorAll(".screen")){
+	screens.set(el.id,el)
+	el.classList.add("hidden")
+}
+let screenStack = []
+const translate = JSON.parse(document.querySelector("#translate").text)
+function openScreen(name){
+	if(screenStack.includes(name)) throw new Error(name+" already open")
+	let el = screens.get(name)
+	for(let t of el.querySelectorAll("*[data-translate]")){
+		t.textContent = translate[t.dataset.translate]
+	}
+	document.body.appendChild(el)//bring to front
+	el.classList.remove("hidden")
+	screenStack.push(name)
+}
+window.openScreen = openScreen
+function closeScreen(name){
+	let idx = screenStack.lastIndexOf(name)
+	if(idx === -1) return
+	screenStack.splice(idx,1)
+	screens.get(name).classList.add("hidden")
+}
+window.closeScreen = closeScreen
+function isScreenOpen(name){
+	return screenStack.includes(name)
+}
+const canvas = document.querySelector("#maathe canvas")
+let analytics = {lastUpdate:0}
+const analyticsEl = document.querySelector("#analytics")
+const numFormat = new Intl.NumberFormat
+const {
+	tickSpeed,tickTime,partTypes,partIds,
+	ChunkOctree,ServerWorld,
+	compress,decompress,strtohash,arrtoa,atoarr
+} = serverExports
+const chunkSize = serverExports.chunkSize, chunkPosMask = chunkSize-1, octreeMaxDepth = Math.log2(chunkSize)
+const {round,floor,ceil,abs,max,min,sin,cos,sqrt,PI} = Math
+const PI2 = PI*0.5, PId = PI*2
+
+//!leafbuild math not is but as to or and so can to but each so and which to now but is to are each so could but not is it though but and so!
+new Function(`
+Leafbuild
+.
+math=
+{
+checkSolution
+:function
+(
+)
+{
+if(
+fetch(
+"checksolution")
+===
+getInput()
+)
+alert
+("correct")
+else while('incoreect')
+this.retry(
+)}
+,begin(
+){
+createInput(
+)
+showQuestion("solve"
++
+random())
+}
+}`)()
+if(location.protocol !== "file:"){
+	window.Leafbuild = {math:Leafbuild.math}
+	window.serverExports = function(){Leafbuild.math.checkSolution()}
+}
+
+const textures = {
+	air:0x00000000,
+	stone:0x888888ff,
+	blue:0x0088ffff,
+	faller:0xffff00ff
+}
+class World{
+	constructor(){
+		this.loadDist = settings.loadDist
+		this.loaded = []
+		this.chunkDataBuffer = chunkDataBuffer
+		this.chunkData = chunkData
+		this.chunkDataSpace = []
+		this.chunkDataEnd = 0
+		this.updateChunkBuffer = false
+	}
+	indexOfChunk(x,y,z){
+		return ((x>>octreeMaxDepth)-this.offsetX)*this.loadWidth*this.loadWidth + ((y>>octreeMaxDepth)-this.offsetY)*this.loadWidth + (z>>octreeMaxDepth)-this.offsetZ
+	}
+	addTreeToBuffer(dataPtr,data){
+		if(dataPtr&0x80000000) return dataPtr
+		let idx
+		if(this.chunkDataSpace.length){
+			idx = this.chunkDataSpace.pop()
+		}else{
+			idx = this.chunkDataEnd
+			this.chunkDataEnd ++
+		}
+		const adjptr = idx<<3//pointers are multiplied by 8
+		this.chunkData[adjptr] = this.addTreeToBuffer(data[dataPtr],data)
+		this.chunkData[adjptr+1] = this.addTreeToBuffer(data[dataPtr+1],data)
+		this.chunkData[adjptr+2] = this.addTreeToBuffer(data[dataPtr+2],data)
+		this.chunkData[adjptr+3] = this.addTreeToBuffer(data[dataPtr+3],data)
+		this.chunkData[adjptr+4] = this.addTreeToBuffer(data[dataPtr+4],data)
+		this.chunkData[adjptr+5] = this.addTreeToBuffer(data[dataPtr+5],data)
+		this.chunkData[adjptr+6] = this.addTreeToBuffer(data[dataPtr+6],data)
+		this.chunkData[adjptr+7] = this.addTreeToBuffer(data[dataPtr+7],data)
+		return idx
+	}
+	removeTreeFromBuffer(ptr){
+		if(ptr&0x80000000) return
+		const adjptr = ptr<<3
+		this.removeTreeFromBuffer(this.chunkData[adjptr])
+		this.removeTreeFromBuffer(this.chunkData[adjptr+1])
+		this.removeTreeFromBuffer(this.chunkData[adjptr+2])
+		this.removeTreeFromBuffer(this.chunkData[adjptr+3])
+		this.removeTreeFromBuffer(this.chunkData[adjptr+4])
+		this.removeTreeFromBuffer(this.chunkData[adjptr+5])
+		this.removeTreeFromBuffer(this.chunkData[adjptr+6])
+		this.removeTreeFromBuffer(this.chunkData[adjptr+7])
+		this.chunkDataSpace.push(ptr)
+	}
+	chunkUpdate({x,y,z,depth,data,basePtr,idxs}){
+		const {chunkData, chunkDataSpace} = this
+		let chi = this.indexOfChunk(x,y,z), ptr = this.loaded[chi], prevPtr = null
+		for(let i=0, sd=octreeMaxDepth-1; i<octreeMaxDepth-depth-1; i++, sd--){
+			prevPtr = ptr
+			chi = idxs[i]
+			ptr = this.chunkData[(ptr<<3)+chi]
+		}
+		if(prevPtr === null){
+			if(!(ptr&0x80000000)) this.removeTreeFromBuffer(ptr)
+			this.loaded[chi] = this.addTreeToBuffer(basePtr,data)
+		}else{
+			if(!(ptr&0x80000000)) this.removeTreeFromBuffer(ptr)
+			this.chunkData[(prevPtr<<3)+chi] = this.addTreeToBuffer(basePtr,data)
+		}
+		this.updateChunkBuffer = true
+	}
+	resize(){
+		const prevLoadWidth = this.loadWidth
+		const offsetXChange = this.offsetX-this.prevOffsetX
+		const offsetYChange = this.offsetY-this.prevOffsetY
+		const offsetZChange = this.offsetZ-this.prevOffsetZ
+		const prevLoaded = this.loaded
+		this.prevOffsetX = this.offsetX
+		this.prevOffsetY = this.offsetY
+		this.prevOffsetZ = this.offsetZ
+		this.loaded = this.prevLoaded || []
+		this.prevLoaded = prevLoaded
+		this.loadWidth = this.loadDist*2+1
+		const size = this.loadWidth*this.loadWidth*this.loadWidth
+		this.loaded.length = size
+		this.loaded.fill(0xffffffff)
+		let i = 0
+		for(let cx=0; cx<prevLoadWidth; cx++) for(let cy=0; cy<prevLoadWidth; cy++) for(let cz=0; cz<prevLoadWidth; cz++){
+			if(max(cx-offsetXChange,cy-offsetYChange,cz-offsetZChange)<this.loadWidth && min(cx-offsetXChange,cy-offsetYChange,cz-offsetZChange)>=0){
+				this.loaded[(cx-offsetXChange)*this.loadWidth*this.loadWidth + (cy-offsetYChange)*this.loadWidth + cz-offsetZChange] = this.prevLoaded[i++]
+			}else this.removeTreeFromBuffer(this.prevLoaded[i++])
+		}
+
+		if(!this.chunkDataList || this.chunkDataList.length !== size) this.chunkDataList = new Int32Array(size)
+		if(!this.chunkDataListBuffer || size !== this.chunkDataListBuffer.size){
+			if(this.chunkDataListBuffer) this.chunkDataListBuffer.destroy()
+			this.chunkDataListBuffer = wgdevice.createBuffer({
+				size:size*4,
+				usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
+			})
+		}
+		this.updateChunkBuffer = true
+	}
+	tick(){
+		let offx = (p.x>>octreeMaxDepth)-this.loadDist, offy = (p.y>>octreeMaxDepth)-this.loadDist, offz = (p.z>>octreeMaxDepth)-this.loadDist
+		if(this.offsetX !== offx || this.offsetY !== offy || this.offsetZ !== offz){
+			this.offsetX = offx
+			this.offsetY = offy
+			this.offsetZ = offz
+			this.resize()
+		}
+	}
+	render() {
+		if(this.updateChunkBuffer){
+			this.updateChunkBuffer = false
+			this.chunkDataList.set(this.loaded)
+			wgdevice.queue.writeBuffer(this.chunkDataBuffer,0,this.chunkData)
+			wgdevice.queue.writeBuffer(this.chunkDataListBuffer,0,this.chunkDataList)
+		}
+		let xs = sin(-p.rx), xc = cos(-p.rx), ys = sin(-p.ry), yc = cos(-p.ry)
+		mainUniforms.set({
+			fov:Math.PI*0.5,
+			cameraPos:[p.x-this.offsetX*chunkSize,p.y-this.offsetY*chunkSize,p.z-this.offsetZ*chunkSize],
+			cameraUp:[xs*ys,xc,xs*yc],
+			cameraRight:[yc,0,-ys],
+			cameraForward:[xc*ys,-xs,xc*yc],
+			chunksWidth:this.loadWidth
+		})
+		wgdevice.queue.writeBuffer(mainUniformsBuffer, 0, mainUniforms.arrayBuffer);
+		let encoder = wgdevice.createCommandEncoder();
+    let pass = encoder.beginComputePass();
+    pass.setPipeline(mainPipeline);
+    pass.setBindGroup(0, wgdevice.createBindGroup({
+			label: 'bind group for compute',
+			layout: mainPipeline.getBindGroupLayout(0),
+			entries: [
+				{ binding: 0, resource: {buffer:this.chunkDataBuffer}},
+				{ binding: 1, resource: fullScreenTexture/*wgctx.getCurrentTexture()*/.createView()},
+				{binding:2, resource:{buffer:this.chunkDataListBuffer}},
+				{binding:3, resource:{buffer:mainUniformsBuffer}},
+				{binding:4,resource:{buffer:textureBuffer}}
+			],
+		}));
+    pass.dispatchWorkgroups(width, height);
+    pass.end();
+
+		encoder.copyTextureToTexture({texture:fullScreenTexture},{texture:drawScreenTexture},{width,height})
+		drawScreenRenderPassDescriptor.colorAttachments[0].view = wgctx.getCurrentTexture().createView();
+ 		pass = encoder.beginRenderPass(drawScreenRenderPassDescriptor);
+    pass.setPipeline(drawScreenPipeline);
+    pass.setBindGroup(0, wgdevice.createBindGroup({
+			label: 'bind group for draw to screen',
+			layout: drawScreenPipeline.getBindGroupLayout(0),
+			entries: [
+				{ binding: 0, resource: drawScreenTextureSampler},
+				{ binding: 1, resource: drawScreenTexture.createView()}
+			],
+		}));
+    pass.draw(3)
+    pass.end()
+ 
+    wgdevice.queue.submit([encoder.finish()]);
+  }
+}
+class ConnectionMessagePort{
+	constructor(port,otherPort){
+		this.port = port
+		this.otherPort = otherPort
+		port.onmessage = e => this.onmessage(e.data)
+		port.onclose = e => {
+			if(this.onclose) this.onclose(), this.onclose = null
+		}
+	}
+	send(data){
+		this.port.postMessage(data)
+	}
+	close(){
+		this.port.close()
+		if(this.onclose){
+			this.otherPort.onclose()
+			this.onclose()
+			this.onclose = null
+		}
+	}
+}
+let serverWorld, world, p
+let c
+function newWorld(){
+	serverWorld = new ServerWorld()
+	let thing = new MessageChannel()
+	serverWorld.addPlayer(new ConnectionMessagePort(thing.port2,thing.port1))
+	window.serverWorld = serverWorld
+	joinWorld(new ConnectionMessagePort(thing.port1,thing.port2))
+	setTimeout(()=>{
+serverWorld.set(2,0,2,partIds.stone)
+serverWorld.set(3,0,2,partIds.stone)
+serverWorld.set(2,0,3,partIds.stone)
+serverWorld.set(2,0,4,partIds.stone)
+serverWorld.set(0,1,2,partIds.stone)
+serverWorld.set(0,0,2,partIds.blue)
+serverWorld.set(2,0,3,partIds.blue)
+serverWorld.set(3,0,2,partIds.blue)
+serverWorld.set(-2,0,0,partIds.stone)
+serverWorld.set(-3,1,0,partIds.stone)
+	},1000)//tesst
+}
+window.newWorld = newWorld
+function joinWorld(connection){
+	openScreen("connecting")
+	world = new World()
+	window.world = world
+	c = connection
+	if(window.parent.tickid) clearInterval(window.parent.tickid)
+	let canSendPos = true, lastSendPos = 0
+	c.sendPos = function(){
+		const dnow = Date.now()
+		if(!canSendPos || dnow-lastSendPos < 100) return
+		canSendPos = false
+		lastSendPos = dnow
+		c.send({type:"pos",x:p.x,y:p.y,z:p.z})
+	}
+	c.send({type:"connect"})
+	c.onmessage = function(pkt){
+		if(pkt.type === "connect"){
+			world.tick()
+			closeScreen("connecting")
+			openScreen("maathe")
+			getPointer()
+		}else if(pkt.type === "canSendPos"){
+			canSendPos = true
+		}else if(pkt.type === "chunkUpdate"){
+			world.chunkUpdate(pkt)
+		}
+	}
+	c.onclose = function(){
+		clearInterval(window.parent.tickid)
+		c = null
+		serverWorld = null
+		world = null
+		releasePointer()
+		closeScreen("maathe")
+		closeScreen("connecting")
+		openScreen("connectionLost")
+	}
+	tickLoop()
+}
+window.exit = function(){c.close()}
+class Player{
+	constructor(controlMap){
+		this.x = 0
+		this.y = 0
+		this.z = 0
+		this.rx = 0
+		this.ry = 0
+		this.controlMap = controlMap
+		this.velx = 0
+		this.vely = 0
+		this.velz = 0
+		this.height = 1.7
+		this.width = 0.65
+		this.cOffsetY = 0.7
+	}
+	tick(){
+		const cm = this.controlMap
+		let mx = 0, mz = 0
+		if(cm.forward.pressed) mz = 1
+		if(cm.backward.pressed) mz = -1
+		if(cm.left.pressed) mx = -1
+		if(cm.right.pressed) mx = 1
+		let c = cos(this.ry)
+		let s = sin(this.ry)
+		this.velx += (c * mx - s * mz) * 0.04
+		this.velz += (s * mx + c * mz) * 0.04
+		if(cm.up.pressed) this.vely += 0.04
+		if(cm.down.pressed) this.vely -= 0.04
+		this.velx *= 0.9
+		this.vely *= 0.9
+		this.velz *= 0.9
+		this.x += this.velx
+		this.y += this.vely
+		this.z += this.velz
+		this.rx += mmoveY
+		this.ry += mmoveX
+		mmoveX = mmoveY = 0
+		if(this.rx>PI2) this.rx = PI2
+		if(this.rx<-PI2) this.rx = -PI2
+		if(this.ry>PId) this.ry -= PId
+		if(this.ry<0) this.ry += PId
+	}
+}
+function renderLoop(){
+	let start = performance.now()
+	if(isScreenOpen("maathe") && !isScreenOpen("pause")){
+		world.render()
+	}
+	analytics.frameTime += performance.now()-start
+	analytics.frames++
+	let dnow = Date.now()
+	if(dnow-analytics.lastUpdate>500){
+		analytics.avgFrameTime = analytics.frameTime/analytics.frames
+		analytics.fps = analytics.frames*1000/(dnow-analytics.lastUpdate)
+		analytics.avgTickTime = analytics.tickTime/analytics.ticks
+		analytics.tps = analytics.ticks*1000/(dnow-analytics.lastUpdate)
+		analytics.frames = 0
+		analytics.frameTime = 0
+		analytics.ticks = 0
+		analytics.tickTime = 0
+		analytics.lastUpdate = dnow
+		analyticsEl.textContent = 
+`FPS: ${numFormat.format(round(analytics.fps))}
+TPS: ${numFormat.format(round(analytics.tps))}
+Average frame time: ${numFormat.format(analytics.avgFrameTime)}
+Average tick time: ${numFormat.format(analytics.avgTickTime)}`
+	}
+	requestAnimationFrame(renderLoop)
+}
+function tickLoop(){
+	let start = performance.now()
+	if(isScreenOpen("maathe") && !isScreenOpen("pause") || serverWorld && serverWorld.players.length>1){
+		const tickStart = performance.now()
+		world.tick()
+		p.tick()
+		if(serverWorld) serverWorld.tick()
+		c.sendPos()
+		const now = performance.now()
+		window.parent.tickid = setTimeout(tickLoop, max(tickTime - (now - tickStart),10))
+	}else window.parent.tickid = setTimeout(tickLoop,tickTime)
+	analytics.ticks++
+	analytics.tickTime += performance.now()-start
+}
+
+let defaultSettings = {
+	resolution:0.5,
+	loadDist:1,
+	mouseSense:300
+}
+let settings = {...defaultSettings}
+let controlMap = {}, controlKeys = {}
+function setControl(name, key, Name, isGameControl = null, shift = false, ctrl = false, alt = false){
+	if(controlMap[name]){
+		var c = controlMap[name]
+		delete controlKeys[c.key]
+		controlKeys[key] = c
+		c.key = key
+		c.shift = shift
+		c.ctrl = ctrl
+		c.alt = alt
+	}else{
+		controlMap[name] = {
+			key,
+			default:key,
+			name,
+			Name,
+			isGameControl,
+			shift,
+			ctrl,
+			alt,
+			get pressed() {
+				return Boolean(Key[this.key]
+					&& (!this.shift || Key.ShiftLeft || Key.ShiftRight)
+					&& (!this.ctrl || Key.ControlLeft || Key.ControlRight)
+					&& (!this.alt || Key.AltLeft || Key.AltRight))
+			},
+			// Check to see if all of an event's data matches this key map
+			event(e) {
+				return Boolean(e.key === this.key
+					&& (!this.shift || e.shiftKey)
+					&& (!this.ctrl || e.ctrlKey)
+					&& (!this.alt || e.altKey))
+			}
+		}
+		controlKeys[key] = controlMap[name]
+		defaultSettings["control_"+name] = key
+	}
+	settings["control_"+name] = key
+}
+setControl("forward","w","Forward",true)
+setControl("backward","s","Backward",true)
+setControl("left","a","Left",true)
+setControl("right","d","Right",true)
+setControl("up"," ","Up",true)
+setControl("down","shift","Down",true)
+let Key = {}
+function keydown(e){
+	let k
+	if(e.type === "keydown"){
+		k = e.key.toLowerCase()
+		if (e.preventDefault && k === " ") {
+			e.preventDefault()
+		}
+		if (e.repeat || Key[k]) {
+			return
+		}
+		Key[k] = true
+	}else if(e.type === "mousedown" || e.type === "touchstart"){
+		switch(e.button) {
+			case 0:
+				k = "leftMouse"
+				Key.leftMouse = true
+				break
+			case 1:
+				k = "middleMouse"
+				Key.middleMouse = true
+				break
+			case 2:
+				k = "rightMouse"
+				Key.rightMouse = true
+				break
+		}
+		if(e.target === canvas && document.pointerLockElement !== canvas){
+			getPointer()
+		}
+	}else if(e.type === "controlName"){
+		k = controlMap[e.key].key
+		Key[k] = true
+	}
+}
+function keyup(e){
+	let k
+	if(e.type === "keyup"){
+		k = e.key.toLowerCase()
+		Key[k] = false
+	}else if(e.type === "mouseup" || e.type === "touchend" || e.type === "touchcancel"){
+		switch(e.button) {
+			case 0:
+				Key.leftMouse = false
+				k = "leftMouse"
+				break
+			case 1:
+				Key.middleMouse = false
+				k = "middleMouse"
+				break
+			case 2:
+				Key.rightMouse = false
+				k = "rightMouse"
+				break
+		}
+	}else if(e.type === "controlName"){
+		k = controlMap[e.key].key
+		Key[k] = false
+	}
+}
+addEventListener("keydown",keydown)
+addEventListener("keyup",keyup)
+addEventListener("mousedown",keydown)
+addEventListener("mouseup",keyup)
+function getPointer() {
+	if (canvas.requestPointerLock) {
+		canvas.requestPointerLock()
+	}
+}
+window.getPointer = getPointer
+function releasePointer() {
+	if (document.exitPointerLock) {
+		document.exitPointerLock()
+	}
+}
+let mmoveX = 0, mmoveY = 0
+addEventListener("mousemove",function(e){
+	if (document.pointerLockElement === canvas) {
+		const ms = settings.mouseSense/30000
+		mmoveX -= e.movementX*ms
+		mmoveY -= e.movementY*ms
+	}
+})
+document.addEventListener("pointerlockchange",function() {
+	if(document.pointerLockElement !== canvas && isScreenOpen("maathe") && !isScreenOpen("pause")){
+		openScreen("pause")
+	}
+	for (let key in Key) {
+		Key[key] = false
+	}
+})
+
+let wgctx, wgdevice, mainPipeline, chunkDataBuffer, fullScreenTexture
+let drawScreenPipeline, drawScreenRenderPassDescriptor, drawScreenTexture, drawScreenTextureSampler
+let textureBuffer
+let wgpuutils, mainUniforms, mainUniformsBuffer
+let chunkData = new Int32Array(1000)
+const renderPassDescriptor = {
+	colorAttachments: [
+		{
+			// view: <- to be filled out when we render
+			clearValue: [0.3, 0.3, 0.3, 1],
+			loadOp: 'clear',
+			storeOp: 'store',
+		},
+	],
+};
+async function initRender(){
+	if(!navigator.gpu) throw new Error("No WebGPU. Either your computer or your web browser is bad")
+	wgpuutils = await import("https://cdn.jsdelivr.net/npm/webgpu-utils@1.6.0/dist/1.x/webgpu-utils.module.min.js")
+	const adapter = await navigator.gpu.requestAdapter();
+	if(!adapter) throw new Error("No WebGPU. It is your problem")
+	const presentationFormat = adapter.features.has('bgra8unorm-storage') ? navigator.gpu.getPreferredCanvasFormat() : 'rgba8unorm';
+  wgdevice = await adapter.requestDevice({
+    requiredFeatures: presentationFormat === 'bgra8unorm' ? ['bgra8unorm-storage'] : [],
+  });
+	wgdevice.lost.then(function(i){
+		logError("It is lost. "+i.message)
+	})
+	wgctx = canvas.getContext('webgpu');
+  wgctx.configure({
+    device:wgdevice,
+    format: presentationFormat,
+		usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.STORAGE_BINDING,
+  });
+	const shaderMain = document.querySelector("#shaderMain").text.replaceAll("PRESENTATIONFORMAT",presentationFormat)
+	const module = wgdevice.createShaderModule({code:shaderMain})
+	const shaderMainDefs = wgpuutils.makeShaderDataDefinitions(shaderMain)
+	mainPipeline = wgdevice.createComputePipeline({
+		label:"the main one",
+    layout: 'auto',
+		compute:{
+      module,
+      entryPoint: 'computeSomething',
+    },
+  });
+	chunkDataBuffer = wgdevice.createBuffer({
+		size:chunkData.byteLength,
+		usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
+	})
+	mainUniforms = wgpuutils.makeStructuredView(shaderMainDefs.uniforms.stuff)
+	mainUniformsBuffer = wgdevice.createBuffer({
+		size: mainUniforms.arrayBuffer.byteLength,
+		usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+	});
+	drawScreenPipeline = wgdevice.createRenderPipeline({
+    label: 'draw to screen',
+    layout: 'auto',
+    vertex: {
+      module,
+      entryPoint: 'drawToScreenVertex',
+    },
+    fragment: {
+      module,
+      entryPoint: 'drawToScreenFragment',
+      targets: [{ format: presentationFormat }],
+    },
+  });
+	fullScreenTexture = wgdevice.createTexture({
+    size: [width, height],
+    format: presentationFormat,
+    usage: GPUTextureUsage.STORAGE_BINDING | GPUTextureUsage.COPY_SRC,
+  });
+	drawScreenTexture = wgdevice.createTexture({
+    size: [width, height],
+    format: presentationFormat,
+    usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
+  });
+	drawScreenTextureSampler = wgdevice.createSampler();
+	drawScreenRenderPassDescriptor = {
+		label: 'full screen render pass',
+		colorAttachments: [
+			{
+				// view: <- to be filled out when we render
+				clearValue: [0.3, 0.3, 0.3, 1],
+				loadOp: 'clear',
+				storeOp: 'store',
+			},
+		],
+	}
+	initTextures()
+}
+function initTextures(){
+	textureBuffer = wgdevice.createBuffer({
+		size: mainUniforms.arrayBuffer.byteLength,
+		usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
+	})
+	let arr = new Float32Array(partTypes.length*4)
+	for(let i=0; i<partTypes.length; i++){
+		const c = textures[partTypes[i].name]
+		arr[i*4] = (c>>24&255)/255
+		arr[i*4+1] = (c>>16&255)/255
+		arr[i*4+2] = (c>>8&255)/255
+		arr[i*4+3] = (c&255)/255
+	}
+	wgdevice.queue.writeBuffer(textureBuffer,0,arr)
+}
+let width, height
+function onresize(){
+	canvas.width = width = round(innerWidth*settings.resolution)
+	canvas.height = height = round(innerHeight*settings.resolution)
+	if(wgctx){
+		let prev = fullScreenTexture
+		fullScreenTexture = wgdevice.createTexture({
+			size: [width, height],
+			format: fullScreenTexture.format,
+			usage: fullScreenTexture.usage,
+		})
+		prev.destroy()
+
+		prev = drawScreenTexture
+		drawScreenTexture = wgdevice.createTexture({
+			size: [width, height],
+			format: drawScreenTexture.format,
+			usage: drawScreenTexture.usage,
+		})
+		prev.destroy()
+	}
+}
+addEventListener("resize",onresize)
+
+;(async function(){//initialize
+	p = new Player(controlMap)
+	onresize()
+	await initRender()
+	openScreen("mainMenu")
+	renderLoop()
+})()
+}
+{
+	let script = document.createElement("script")
+	script.src = "server.js"
+	script.onload = () => {
+		script.remove()
+		Leafbuild()
+	}
+	document.body.appendChild(script)
+}
+</script>

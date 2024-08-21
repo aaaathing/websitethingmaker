@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>stuff</title>
+    <style>
+      *{
+        box-sizing:border-box;
+      }
+      body,html{
+        height:100%;
+        margin:0;
+      }
+      #container{
+        display:flex;
+        width:100%;
+        height:100%;
+        flex-direction:column;
+      }
+      #notesContainer{
+        width:100%;
+        height:100%;
+        position:relative;
+      }
+      #notes, #markers{
+        width:100%;
+        height:100%;
+        position:absolute;
+      }
+      #notes{
+        overflow:scroll;
+      }
+      .note{
+        position:absolute;
+        width:var(--notesize);
+        background:gray;
+        border-radius:10px;
+      }
+      #markers > div{
+        position:absolute;
+        width:2px;
+        height:100%;
+        background:gray;
+      }
+      #noteSelect{
+        position:absolute;
+        width:var(--notesize);
+        height:var(--notelength);
+        background:#8888;
+      }
+      #tools{
+        width:100%;
+        background:lightgreen;
+        padding:8px;
+      }
+      #instruments{
+        border:1px solid gray;
+        width:50%;
+        padding:4px;
+        float:left;
+      }
+      .instrument{
+        margin:4px;
+        padding:16px;
+        display:inline-block;
+        cursor:pointer;
+      }
+      .instrument.selected{
+        animation:flash 3s ease infinite;
+      }
+      .modal{
+				position: absolute;
+				top:25%;
+				left:25%;
+				width:50%;
+				height:50%;
+				background:#111;
+				border:1px solid gray;
+				padding:8px;
+				color:white;
+				overflow: auto;
+			}
+			.modal button{
+				position: absolute;
+				bottom:10px;
+				left:10px;
+				right:10px;
+				padding:15px;
+			}
+			.modal input{
+				width:100%;
+				font-size: 20px;
+				padding:8px;
+			}
+      @keyframes flash{
+        0%{outline:2px solid red;}
+        50%{outline:6px solid black;}
+        100%{outline:2px solid red;}
+      }
+      #progressMarker{
+        width:100%;
+        height:2px;
+        background:red;
+        position:absolute;
+      }
+      .hidden{display:none;}
+    </style>
+  </head>
+  <body>
+    <div id="container">
+      <div id="notesContainer">
+        <div id="markers"></div>
+        <div id="notes"></div>
+        <div id="noteSelect"></div>
+        <div id="progressMarker"></div>
+      </div>
+      <div id="tools">
+        <div id="instruments"></div>
+        <button onclick="extend()">Extend</button>
+        <button onclick="editSettings()">Change settings</button>
+        <button onclick="if(confirm('are you sure??????????????????????????'))clearStuff()">Clear</button>
+        <button onclick="save()">Save as JSON</button>
+        <button onclick="saveAudio()">Save as audio</button><br>
+        <button onclick="playAudio()">Play</button>
+        <button onclick="pauseAudio()">Pause</button><br>
+        Load JSON:<input type="file" onchange="upload(this)"><br>
+        <button onclick="generateRandom()">Generate random</button><br>
+        <div id="location"></div>
+      </div>
+    </div>
+    <script>
+      addEventListener("error",e => alert(e.error.stack.replace(/\n/g,"<br>")+""))
+      const {floor, round, ceil, abs, random, max, min} = Math
+      let notesEl = document.querySelector("#notes"), markers = document.querySelector("#markers"), noteSelect = document.querySelector("#noteSelect"), container = document.querySelector("#container")
+      let instrumentsEl = document.querySelector("#instruments"), notesContainer = document.querySelector("#notesContainer"), locationEl = document.querySelector("#location"), progressMarker = document.querySelector("#progressMarker")
+      let settings = {}
+      let noteLength = 40, noteSize
+      onresize = function(){
+        noteSize = 1/(settings.octaves*12)*innerWidth
+        container.style.setProperty("--notesize", noteSize+"px")
+        container.style.setProperty("--notelength", noteLength+"px")
+      }
+      let audioCtx = new AudioContext()
+      function playNote(i){
+        let oscillator = audioCtx.createOscillator();
+        let gainNode = audioCtx.createGain();
+        oscillator.frequency.value = 2**((i+settings.startPitch)/12)
+        oscillator.type = oscillator.SINE
+        oscillator.connect(gainNode)
+        gainNode.gain.value = settings.masterVolume
+        gainNode.connect(audioCtx.destination)
+        oscillator.start(audioCtx.currentTime)
+        oscillator.stop(audioCtx.currentTime+0.125)
+      }
+      let alertId = 0, alerts = {}
+			function alert(html){
+				return new Promise(resolve => {
+					let id = alertId++
+					html = html.replace(/\{CLOSEALERT:*(.*)\}/g,"alerts["+id+"](&quot;$1&quot;)")
+					let el = document.createElement("div")
+					el.className = "modal"
+					el.innerHTML = html
+					el.id = "alert"+id
+					let button = document.createElement("button")
+					button.innerHTML = "OK"
+					alerts[id] = value => {
+						delete alerts[id]
+						el.remove()
+						resolve({el,value})
+					}
+					button.onclick = () => alerts[id]('ok')
+					el.appendChild(button)
+					document.body.appendChild(el)
+				})
+			}
+      async function ask(html, text = ""){
+				let {el} = await alert(html+"<br><textarea style='width:100%;resize:vertical;height:calc(100% - 100px);'>"+text+"</textarea>")
+				return el.querySelector("textarea").value
+			}
+      let notes = {}, instruments = {}
+      function loadNotes(){
+        notesEl.innerHTML = ""
+        for(let instrument in notes){
+          let n = notes[instrument]
+          for(let [p,l] of n.entries()){
+            let row = floor(p/(settings.octaves*12))
+            let n = document.createElement("div")
+            n.className = "note"
+            n.style.top = "calc("+row+" * var(--notelength))"
+            n.style.left = (p/(settings.octaves*12)-row)*100+"%"
+            n.style.height = "calc("+l+" * var(--notelength))"
+            n.style.background = "var(--colorfor"+instrument+")"
+            n.id = "note"+instrument+p
+            notesEl.appendChild(n)
+          }
+        }
+      }
+      function extend(){
+        let div = document.createElement("div")
+        div.style.width = "1px"
+        div.style.height = "1px"
+        div.style.position = "absolute"
+        div.style.top = notesEl.scrollHeight+noteLength*20+"px"
+        notesEl.appendChild(div)
+      }
+      function getNote(instrument,row,i){
+        return notes[instrument].get(i+row*settings.octaves*12)
+      }
+      function setNote(instrument,row,i,length){
+        return notes[instrument].set(i+row*settings.octaves*12,length)
+      }
+      function addNote(instrument,row,i){
+        let idx = i+row*settings.octaves*12
+        notes[instrument].set(idx,notes[instrument].get(idx)+1)
+      }
+      function deleteNote(instrument,row,i){
+        return notes[instrument].delete(i+row*settings.octaves*12)
+      }
+      let updateAudio = false
+      function updateNote(instrument,row,i){
+        let id = "note"+instrument+(i+row*settings.octaves*12)
+        let n = document.getElementById(id)
+        let noteLength = getNote(instrument,row,i)
+        if(!n && noteLength){
+          n = document.createElement("div")
+          n.className = "note"
+          n.style.top = "calc("+row+" * var(--notelength))"
+          n.style.left = (i/(settings.octaves*12))*100+"%"
+          n.style.background = "var(--colorfor"+instrument+")"
+          n.id = id
+          notesEl.appendChild(n)
+        }
+        if(noteLength) n.style.height = "calc("+noteLength+" * var(--notelength))"
+        else if(n) n.remove()
+        updateAudio = true
+      }
+      function updateMarkers(){
+        markers.innerHTML = ""
+        for(let i=0; i<settings.octaves; i++){
+          let m = document.createElement("div")
+          m.style.left = i/settings.octaves*100+"%"
+          markers.appendChild(m)
+        }
+      }
+      function updateInstruments(){
+        currentInstrument = null
+        instrumentsEl.innerHTML = "<div class='selected instrument' style='background:white;'>Erase</div>"
+        instrumentsEl.querySelector(".instrument").onclick = function(){
+          currentInstrument=null
+          unselect()
+          this.classList.add("selected")
+        }
+        function unselect(){
+          let selected = instrumentsEl.querySelector(".selected").classList.remove("selected")
+        }
+        for(let i in instruments){
+          let div = document.createElement("div")
+          div.className = "instrument"
+          div.textContent = i
+          div.style.background = instruments[i].color
+          div.onclick = function(){
+            currentInstrument = this.textContent
+            unselect()
+            this.classList.add("selected")
+          }
+          instrumentsEl.appendChild(div)
+        }
+      }
+      function load(obj){
+        notes = {}, instruments = {}
+        for(let j in obj.notes){
+          let n = obj.notes[j]
+          let m = notes[j] = new Map()
+          let t = instruments[j] = n[0]
+          notesEl.style.setProperty("--colorfor"+j, t.color)
+          for(let i=1; i<n.length; i+=2){
+            m.set(n[i],n[i+1])
+          }
+        }
+        settings = obj.settings
+        onresize()
+        currentInstrument = null
+        loadNotes()
+        updateMarkers()
+        updateInstruments()
+        updateAudio = true
+      }
+      function save(){
+        let obj = {"Open with":location.href,settings,notes:{}}
+        for(let j in notes){
+          let n = obj.notes[j] = [instruments[j]]
+          for(let [p,l] of notes[j].entries()){
+            n.push(p,l)
+          }
+        }
+        let a = document.createElement("a")
+        a.href = URL.createObjectURL(new Blob([JSON.stringify(obj)], {type:"text/plain"}))
+        a.download = settings.name+".music.json"
+        a.click()
+        URL.revokeObjectURL(a.href)
+      }
+      function upload(input){
+        let fr = new FileReader()
+        fr.onload = () => {
+          load(JSON.parse(fr.result))
+        }
+        fr.readAsText(input.files[0])
+      }
+      let currentInstrument
+      notesContainer.onmousemove = function(e){
+        noteSelect.style.left = floor(e.x/noteSize)*noteSize+"px"
+        noteSelect.style.top = floor((e.y+notesEl.scrollTop)/noteLength)*noteLength-notesEl.scrollTop+"px"
+        noteSelect.classList.remove("hidden")
+        if(mouseDown) placeNote(e.x,e.y+notesEl.scrollTop)
+        let o = floor(e.x/noteSize/12)
+        locationEl.textContent = floor(e.x/noteSize)-o*12+"("+o+"), row "+floor((e.y+notesEl.scrollTop)/noteLength)
+      }
+      let mouseDown = false
+      notesContainer.onmousedown = function(e){
+        mouseDown = true
+        placeNote(e.x,e.y+notesEl.scrollTop)
+      }
+      notesContainer.onmouseup = function(){
+        mouseDown = false
+      }
+      noteSelect.onwheel = function(){
+        noteSelect.classList.add("hidden")
+      }
+      notesEl.onscroll = () => audio.ontimeupdate()
+      function placeNote(x,y){
+        let notei = floor(x/noteSize)
+        let row = floor(y/noteLength)
+        if(currentInstrument){
+          let connectNote = null
+          for(let r=row; r>=0; r--){
+            let notelength = getNote(currentInstrument,r,notei)
+            if(notelength){
+              if(r+notelength > row) return
+              if(r+notelength === row){
+                connectNote = r
+              }
+              break
+            }
+          }
+          if(connectNote !== null) addNote(currentInstrument,connectNote,notei), updateNote(currentInstrument,connectNote,notei), playNote(notei)
+          else setNote(currentInstrument,row,notei,1), updateNote(currentInstrument,row,notei), playNote(notei)
+        }else{
+          for(let i in instruments){
+            for(let r=row; r>=0; r--){
+              let notelength = getNote(i,r,notei)
+              if(notelength){
+                if(r+notelength > row){
+                  deleteNote(i,r,notei)
+                  updateNote(i,r,notei)
+                }
+                break
+              }
+            }
+          }
+        }
+      }
+      async function editSettings(){
+        let newSettings = await ask("Settings",JSON.stringify(settings,null,2))
+        try{
+          settings = JSON.parse(newSettings)
+        }catch(e){
+          alert(e.message)
+          return
+        }
+        onresize()
+        updateMarkers()
+        updateAudio = true
+      }
+      function saveAudio(getit){
+        let length = 0
+        for(let j in notes){
+          for(let [i,l] of notes[j].entries()){
+            length = Math.max(length, floor(i/(settings.octaves*12))+l)
+          }
+        }
+        let mult = 60/settings.bpm*settings.sampleRate, unmult = 1/mult, unsamplerate = 1/settings.sampleRate
+        length *= mult
+        let channel = new Float32Array(length)
+        let offset, freq, inverseFreq, waveNum, waveNumF, noteUnlength, noteId
+        const {masterVolume, startPitch, octaves} = settings
+        for(let j in notes){
+          let func = new Function("waveProg","waveNum","noteProg","noteId",instruments[j].func)
+          for(let [i,l] of notes[j].entries()){
+            offset = floor(i/(octaves*12))
+            freq = 2**((i-offset*octaves*12+startPitch)/12)
+            offset *= mult
+            inverseFreq = 1/freq
+            noteUnlength = 1/(l*mult)
+            noteId = random()*2147483647 | 0
+            for(let np=0; np<l*mult; np++){
+              waveNumF = np*unsamplerate*freq, waveNum = floor(waveNumF)
+              waveProg = waveNumF-waveNum
+              channel[np+offset] += func(waveProg, waveNum, np*noteUnlength, noteId)*masterVolume
+            }
+          }
+        }
+        let wav = createWavFromBuffer(channel, settings.sampleRate, 1)
+        let href = URL.createObjectURL(new Blob([wav], {type:"audio/wav"}))
+        if(getit){
+          return href
+        }
+        let a = document.createElement("a")
+        a.href = href
+        a.download = settings.name+".wav"
+        a.click()
+        URL.revokeObjectURL(href)
+      }
+      let audio = new Audio()
+      audio.ontimeupdate = function(){
+        let prog = audio.currentTime*settings.bpm/60*noteLength
+        progressMarker.style.top = prog-notesEl.scrollTop+"px"
+      }
+      function playAudio(){
+        progressMarker.classList.remove("hidden")
+        if(updateAudio){
+          if(audio.src) URL.revokeObjectURL(audio.src)
+          audio.src = saveAudio(true)
+          updateAudio = false
+        }
+        audio.currentTime = 0
+        audio.play()
+      }
+      progressMarker.classList.add("hidden")
+      function pauseAudio(){
+        audio.pause()
+        progressMarker.classList.add("hidden")
+      }
+class Wav {
+    constructor(opt_params) {
+        this._sampleRate = opt_params && opt_params.sampleRate ? opt_params.sampleRate : 44100;
+        this._channels = opt_params && opt_params.channels ? opt_params.channels : 2;
+        this._eof = true;
+        this._bufferNeedle = 0;
+        this._buffer;
+    }
+    setBuffer(buffer) {
+        this._buffer = this.getWavInt16Array(buffer);
+        this._bufferNeedle = 0;
+        this._internalBuffer = '';
+        this._hasOutputHeader = false;
+        this._eof = false;
+    }
+    getBuffer(len) {
+        var rt;
+        if( this._bufferNeedle + len >= this._buffer.length ){
+            rt = new Int16Array(this._buffer.length - this._bufferNeedle);
+            this._eof = true;
+        }
+        else {
+            rt = new Int16Array(len);
+        }
+        for(var i=0; i<rt.length; i++){
+            rt[i] = this._buffer[i+this._bufferNeedle];
+        }
+        this._bufferNeedle += rt.length;
+        return  rt.buffer;
+    }
+    eof() {
+        return this._eof;
+    }
+    getWavInt16Array(buffer) {
+
+        var intBuffer = new Int16Array(buffer.length + 23), tmp;
+
+        intBuffer[0] = 0x4952; // "RI"
+        intBuffer[1] = 0x4646; // "FF"
+
+        intBuffer[2] = (2*buffer.length + 15) & 0x0000ffff; // RIFF size
+        intBuffer[3] = ((2*buffer.length + 15) & 0xffff0000) >> 16; // RIFF size
+
+        intBuffer[4] = 0x4157; // "WA"
+        intBuffer[5] = 0x4556; // "VE"
+
+        intBuffer[6] = 0x6d66; // "fm"
+        intBuffer[7] = 0x2074; // "t "
+
+        intBuffer[8] = 0x0012; // fmt chunksize: 18
+        intBuffer[9] = 0x0000; //
+
+        intBuffer[10] = 0x0001; // format tag : 1 
+        intBuffer[11] = this._channels; // channels: 2
+
+        intBuffer[12] = this._sampleRate & 0x0000ffff; // sample per sec
+        intBuffer[13] = (this._sampleRate & 0xffff0000) >> 16; // sample per sec
+
+        intBuffer[14] = (2*this._channels*this._sampleRate) & 0x0000ffff; // byte per sec
+        intBuffer[15] = ((2*this._channels*this._sampleRate) & 0xffff0000) >> 16; // byte per sec
+
+        intBuffer[16] = 0x0004; // block align
+        intBuffer[17] = 0x0010; // bit per sample
+        intBuffer[18] = 0x0000; // cb size
+        intBuffer[19] = 0x6164; // "da"
+        intBuffer[20] = 0x6174; // "ta"
+        intBuffer[21] = (2*buffer.length) & 0x0000ffff; // data size[byte]
+        intBuffer[22] = ((2*buffer.length) & 0xffff0000) >> 16; // data size[byte]  
+
+        for (var i = 0; i < buffer.length; i++) {
+            tmp = buffer[i];
+            if (tmp >= 1) {
+                intBuffer[i+23] = (1 << 15) - 1;
+            }
+            else if (tmp <= -1) {
+                intBuffer[i+23] = -(1 << 15);
+            }
+            else {
+                intBuffer[i+23] = Math.round(tmp * (1 << 15));
+            }
+        }
+
+        return intBuffer;
+    }
+}
+// factory
+function createWavFromBuffer(buffer, sampleRate, channels) {
+  var wav = new Wav({
+      sampleRate: sampleRate,
+      channels: channels
+  });
+  wav.setBuffer(buffer);
+  return wav._buffer//wav.getBuffer(wav._buffer.length);
+}
+// ArrayBuffer -> Float32Array
+var convertBlock = function(buffer) {
+    var incomingData = new Uint8Array(buffer);
+    var i, l = incomingData.length;
+    var outputData = new Float32Array(incomingData.length);
+    for (i = 0; i < l; i++) {
+        outputData[i] = (incomingData[i] - 128) / 128.0;
+    }
+    return outputData;
+}
+
+function generateRandom(){
+  if(!confirm("Generate random? This will clear current data.")) return
+  for(let n in notes) notes[n].clear()
+  let i1 = prompt("low instrument")
+  let i2 = prompt("high instrument")
+  let bases = []
+  let baseCount = parseInt(prompt("how many bases","4"))
+  let baseLength = parseInt(prompt("length of each base","4"))
+  for(let i=0; i<baseCount; i++){
+    let offset = min(max(round(random()*12-6),0),settings.octaves*12-8)
+    if(round(random())){
+      bases.push([offset,offset+4,offset+7])
+    }else{
+      bases.push([offset,offset+3,offset+7])
+    }
+  }
+  let row = 0
+  for(let b of bases){
+    setNote(i1,row,b[0],baseLength)
+    setNote(i1,row,b[1],baseLength)
+    setNote(i1,row,b[2],baseLength)
+    row += baseLength
+  }
+  let prevNote = min(max(bases[0][round(random()*2)]+round(random())*-12,0),settings.octaves*12-1)
+  let highRange = (settings.octaves-1)*12
+  let add = 1
+  for(let i=0; i<baseCount*baseLength; i+=add){
+    let b = bases[floor(i/baseLength)]
+    let note = b[round(random()*2)]+round(random())*12+12
+    note -= 12
+    note = note-floor(note/highRange)*highRange//keep in range
+    note += 12
+    setNote(i2,i,note,1)
+    if(add === 2) setNote(i2,i-1,round((note+prevNote)/2),1)
+    prevNote = note
+    add = round(random())+1
+  }
+
+  loadNotes()
+  updateAudio = true
+}
+
+// implementation of xxHash
+const {
+  seedHash,
+  hash, hash3, hash1
+} = (() => {
+  // closure around mutable `seed`; updated via calls to `seedHash`
+
+  let seed = Math.random() * 2100000000 | 0;
+
+  const PRIME32_2 = 1883677709;
+  const PRIME32_3 = 2034071983;
+  const PRIME32_4 = 668265263;
+  const PRIME32_5 = 374761393;
+
+  const seedHash = s => {
+    seed = s | 0;
+  }
+
+  const { imul } = Math;
+
+  const hash1 = (x) => {
+    let h32 = 0;
+
+    h32 = seed + PRIME32_5 | 0;
+    h32 += 8;
+
+    h32 += imul(x, PRIME32_3);
+    h32 = imul(h32 << 17 | h32 >> 32 - 17, PRIME32_4);
+
+    h32 ^= h32 >> 15;
+    h32 *= PRIME32_2;
+    h32 ^= h32 >> 13;
+    h32 *= PRIME32_3;
+    h32 ^= h32 >> 16;
+
+    return h32 / 2147483647;
+  };
+
+  const hash = (x, y) => {
+    let h32 = 0;
+
+    h32 = seed + PRIME32_5 | 0;
+    h32 += 8;
+
+    h32 += imul(x, PRIME32_3);
+    h32 = imul(h32 << 17 | h32 >> 32 - 17, PRIME32_4);
+    h32 += imul(y, PRIME32_3);
+    h32 = imul(h32 << 17 | h32 >> 32 - 17, PRIME32_4);
+
+    h32 ^= h32 >> 15;
+    h32 *= PRIME32_2;
+    h32 ^= h32 >> 13;
+    h32 *= PRIME32_3;
+    h32 ^= h32 >> 16;
+
+    return h32 / 2147483647;
+  };
+  const hash3 = (x, y, z) => {
+    let h32 = 0;
+
+    h32 = seed + PRIME32_5 | 0;
+    h32 += 8;
+
+    h32 += imul(x, PRIME32_3);
+    h32 = imul(h32 << 17 | h32 >> 32 - 17, PRIME32_4);
+    h32 += imul(y, PRIME32_3);
+    h32 = imul(h32 << 17 | h32 >> 32 - 17, PRIME32_4);
+    h32 += imul(z, PRIME32_3);
+    h32 = imul(h32 << 17 | h32 >> 32 - 17, PRIME32_4);
+
+    h32 ^= h32 >> 15;
+    h32 *= PRIME32_2;
+    h32 ^= h32 >> 13;
+    h32 *= PRIME32_3;
+    h32 ^= h32 >> 16;
+
+    return h32 / 2147483647;
+  };
+
+  return {
+    seedHash,
+    hash1, hash3, hash
+  };
+})();
+function lerp(t, a, b) {
+  return a + t * (b - a);
+}
+function valueNoise(x,y){
+  const x2 = floor(x), y2 = floor(y)
+  return lerp(
+    x-x2,
+    lerp(
+      y-y2,
+      hash(x2,y2),
+      hash(x2,y2+1)
+    ),
+    lerp(
+      y-y2,
+      hash(x2+1,y2),
+      hash(x2+1,y2+1)
+    )
+  )
+}
+      onbeforeunload = () => true
+      function clearStuff(){
+        load({
+          notes:{
+            "square":[{color:"green",func:"return round(waveProg)"},3,1,7,2],
+            "triangle":[{color:"lightblue",func:"return 1-abs(1-waveProg*2)"}],
+            "string":[{color:"#f88",func:"return waveProg*waveProg*(1-(1-hash(waveNum,noteId))**3)*(1-noteProg)"}],
+            "noise-shifted-square":[{color:"yellow",func:"return round(waveProg+hash(waveNum,noteId)*0.125)"}],
+            "piano":[{color:"#fa8",func:`
+return (Math.sin((waveProg+0.75)*Math.PI*2)*0.5+0.5)*lerp(noteProg*0.25+0.5,valueNoise(waveProg*16,waveNum),1)*(1-noteProg)
+`}]
+          },
+          settings:{octaves:3,startPitch:81.2,name:"stuff",bpm:180,sampleRate:44100,masterVolume:0.25}
+        })
+      }
+      clearStuff()
+    </script>
+  </body>
+</html>

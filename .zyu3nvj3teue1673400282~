@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title>MineKhan Shape Maker</title>
+    <link href="shapeMaker.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.1/p5.min.js" integrity="sha512-NxocnqsXP3zm0Xb42zqVMvjQIktKEpTIbCXXyhBPxqGZHqhcOXHs4pXI/GoZ8lE+2NJONRifuBpi9DxC58L0Lw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  </head>
+  <body>
+    <div id="side">
+      <a href="./">back</a>
+      <h2>MineKhan Shape Maker</h2>
+      <h3>Settings</h3>
+      <input type="checkbox" onchange="settings.lines=this.checked; shouldRender = true" checked id="showLinesCheckbox">
+      <label for="showLinesCheckbox">Show lines</label>
+      <br>
+      <input type="checkbox" onchange="settings.text=this.checked; shouldRender = true" checked id="showTextCheckbox">
+      <label for="showTextCheckbox">Show Text</label>
+      <br>
+      <input type="checkbox" onchange="settings.selectFace=this.checked" id="selectFaceCheckbox">
+      <label for="selectFaceCheckbox">Select face on screen</label>
+
+      <h3>File</h3>
+      <button onclick="getShape()">Generate shape vertices</button><br>
+      <button onclick="impFaces(result.value)">Import shape vertices</button><br>
+      <textarea id="result"></textarea>
+
+      <h3>Faces</h3>
+      <button onclick="clearFaces()">Clear faces</button><br>
+      <select id="newFaceDir">
+        <option value="bottom">Bottom</option>
+        <option value="top">Top</option>
+        <option value="north">North</option>
+        <option value="south">South</option>
+        <option value="east">East</option>
+        <option value="west">West</option>
+      </select>
+      <button onclick="newFace()">New face</button><br>
+      <div id="faces">
+        Bottom
+        <ul id="bottomFaces"></ul>
+        Top
+        <ul id="topFaces"></ul>
+        South
+        <ul id="southFaces"></ul>
+        North
+        <ul id="northFaces"></ul>
+        East
+        <ul id="eastFaces"></ul>
+        West
+        <ul id="westFaces"></ul>
+      </div>
+      <div id="editFace">
+        <h3>Edit face</h3>
+        <button onclick="deleteFace()">Delete face</button><br>
+        <button onclick="duplicateFace()">Duplicate face</button><br>
+        <label for="faceX">X: </label><input id="faceX" type="number" onchange="editTheFace(0,this.value)" step="any">
+        <label for="faceY">Y: </label><input id="faceY" type="number" onchange="editTheFace(1,this.value)" step="any">
+        <label for="faceZ">Z: </label><input id="faceZ" type="number" onchange="editTheFace(2,this.value)" step="any">
+        <label for="faceW">Width: </label><input id="faceW" type="number" onchange="editTheFace(3,this.value)" step="any">
+        <label for="faceH">Height: </label><input id="faceH" type="number" onchange="editTheFace(4,this.value)" step="any">
+        <label for="texX">Texture x: </label><input id="texX" type="number" onchange="editTheFace(5,this.value)" step="any">
+        <label for="texY">Texture y: </label><input id="texY" type="number" onchange="editTheFace(6,this.value)" step="any">
+        <label for="tex">Texture name: </label><input id="tex" type="text" onchange="editTheFace(12,this.value,true)" step="any">
+      </div>
+      <h3>Generate icon</h3>
+      <button onclick="getIcon()">Generate icon for shape</button><br>
+      Scale: <span id="iconScaleText">1</span><input type="range" min="0.1" max="2" step="0.1" value="1" id="iconScale"><br>
+      <textarea id="iconResult"></textarea>
+    </div>
+    <script src="shapeMaker.js"></script>
+  </body>
+</html>

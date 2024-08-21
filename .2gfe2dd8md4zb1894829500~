@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+    <head>
+      <title>Chat Bot - thingmaker.us.eu.org's First Chat Bot</title>
+      <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+      <h1>Talk to the Chat Bot</h1><br><br>
+      <div id="output">
+        Talk to the bot to continue.
+        <br><br>
+      </div>
+      <script src="index.js"></script>
+      <input type="text" id="msg"> <button onClick="messageChatBot()">Send</button><br><br>
+      <button onClick="clearChat()">Clear Chat</button>
+    </body>
+</html>

@@ -1,0 +1,26 @@
+body,html{
+  margin:0;
+  padding:0;
+}
+body{
+  padding:8px;
+  background:lightsalmon;
+}
+#button-step{
+  display:none;
+}
+#num-step{
+  display:none;
+}
+#load-step{
+  display:none;
+}
+#copy-step{
+  display:none;
+}
+.step{
+  margin:10px 0;
+  border:1px solid gray;
+  padding:8px;
+  background:peachpuff;
+}

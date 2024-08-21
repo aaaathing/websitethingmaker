@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Multiplayer using Achex</title>
+
+    <!--Metadata-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="title" content="Multiplayer drawing">
+    <meta name="description" content="A multiplayer drawing for demonstrating websocket">
+    <meta name="author" content="thingMaker">
+    <meta name="url" content="https://Multiplayer.thingmaker.repl.co">
+    <meta name="keywords" content="game, draw, blocks, videogame, online-game, multiplayer-game">
+    <!--End metadata-->
+
+    <link href="style.css" rel="stylesheet" type="text/css" />
+  </head>
+  <body>
+    <canvas id="drawing"></canvas>
+    <div id="you" class="player"></div>
+
+    <div id="side">
+      <div id="settings">
+        <label for="serverSelect">Choose Server: </label>
+        <select id="serverSelect"></select>
+        <br><br>
+        <label for="BG">Pick background color:</label>
+        <input id="BG" value="#000000">
+        <input type="color" id="BGPick">
+        <br><br>
+        <button onclick="spreadGrass()">Spread grass</button>
+        <button onclick="clearGrid()">Clear grid</button>
+        <button onclick="dirtToTerrain()">Dirt to terrain</button>
+      </div>
+      <div id="picker">
+        <h3>Block picker</h3>
+      </div>
+      <div id="chatPlace">
+        <h3>Chat</h3>
+        <button onclick="clearChat()">Clear</button>
+        <div id="chat"></div>
+        <textarea id="chatBox"></textarea>
+      </div>
+    </div>
+
+    <div id="help" title="help" onclick="document.querySelector('#how').style.display=''">?</div>
+
+    <div class="modalBG" id="popup" style="display:none;"> 
+      <!--javascript function popup() will show this-->
+      <div class="modal">
+        <span class="closeModal" onclick="document.querySelector('#popup').style.display='none'">&times;</span>
+        <div class="content"></div>
+        <button class="btn" style="position:absolute; bottom:10px;" onclick="document.querySelector('#popup').style.display='none'">OK</button>
+      </div>
+    </div>
+
+    <div id="how" class="modalBG" style="display:none;">
+      <div class="modal">
+        <span class="closeModal" onclick="document.querySelector('#how').style.display='none'">&times;</span>
+        <h1>How to use</h1>
+        <p>
+          <b>Controls</b><br>
+          Move your mouse to move you dot (the red one)<br>
+          Click and drag to draw
+        </p>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>

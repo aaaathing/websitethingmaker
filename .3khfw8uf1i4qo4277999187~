@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>glitch & bug</title>
+    <meta charset="UTF-8">
+    <style>
+      body,html{
+        margin:0;
+        padding:0;
+        height:100%;
+      }
+      canvas{
+        width:100vw;
+        height:100vh;
+        display:block;
+        position:absolute;
+        top:0;
+        left:0;
+      }
+      #overlay{
+        z-index:1;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="c"></canvas>
+    <canvas id="overlay"></canvas>
+    <script>
+      var c = document.querySelector("#c")
+      var ctx = c.getContext("2d")
+      var overlay = document.querySelector("#overlay")
+      var ctx2 = overlay.getContext("2d")
+      onresize = function(){
+        c.width = overlay.width = innerWidth
+        c.height = overlay.height = innerHeight
+      }
+      onresize()
+      var flashTime = 0, eraseFlash = false
+      function draw(){
+        if(eraseFlash){
+          ctx2.clearRect(0,0,overlay.width,overlay.height)
+          eraseFlash = false
+        }
+
+        for(var x=c.width-1; x>=0; x -= 100){
+          for(var y=c.height-1; y>=0; y -= 100){
+            if(Math.random() > 0.98){
+              ctx.fillStyle="rgb("+(Math.random()*255)+","+(Math.random()*255)+","+(Math.random()*255)+")"
+              ctx.fillRect(x-100,y-100,100+(Math.random()*400),100+(Math.random()*400))
+            }
+          }
+        }
+        for(var i=0; i<10; i++){
+          var shade = Math.round(Math.random()*255)
+          ctx.fillStyle = "rgb("+shade+","+shade+","+shade+")"
+          var s = Math.random()*100
+          var w = s
+          var h = 100 - s
+          ctx.fillRect(Math.random()*c.width,Math.random()*c.height,w,h)
+        }
+        if(flashTime > 0){
+          flashTime --
+          if(flashTime <= 0){
+            eraseFlash = true
+          }
+        }else if(Math.random() > 0.98){
+          ctx2.fillStyle="rgb("+(Math.random()*255)+","+(Math.random()*255)+","+(Math.random()*255)+")"
+          ctx2.fillRect(0,0,c.width,c.height)
+          flashTime = Math.random()*10
+        }
+
+        if(Math.random() > 0.9){
+          ctx2.fillStyle="black"
+          ctx2.fillRect(Math.random()*c.width,Math.random()*c.height,Math.random()*c.width,Math.random()*c.height)
+        }
+
+        requestAnimationFrame(draw)
+      }
+      draw()
+    </script>
+  </body>
+</html>

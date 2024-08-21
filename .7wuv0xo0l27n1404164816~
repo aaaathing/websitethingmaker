@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<body>
+<!--
+  VIDEO_DATA (custom base64 in BASE64 CHARS)
+
+  frame count: 32 bits
+  repeated frame count times: [
+    length: 11 bits
+    repeated length times: 48 bits each [
+      x: 9 bits, 0 - 480
+      y: 9 bits, 0 - 360
+      hue: 8 bits, 0 - 200
+      saturation: 6 bits, 0 - 50
+      brightness: 8 bits, 0 - 200
+      square size: 8 bits, 10 - 255
+    ]
+    length: 11 bits
+  ]
+-->
+<input type='file'>
+<textarea></textarea>
+<script>
+  function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms))
+  }
+  const chars = "abcdefghijklmnopqrstuvwxyz0123456789~!@#$%&*()_+-=[]\\{}|;:,.<>/?"
+  const b64chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+  Uint8Array.prototype.toString = function() {
+		let str = ""
+		for (let i = 0; i < this.length; i++) {
+			str += String.fromCharCode(this[i])
+		}
+		str = btoa(str).replace(/=/g,"")
+    let str2=""
+    for(let i=0;i<str.length;i++){
+      str2+=chars[b64chars.indexOf(str[i])]
+    }
+    return str2
+	}
+  class BitArrayBuilder {
+		constructor() {
+			this.bitLength = 0
+			this.data = [] // Byte array
+		}
+		add(num, bits) {
+			if (+num !== +num || +bits !== +bits || +bits < 0) throw new Error("Broken")
+			num &= -1 >>> 32 - bits
+			if(Math.log2(num) >= bits) throw new Error("too big")
+			let index = this.bitLength >>> 3
+			let openBits = 8 - (this.bitLength & 7)
+			this.bitLength += bits
+			while (bits > 0) {
+				this.data[index] |= openBits >= bits ? num << openBits - bits : num >>> bits - openBits
+				bits -= openBits
+				index++
+				openBits = 8
+			}
+			return this // allow chaining like arr.add(x, 16).add(y, 8).add(z, 16)
+		}
+    get array(){
+      return new Uint8Array(this.data)
+    }
+    /**
+		 * Takes all the bits from another BAB and adds them to this one.
+		 * @param {BitArrayBuilder} bab The BAB to append
+		 */
+		append(bab) {
+			// If our bits are already aligned, just add them directly
+			if ((this.bitLength & 7) === 0) {
+				this.data.push(...bab.data)
+				this.bitLength += bab.bitLength
+				return
+			}
+
+			// Add them 1 at a time, except for the last one
+			let bits = bab.bitLength
+			let i = 0
+			while (bits > 7) {
+				this.add(bab.data[i++], 8)
+				bits -= 8
+			}
+			if (bits) {
+				this.add(bab.data[i] >>> 8 - bits, bits)
+			}
+		}
+  }
+  let bab=new BitArrayBuilder()
+  //below from https://www.30secondsofcode.org/js/s/rgb-to-hsl/
+  const RGBToHSL = ([r, g, b]) => {
+    r /= 255;
+    g /= 255;
+    b /= 255;
+    const l = Math.max(r, g, b);
+    const s = l - Math.min(r, g, b);
+    const h = s
+      ? l === r
+        ? (g - b) / s
+        : l === g
+        ? 2 + (b - r) / s
+        : 4 + (r - g) / s
+      : 0;
+    return [
+      60 * h < 0 ? 60 * h + 360 : 60 * h,
+      100 * (s ? (l <= 0.5 ? s / (2 * l - s) : s / (2 - (2 * l - s))) : 0),
+      (100 * (2 * l - s)) / 2,
+    ];
+  };
+  function colorDiff(r,g,b,r2,g2,b2){
+    let c1 = RGBToHSL([r,g,b])
+    let c2 = RGBToHSL([r2,g2,b2])
+    c1[0] -= c2[0]
+    c1[1] -= c2[1]
+    c1[2] -= c2[2]
+    c1[0] *= 4//color makes more difference
+    return Math.sqrt(c1[0]+c1[1]*c1[1]+c1[2]*c1[2])
+  }
+  function addSquare(x,y,color,size){
+    let [hue,sat,bright] = RGBToHSL(color)
+    subbab.add(x+size/2,9)
+    subbab.add(y+size/2,9)
+    subbab.add(hue*200/360,8)
+    subbab.add(sat/2,6)
+    subbab.add(bright*2,8)
+    subbab.add(size,8)
+  }
+  let pixels, width, height, filled, subbab
+  function findSquare(x,y){
+    let maxDiff = 50 //maximum difference of color until square ends
+    let minSize = 10, maxSize = 255
+    let size = maxSize
+    let x2 = x, y2 = y
+    let firstR = pixels[(y*width+x)*4], firstG = pixels[(y*width+x)*4+1], firstB = pixels[(y*width+x)*4+2]
+    mainLoop:{
+      while(y2-y<size && y2<height){
+        x2 = x, y2++
+        while(x2-x<size && x2<width){
+          x2++
+          let c = colorDiff(firstR,firstG,firstB, pixels[(y2*width+x2)*4],pixels[(y2*width+x2)*4+1],pixels[(y2*width+x2)*4+2])
+          if(c > maxDiff){
+            size = Math.min(size,x2-1-x,y2-1-y)
+            break mainLoop
+          }
+        }
+        size = Math.min(size,x2-x)
+      }
+      size = Math.min(size,y2-y)
+    }
+    if(size < minSize) size = minSize
+    if(x+size>width) size=width-x
+    if(y+size>height) size=height-y
+    for(let y3=y; y3<y+size; y3++){
+      filled.fill(1,y3*width+x,y3*width+x+size)
+    }
+    return size
+  }
+  async function addFrame(image){
+    c.width = 480
+    c.height = 360
+    ;({width, height} = c)
+    let h = image.videoHeight*(width/image.videoWidth)
+    ctx.drawImage(image,0,(height-h)/2,width,h)
+    pixels = ctx.getImageData(0,0,width,height).data
+    //ctx.fillStyle = "#fff8"
+    //ctx.fillRect(0,0,width,height)
+    if(filled && filled.length === pixels.length/4) filled.fill(0)
+    else filled = new Uint8Array(pixels.length/4)
+    let length = 0
+    subbab = new BitArrayBuilder()
+
+    let i = 0
+    while(i !== -1){
+      let x = i%width, y = Math.floor(i/width)
+      let size = findSquare(x, y)
+      ctx.fillStyle=`rgb(${pixels[i*4]},${pixels[i*4+1]},${pixels[i*4+2]})`
+      ctx.fillRect(x,y,size,size)
+      //ctx.strokeStyle = "#fff8"
+      //ctx.lineWidth = 1
+      //ctx.strokeRect(x,y,size,size)
+      addSquare(x,y,pixels.subarray(i*4,i*4+4),size)
+      i = filled.indexOf(0)
+      length++
+    }
+
+    if(length >= 2048) throw new Error("Length >= 2048")
+    bab.add(length,11)
+    bab.append(subbab)
+    bab.add(length,11)
+    console.log('finish')
+  }
+  async function compressVideo(v){
+    let l = v.duration*30
+    bab.add(l,32)
+    for(let t=0; t<l; t++){
+      v.currentTime = t/30
+      await sleep(1000/30)
+      addFrame(v)
+    }
+    document.querySelector("textarea").value = bab.array
+  }
+  let c = document.createElement("canvas")
+  c.style.width="100%"
+  let ctx=c.getContext('2d',{willReadFrequently:true})
+  document.body.appendChild(c)
+  document.querySelector('input').onchange = function(){
+    let video = document.createElement("video")
+    window.video = video
+    //video.src="https://cdn.kastatic.org/ka-youtube-converted/FCMxA3m_Imc.mp4/FCMxA3m_Imc.mp4"
+    video.onloadedmetadata=function(){console.log('start')
+      setTimeout(()=>{
+        compressVideo(video)
+      },100)
+    }
+    video.style.width="100%"
+    document.body.appendChild(video)
+    video.src = URL.createObjectURL(this.files[0])
+    video.load()
+  }
+</script>
+</body>

@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>life.</title>
+    <style>
+      *{
+        box-sizing:border-box;
+      }
+      body,html{
+        margin:0;
+        padding:0;
+      }
+      body{
+        background:gray;
+      }
+      #cnv{
+        display:block;
+        background:white;
+      }
+      #controls{
+        position:absolute;
+        right:0px;
+        top:0px;
+        
+      }
+      #saveCode{
+        
+      }
+      .popupBG{
+        position:absolute;
+        top:0;
+        left:0;
+        width:100%;
+        height:100%;
+        background:#0005;
+      }
+      .popup{
+        margin:50px;
+        width:calc(100% - 100px);
+        height:calc(100% - 100px);
+        background:white;
+        padding:10px;
+        overflow:scroll;
+        overflow-x:hidden;
+      }
+      
+      .creation{
+        cursor:pointer;
+        color:blue;
+        display:inline-block;
+        border:1px solid gray;
+        padding:10px;
+        margin-right:10px;
+      }
+      .creation h4{
+        margin:0;
+        margin-bottom:10px;
+      }
+      .creation img{
+        display:block;
+        width:100px;
+        image-rendering:pixelated;
+      }
+    </style>
+  </head>
+  <body>
+    
+    <canvas id="cnv"></canvas>
+    <div id="controls">
+      <button id="play-pause" onclick="togglePlay()">Play/Pause</button>
+      <br>
+      <span id="playing"></span>
+      <br><br>
+      <button onclick="clearGrid()">Clear</button>
+      <br>
+      <button onclick="randomGrid()">Randomize</button>
+      <br><br>
+      <button onclick="navigator.clipboard.writeText(saveGrid())">Copy save code</button>
+      <br>
+      <button onclick="navigator.clipboard.readText().then(function(text){setGrid(JSON.parse(text))})">Paste to grid</button>
+      <br><br>
+      <label for="speed">Speed</label><br>
+      <input type="range" min="0" max="10" value="1" id="speed">
+      <br>
+      <input type="checkbox" id="wrap-on-edge-check" checked>
+      <label for="wrap-on-edge-check">Wrap on edges</label>
+      <br><br>
+      <button onclick="openCreations()">Creations</button>
+    </div>
+    <div class="popupBG" style="display:none;">
+      <div class="popup">
+        <span style="float:right; cursor:pointer; font-size:20px;" onclick="closeCreations()">&times;</span>
+        <h1>Creations</h1>
+        <div id="creations"></div>
+      </div>
+    </div>
+    <script>
+      var blockWidth = 20;
+      var blockHeight = 20;
+      
+      var blockCountX = 30;
+      var blockCountY = 20;
+      
+      
+      var creationsBG = document.querySelector(".popupBG");
+      function closeCreations(){
+        creationsBG.style.display = "none";
+      }
+      function openCreations(){
+        creationsBG.style.display = "block";
+      }
+      var creationsEl = document.querySelector(".popup #creations");
+      var creations = {
+        Glider:[
+          [0,1,0],
+          [0,0,1],
+          [1,1,1]
+        ],
+        "Lots of gliders":[
+[0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0],
+[0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0],
+[1,1,1,0,0,1,1,1,0,0,1,1,1,0,0,1,1,1,0,0,1,1,1,0,0,1,1,1,0,0,1,1,1,0,0,1,1,1,0,0],
+[0],
+[0],
+[0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0],[0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0],[1,1,1,0,0,1,1,1,0,0,1,1,1,0,0,1,1,1,0,0,1,1,1,0,0,1,1,1,0,0,1,1,1,0,0,1,1,1,0,0],
+[0],
+[0],
+[0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0],[0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0],[1,1,1,0,0,1,1,1,0,0,1,1,1,0,0,1,1,1,0,0,1,1,1,0,0,1,1,1,0,0,1,1,1,0,0,1,1,1,0,0],
+[0],
+[0],
+[0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0],[0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0],[1,1,1,0,0,1,1,1,0,0,1,1,1,0,0,1,1,1,0,0,1,1,1,0,0,1,1,1,0,0,1,1,1,0,0,1,1,1,0,0],
+[0],
+[0],
+[0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0],[0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0],[1,1,1,0,0,1,1,1,0,0,1,1,1,0,0,1,1,1,0,0,1,1,1,0,0,1,1,1,0,0,1,1,1,0,0,1,1,1,0,0],
+[0],
+[0],
+[0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0],[0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0],[1,1,1,0,0,1,1,1,0,0,1,1,1,0,0,1,1,1,0,0,1,1,1,0,0,1,1,1,0,0,1,1,1,0,0,1,1,1,0,0],
+
+        ],
+        "Gopser glider gun":[
+          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1],
+          [0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1],
+          [0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1],
+          [1,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,1,1,0,0,0],
+          [1,1,0,0,0,0,0,0,0,0,1,0,0,0,1,0,1,1,0,0,0,0,1,0,1],
+          [0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,1],
+          [0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0],
+          [0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0]
+        ]
+      };
+      var imgCanvas = document.createElement("canvas");
+      var imgCtx = imgCanvas.getContext("2d");
+      for(var c in creations){
+        var creation = creations[c];
+        var div = document.createElement("div");
+        div.setAttribute("class","creation");
+        div.setAttribute("onclick", "setGridToCreation(\""+c+"\");closeCreations();")
+        var cname = document.createElement("h4");
+        cname.innerHTML = c;
+        div.appendChild(cname);
+        var image = document.createElement("img");
+        image.src = getGridImage(creation);
+        div.appendChild(image);
+        creationsEl.appendChild(div);
+      }
+      function setGridToCreation(what){
+        setGrid(JSON.parse(JSON.stringify(creations[what])));
+      }
+      
+      function getGridImage(grid){
+        imgCanvas.height = grid.length;
+        var maxW = 0;
+        for(var y=0; y<grid.length; y++){
+          if(grid[y].length > maxW){maxW = grid[y].length}
+        }
+        imgCanvas.width = maxW;
+        for(var y=0; y<grid.length; y++){
+          var row = grid[y];
+          for(var x=0; x<row.length; x++){
+            var cell = row[x];
+            if(cell === 1){
+              imgCtx.fillStyle = "black";
+            }else{
+              imgCtx.fillStyle = "white";
+            }
+            imgCtx.fillRect(x, y, 1, 1);
+          }
+        }
+        return imgCanvas.toDataURL();
+      }
+      
+      
+      var canvas = document.getElementById("cnv");
+      
+      window.onresize = function(){
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+      window.onresize();
+      
+      var mouseX = 0, mouseY = 0;
+      canvas.onmousemove = function(e){
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+        blockX = Math.floor(mouseX / blockWidth);
+        blockY = Math.floor(mouseY / blockHeight);
+      }
+      var mouseDown = false;
+      canvas.onmousedown = function(){
+        mouseDown = true;
+        setCurrentBlock();
+      }
+      canvas.onmouseup = function(){mouseDown = false}
+      
+      var ctx = canvas.getContext("2d");
+      var grid = [];
+      function clearGrid(){
+        grid = [];
+        for(var y=0; y<blockCountY; y++){
+          var row = [];
+          for(var x=0; x<blockCountX; x++){
+            row.push(0);
+          }
+          grid.push(row);
+        }
+      }
+      function randomGrid(){
+        grid = [];
+        for(var y=0; y<blockCountY; y++){
+          var row = [];
+          for(var x=0; x<blockCountX; x++){
+            row.push(Math.round(Math.random()) );
+          }
+          grid.push(row);
+        }
+      }
+      clearGrid();
+      function saveGrid(array){
+        //create save code
+        var code = [];
+        for(var y=0; y<grid.length; y++){
+          var row = grid[y];
+          code.push("["+row.join(",")+"]")
+        }
+        code = "["+code.join(",")+"]";
+        return code;
+      }
+      function setGrid(array){
+        grid = array;
+        
+        //set grid size
+        for(var y=0; y<blockCountY; y++){
+          var row = grid[y];
+          if(!row){
+            row = [];
+            for(var x=0; x<blockCountX; x++){
+              row.push(0);
+            }
+            grid.push(row);
+          }else{
+            for(var x=0; x<blockCountX; x++){
+              if(row[x] === undefined){
+                row.push(0);
+              }
+            }
+          }
+        }
+      }
+      
+      var wrap_on_edge_check = document.getElementById("wrap-on-edge-check");
+      var wrap_on_edge = true;
+      wrap_on_edge_check.onchange = function(){
+        wrap_on_edge = this.checked;
+      }
+      
+      var currentBlock = 0;
+      
+      var blockX = 0, blockY = 0;
+      
+      function setCurrentBlock(){
+        currentBlock = 1 - (grid[blockY] ? (grid[blockY][blockX] || 0) : 0);
+      }
+      
+      function updtDrawing(){
+        if(mouseDown){
+          var block = grid[blockY] ? (grid[blockY][blockX]) : null;
+          if(block || block === 0){
+            grid[blockY][blockX] = currentBlock;
+          }
+        }
+      }
+      function getBlock(x,y){
+        if(wrap_on_edge){
+          if(y < 0){
+            while(y < 0){
+              y += blockCountY;
+            }
+          }
+          if(y >= blockCountY){
+            while(y >= blockCountY){
+              y -= blockCountY;
+            }
+          }
+        }
+        var row = grid[y];
+        if(!row)return 0;
+        if(wrap_on_edge){
+          if(x < 0){
+            while(x < 0){
+              x += blockCountX;
+            }
+          }
+          if(x >= blockCountX){
+            while(x >= blockCountX){
+              x -= blockCountX;
+            }
+          }
+        }
+        var block = row[x];
+        return block || 0;
+      }
+      function updtGrid(){
+        var newGrid =JSON.parse(JSON.stringify(grid));
+        for(var y=0; y<grid.length; y++){
+          var row = grid[y];
+          for(var x=0; x<row.length; x++){
+            var cell = row[x];
+            
+            var lf = getBlock(x-1, y)//row[x-1] || 0;
+            var rt = getBlock(x+1, y)//row[x+1] || 0;
+            var up = getBlock(x, y-1)//grid[y-1] ? (grid[y-1][x] || 0) : 0;
+            var dn = getBlock(x, y+1)//grid[y+1] ? (grid[y+1][x] || 0) : 0;
+            
+            var uplf = getBlock(x-1, y-1)//grid[y-1] ? (grid[y-1][x-1] || 0) : 0;
+            var uprt = getBlock(x+1, y-1)//grid[y-1] ? (grid[y-1][x+1] || 0) : 0;
+            var dnlf = getBlock(x-1, y+1)//grid[y+1] ? (grid[y+1][x-1] || 0) : 0;
+            var dnrt = getBlock(x+1, y+1)//grid[y+1] ? (grid[y+1][x+1] || 0) : 0;
+            
+            var neighborCount = lf + rt + up + dn + uplf + uprt + dnlf + dnrt;
+            
+            if(cell === 1){
+              if(neighborCount < 2 || neighborCount > 3){
+                newGrid[y][x] = 0;
+              }
+            }else{
+              if(neighborCount === 3){
+                newGrid[y][x] = 1;
+              }
+            }
+            
+          }
+        }
+        grid = newGrid;
+      }
+      function render(){
+        ctx.clearRect(0,0,canvas.width, canvas.height);
+        for(var y=0; y<grid.length; y++){
+          var row = grid[y];
+          for(var x=0; x<row.length; x++){
+            var cell = row[x];
+            
+            ctx.strokeStyle = "black";
+            ctx.lineWidth = "2";
+            if(cell === 1){
+              ctx.fillStyle = "black";
+            }else{
+              ctx.fillStyle = "white";
+            }
+            
+            var cellX = x*blockWidth, cellY = y*blockHeight;
+            ctx.strokeRect(cellX, cellY, blockWidth,blockHeight);
+            ctx.fillRect(cellX, cellY, blockWidth,blockHeight);
+          }
+        }
+        ctx.fillStyle = "black"
+        //ctx.fillText("", 0,10);
+      }
+      var playing = false;
+      var playBtn = document.querySelector("#controls #playing");
+      function togglePlay(){
+        playing = !playing;
+        playBtn.innerHTML = playing ? "Playing" : "Paused";
+      }
+      
+      var updtTimer = 0;
+      var speedSlider = document.querySelector("#controls #speed")
+      function updt(){
+        updtDrawing();
+        if(playing){
+          updtTimer ++;
+          if(updtTimer > speedSlider.value){
+            updtTimer = 0;
+            updtGrid();
+          }
+        }
+        render();
+        
+        requestAnimationFrame(updt);
+      }
+      updt();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,9 @@
+THIS IS ONLY FOR THE REDSTONE SIMULATOR ON THE WEBSITE
+
+redstone repeaters need to power other redstone repeaters in front of it
+
+redstone repeaters' speed needs to be changeable
+
+when a block replaces a redstone wire that is on, the block shouldn't detect tag changes yet
+
+when repeaters are rotated, unspread the power

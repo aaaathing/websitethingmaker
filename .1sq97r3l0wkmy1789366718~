@@ -1,0 +1,150 @@
+<!doctype html>
+<html>
+<head>
+
+<style>
+body{
+  cursor: url("file:///C:/users/dongwei/desktop/google.png"),auto;
+  background:gray;
+}
+@keyframes move{
+0%{left:0px;}
+50%{left:500px;}
+100%{left:0px;}
+}
+canvas{
+cursor:none;
+}
+</style>
+
+</head>
+<body>
+
+<div id="start">
+Hi! 
+<input placeholder="What do"onclick="alert('No typing!!!')"id="inp"onchange="document.getElementById('inp').value='' "><b>YOU</b>
+<h1>want</h1>
+<div style="background:yellow;padding:10px;">to do??? <a style="margin-left:50px;" href="javascript:play(false)">Play?</a></div>
+<div style="padding:10px;background:red;width:100px;position:relative;animation:move infinite 5s;">No, don't play!!!</div>
+</div>
+
+<canvas style="display:none;background:white;"id="cnv"></canvas>
+
+<script>
+var canvas=document.getElementById("cnv");
+var ctx=canvas.getContext("2d");
+var map=[
+"gggwwgggggwgggg",
+"ggwwwwgggwwwggg",
+"gwwwwwwgwwwwwgg",
+"ggrbbrgggrrrggg",
+"ggrrrrffgrbrggg",
+"ggrrwrgfgrrwwgg",
+"ggrrwrgggpwwwwg",
+"ggggpgggppprrgf",
+"ggggppggpfgrrgg",
+"gggggppppgppffg",
+"ggggggpppppgggg"
+]
+var mousex=0;
+var mousey=0;
+
+function play(ask){
+if(ask){
+
+if(confirm("You sure you want to play?")){
+setup();
+}
+
+}else if(!ask){
+setup();
+}
+}
+function setup(){
+document.getElementById("start").style.display="none";
+
+document.body.style.padding="0px";
+document.body.style.margin="0px";
+document.body.style.cursor="auto";
+
+canvas.width=window.innerWidth;
+canvas.height=window.innerHeight;
+canvas.style.display="block";
+
+document.addEventListener("mousemove",function(e){
+mousex=e.clientX;
+mousey=e.clientY;
+})
+game();
+}
+
+function game(){
+ctx.font = "30px Verdana";
+var interval=setInterval(updt,30);
+}
+function updt(){
+ctx.fillStyle="white"
+ctx.fillRect(0,0,canvas.width,canvas.height);
+render(map,true);
+}
+
+function render(what,letters){
+ctx.fillStyle="black";
+
+for(var i=0; i<what.length;i++){
+var row=what[i];
+
+for(var i2=0;i2<row.length;i2++){
+
+getcolor(row[i2]);
+ctx.fillRect(i2*50,i*50,50,50);
+
+
+if(row[i2]==="f"){
+ctx.fillStyle="green";
+ctx.fillRect((i2*50)+22,(i*50)+12,3,40);
+ctx.fillStyle="yellow";
+ctx.fillRect((i2*50)+12,(i*50)+12,25,25);
+}
+
+mousein(i,i2,row[i2]);
+
+}
+}
+}
+
+function mousein(i,i2,what){
+if(mousex>(i2*50)&&mousex<(i2*50)+50){
+if(mousey>(i*50)&&mousey<(i*50)+50){
+ctx.fillStyle="black";
+ctx.fillRect(mousex,mousey,30,30)
+ctx.fillStyle="white";
+ctx.fillText(what,mousex+5,mousey+25);
+}
+}
+
+}
+function getcolor(col){
+if(col==="p"){
+ctx.fillStyle="#f90";
+}
+if(col==="r"){
+ctx.fillStyle="#d00";
+}
+if(col==="g"||col==="f"){
+ctx.fillStyle="#9f9";
+}
+if(col==="w"){
+ctx.fillStyle="#a70";
+}
+if(col==="d"){
+ctx.fillStyle="black";
+}
+if(col==="b"){
+ctx.fillStyle="lightblue";
+}
+}
+</script>
+
+</body>
+</html>

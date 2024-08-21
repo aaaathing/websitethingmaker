@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title>websocket tester</title>
+    <link href="style.css" rel="stylesheet" type="text/css" />
+  </head>
+  <body>
+    <label for="url">URL of websocket:</label>
+    <input id="url" placeholder="wss://ws.example.com">
+    <button onclick="connect()">Connect</button>
+    <button onclick="disconnect()">Disconnect</button>
+    <br><br>
+    <label for="sendWhat">Send: </label>
+    <textarea id="sendWhat">{"data": "hi"}</textarea>
+    <button onclick="send()">Send</button>
+
+    <h3>Responses and sends</h3>
+    <button onclick="logElement.innerHTML=''">Clear</button><br>
+    <pre id="log"></pre>
+
+    <script src="script.js"></script>
+  </body>
+</html>

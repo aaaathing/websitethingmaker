@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title>Text meaning distorter</title>
+    <link href="style.css" rel="stylesheet" type="text/css" />
+  </head>
+  <body>
+    <h1>Text meaning distorter</h1>
+    <p>Translates text to many different lanuages and back to english</p>
+    <div class="step">Step 1: Put input text here: <input type="text" id="input"></div>
+    <div class="step" id="num-step">Step 2: Put the number of times you want it to be distorted here: <input type="number" id="num"></div>
+    <div class="step" id="button-step">Step 3: <button onclick="doIt()" id="button">Click here</button></div>
+    <div class="step" id="load-step">Step 4: Wait until this reaches 100%: <span id="prog"></span></div>
+    <div class="step" id="copy-step">Step 5: Get your text here: <span id="output"></span></div>
+    <script src="script.js"></script>
+  </body>
+</html>

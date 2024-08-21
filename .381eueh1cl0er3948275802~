@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title>grapher</title>
+    <style>
+      *{
+        box-sizing:border-box;
+      }
+      body,html{
+        width:100%;
+        height:100%;
+        margin:0;
+        padding:0;
+      }
+      body{
+        display:flex;
+        flex-direction:row;
+      }
+      #top{
+        background:#eee;
+        font-family:monospace;
+        padding:8px;
+        flex:1;
+        overflow:scroll;
+      }
+      #topSticky{
+        position:sticky;
+        top:0;
+        background:#eea;
+      }
+      #input{
+        width:100%;
+        height:200px;
+        resize:vertical;
+      }
+      #c{
+        display:inline-block;
+      }
+      h1{
+        font-size:20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="top">
+      <div id="topSticky">
+        function(x,y){<br>
+        <textarea id="input"></textarea><br>
+}<br>
+        <label for="scale">Scale: </label><input id="scale" type="number" step="any"><br>
+        <select id="choose"></select><br>
+        <button onclick="startDraw()">Redraw</button><br>
+      </div>
+      <div id="info"></div>
+    </div>
+    <canvas id="c"></canvas>
+    <script src="math.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>

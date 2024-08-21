@@ -1,0 +1,63 @@
+
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Space, shake browser</title>
+    <style>
+      body, html{
+        margin:0;
+        padding:0;
+        height:100%;
+      }
+      .ball{
+        border-radius:100%;
+        position:absolute;
+        
+        /*Default width and height*/
+        width:100px;
+        height:100px;
+        
+        background:orange;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="ball"></div>
+    <div class="ball" style="left:200px; top:0px;"></div>
+
+    <script>
+      //array containing all the balls
+      var balls = document.getElementsByClassName("ball");
+      
+      window.addEventListener("load",function(){
+        loop();
+      });
+      function loop(){
+        update();
+        requestAnimationFrame(loop);
+      }
+      function update(){
+        var yLimit = window.innerHeight - 100;
+        for(var i=0; i<balls.length; i++){
+          var ball = balls[i];
+          
+          var left = parseInt(ball.style.left);
+          var top = parseInt(ball.style.top);
+          
+          if( ((!left) || (!top)) && ((left !== 0)&&(top !== 0)) ){
+            left = 0;
+            top = 0;
+          }
+          top++;
+          if(top > yLimit){
+            top = yLimit;
+          }
+          
+          ball.style.left = left+"px";
+          ball.style.top = top+"px";
+        }
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,38 @@
+<div class="body">
+<canvas id="skinCanv" style="display:block;width:160px;height:320px;image-rendering:pixelated;border:1px solid black;" width="16" height="32"></canvas>
+</div>
+    <script>
+      const urlParams = new URLSearchParams(location.search);
+  function setSkin(url){
+        var image = new Image()
+        image.onload = function(){
+          if(image.width === 64 && image.height === 64){
+            skinCanv.width = 16
+            skinCanv.height = 32
+            var ctx = skinCanv.getContext("2d")
+            ctx.drawImage(image,8,8,8,8, 4,0,8,8)
+            ctx.drawImage(image,44,20,4,12, 0,8,4,12)
+            ctx.drawImage(image,36,52,4,12, 12,8,4,12)
+            ctx.drawImage(image,20,20,8,12, 4,8,8,12)
+            ctx.drawImage(image,4,20,4,12, 4,20,4,12)
+            ctx.drawImage(image,20,52,4,12, 8,20,4,12)
+          }else{
+            alert("That's not a skin, silly.")
+          }
+        }
+        image.src = url
+      }
+  var username = urlParams.get("user")
+    fetch('/server/account/'+escape(unescape(username)),{
+          credentials: "include"
+        }).then(r => r.json()).then(data => {
+          if((!data)){
+            
+          }else{
+            setSkin(data.skin)
+          }})
+      const canvas = document.getElementById('skinCanv');
+const dataURL = canvas.toDataURL();
+document.getElementById("body").innerHTML = <img src=dataURL>
+</script>
+//

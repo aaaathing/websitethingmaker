@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <style>
+      body{
+        margin:0;
+      }
+      canvas{
+        display:block;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas></canvas>
+    <script>
+const {
+  seedHash,
+  hash, hash3
+} = (() => {
+  // closure around mutable `seed`; updated via calls to `seedHash`
+
+  let seed = Math.random() * 2100000000 | 0;
+
+  const PRIME32_2 = 1883677709;
+  const PRIME32_3 = 2034071983;
+  const PRIME32_4 = 668265263;
+  const PRIME32_5 = 374761393;
+
+  const seedHash = s => {
+    seed = s | 0;
+  }
+
+  const { imul } = Math;
+
+  const hash = (x, y) => {
+    let h32 = 0;
+
+    h32 = seed + PRIME32_5 | 0;
+    h32 += 8;
+
+    h32 += imul(x, PRIME32_3);
+    h32 = imul(h32 << 17 | h32 >> 32 - 17, PRIME32_4);
+    h32 += imul(y, PRIME32_3);
+    h32 = imul(h32 << 17 | h32 >> 32 - 17, PRIME32_4);
+
+    h32 ^= h32 >> 15;
+    h32 *= PRIME32_2;
+    h32 ^= h32 >> 13;
+    h32 *= PRIME32_3;
+    h32 ^= h32 >> 16;
+
+    return h32 / 2147483647;
+  };
+  const hash3 = (x, y, z) => {
+    let h32 = 0;
+
+    h32 = seed + PRIME32_5 | 0;
+    h32 += 8;
+
+    h32 += imul(x, PRIME32_3);
+    h32 = imul(h32 << 17 | h32 >> 32 - 17, PRIME32_4);
+    h32 += imul(y, PRIME32_3);
+    h32 = imul(h32 << 17 | h32 >> 32 - 17, PRIME32_4);
+    h32 += imul(z, PRIME32_3);
+    h32 = imul(h32 << 17 | h32 >> 32 - 17, PRIME32_4);
+
+    h32 ^= h32 >> 15;
+    h32 *= PRIME32_2;
+    h32 ^= h32 >> 13;
+    h32 *= PRIME32_3;
+    h32 ^= h32 >> 16;
+
+    return h32 / 2147483647;
+  };
+
+  return {
+    seedHash,
+    hash, hash3
+  };
+})();
+class Marsaglia {
+  // from http://www.math.uni-bielefeld.de/~sillke/ALGORITHMS/random/marsaglia-c
+
+  nextInt() {
+    const { z, w } = this;
+
+    this.z = 36969 * (z & 65535) + (z >>> 16) & 0xFFFFFFFF;
+    this.w = 18000 * (w & 65535) + (w >>> 16) & 0xFFFFFFFF;
+
+    return ((this.z & 0xFFFF) << 16 | this.w & 0xFFFF) & 0xFFFFFFFF;
+  }
+
+  nextDouble() {
+    const i = this.nextInt() / 4294967296;
+
+    const is_less_than_zero = (i < 0) | 0; // cast to 1 or 0
+
+    return is_less_than_zero + i;
+  }
+
+  constructor(i1, i2) { // better param names
+    this.z = (i1 | 0) || 362436069;
+    this.w = i2 || hash(521288629, this.z) * 2147483647 | 0;
+  }
+}
+class PerlinNoise {
+  // http://www.noisemachine.com/talk1/17b.html
+  // http://mrl.nyu.edu/~perlin/noise/
+
+  static grad3d(i, x, y, z) {
+    const h = i & 15; // convert into 12 gradient directions
+
+    const u = h < 8
+      ? x
+      : y;
+
+    const v = h < 4
+      ? y
+      : h === 12 || h === 14
+        ? x
+        : z;
+
+    return ((h & 1) === 0 ? u : -u) + ((h & 2) === 0 ? v : -v)
+  }
+
+  static grad2d(i, x, y) {
+    const v = (i & 1) === 0
+      ? x
+      : y;
+
+    return (i & 2) === 0
+      ? -v
+      : v;
+  }
+
+  static grad1d(i, x) {
+    return (i & 1) === 0
+      ? -x
+      : x;
+  }
+
+  static lerp(t, a, b) {
+    return a + t * (b - a);
+  }
+
+  // end of statics
+
+  // permutation
+  perm = new Uint8Array(0x200);
+
+  // prototype functions:
+  noise3d(x, y, z) {
+    const { floor } = Math;
+
+    const X = floor(x) & 0xff;
+    const Y = floor(y) & 0xff;
+    const Z = floor(z) & 0xff;
+
+    x -= floor(x);
+    y -= floor(y);
+    z -= floor(z);
+
+    const fx = (3 - 2 * x) * x * x;
+    const fy = (3 - 2 * y) * y * y;
+    const fz = (3 - 2 * z) * z * z;
+
+    const { perm } = this;
+
+    const p0 = perm[X] + Y;
+    const p00 = perm[p0] + Z;
+    const p01 = perm[p0 + 1] + Z;
+    const p1 = perm[X + 1] + Y;
+    const p10 = perm[p1] + Z;
+    const p11 = perm[p1 + 1] + Z;
+
+    const { lerp, grad3d } = PerlinNoise;
+
+    return lerp(
+      fz,
+      lerp(
+        fy,
+        lerp(
+          fx,
+          grad3d(perm[p00], x, y, z),
+          grad3d(perm[p10], x - 1, y, z)
+        ),
+        lerp(
+          fx,
+          grad3d(perm[p01], x, y - 1, z),
+          grad3d(perm[p11],x - 1, y - 1, z)
+        )
+      ),
+      lerp(
+        fy,
+        lerp(
+          fx,
+          grad3d(perm[p00 + 1], x, y, z - 1),
+          grad3d(perm[p10 + 1], x - 1, y, z - 1)
+        ),
+        lerp(
+          fx,
+          grad3d(perm[p01 + 1], x, y - 1, z - 1),
+          grad3d(perm[p11 + 1], x - 1, y - 1, z - 1)
+        )
+      )
+    );
+  }
+
+  noise2d(x, y) {
+    const { floor } = Math;
+
+    const X = floor(x) & 0xff;
+    const Y = floor(y) & 0xff;
+
+    x -= floor(x);
+    y -= floor(y);
+
+    const { perm } = this;
+    const fx = (3 - 2 * x) * x * x;
+    const fy = (3 - 2 * y) * y * y;
+    const p0 = perm[X] + Y;
+    const p1 = perm[X + 1] + Y;
+
+    const { lerp, grad2d } = PerlinNoise;
+
+    return lerp(
+      fy,
+      lerp(
+        fx,
+        grad2d(
+          perm[p0],
+          x,
+          y
+        ),
+        grad2d(
+          perm[p1],
+          x - 1,
+          y
+        )
+      ),
+      lerp(
+        fx,
+        grad2d(
+          perm[p0 + 1],
+          x,
+          y - 1
+        ),
+        grad2d(
+          perm[p1 + 1],
+          x - 1,
+          y - 1
+        )
+      )
+    );
+  }
+
+  noise1d(x) {
+    const { floor } = Math;
+
+    const X = floor(x) & 0xff;
+
+    x -= floor(x);
+
+    const { perm } = this;
+    const fx = (3 - 2 * x) * x * x;
+
+    const { lerp, grad1d } = PerlinNoise;
+
+    return lerp(
+      fx,
+      grad1d(perm[X], x),
+      grad1d(perm[X + 1], x - 1)
+    );
+  }
+
+  constructor(seed) {
+    if (seed === undefined) {
+      throw new TypeError("A value for `seed` parameter was not provided to `PerlinNoise`");
+    }
+
+    const rnd = new Marsaglia(seed);
+
+    // generate permutation
+    const { perm } = this;
+
+    // fill 0x0..0x100
+    for (let i = 0; i < 0x100; ++i) {
+      perm[i] = i;
+    }
+
+    for (let i = 0; i < 0x100; ++i) {
+      const j = rnd.nextInt() & 0xFF;
+      const t = perm[j];
+      perm[j] = perm[i];
+      perm[i] = t;
+    }
+
+    // copy to avoid taking mod in perm[0]
+    // copies from first half of array, into the second half
+    perm.copyWithin(0x100, 0x0, 0x100);
+  }
+}
+
+const noiseProfile = {
+  generator: undefined,
+  octaves: 4,
+  fallout: 0.5,
+  seed: undefined,
+  noiseSeed(seed) {
+    this.seed = seed;
+    this.generator = new PerlinNoise(noiseProfile.seed);
+  },
+  noise(x, y, z) {
+    const { generator, octaves, fallout } = (this || noiseProfile);
+
+    let effect = 1,
+      k = 1,
+      sum = 0;
+    let max=0
+
+    for (let i = 0; i < octaves; ++i) {
+      effect *= fallout;
+
+      const k = 1 << i;
+
+      let temp;
+      switch (arguments.length) {
+        case 1: {
+          temp = generator.noise1d(k * x);
+          break;
+        } case 2: {
+          temp = generator.noise2d(k * x, k * y);
+          break;
+        } case 3: {
+          temp = generator.noise3d(k * x, k * y, k * z);
+          break;
+        }
+      }
+
+      sum += effect * (1 + temp) / 2;
+      max+=effect
+    }
+
+    return sum/max;
+  }
+};
+</script>
+    <script>
+      let c=document.querySelector('canvas'), ctx=c.getContext('2d')
+      onresize=()=>{
+        c.width=innerWidth
+        c.height=innerHeight
+      }
+      onresize()
+      let Ss=[],now,si,sx,sy,sw,sh,ti=false
+      class S{
+        constructor(type="d",length=250,pitch=400,volume=0.5){
+          this.t=type
+          this.l=length
+          this.p=pitch
+          this.v=volume
+          this.d=performance.now()
+          this.cd=false
+        }
+        u(){
+          if(now-this.d>this.l){
+            return this.cd=true
+          }
+          let a=1-(now-this.d)/this.l
+          switch(this.t){
+            case "d":
+              f(0,0,0,this.v*a)
+              rn(this.p)
+              r(rx*0.4*a,ry*0.4*a,0.6,0.6)
+              break
+          }
+        }
+      }
+      function ns(){
+        Ss.push(new S(...arguments))
+      }
+      function f(r,g,b,a=1){
+        ctx.fillStyle=`rgb(${r},${g},${b},${a*100}%)`
+      }
+      function r(x,y,w,h){
+        ctx.fillRect(sx+x*sw,sy+y*sh,w*sw,h*sh)
+      }
+      function u(){
+        now=performance.now()
+        if(ti){
+          ti=false
+          si=-1
+          let t=Math.sqrt(Ss.length)
+          sw=c.width/t,sh=c.height/t
+          ctx.clearRect(0,0,c.width,c.height)
+          for(let i=0;i<Ss.length;i++){
+            si++
+            sx=(si%t)*sw
+            sy=Math.floor(si/t)*sh
+            Ss[i].u()
+            if(Ss[i].cd){
+              Ss.splice(i,1)
+              i--
+            }
+          }
+        }
+        requestAnimationFrame(u)
+      }
+      u()
+      noiseProfile.noiseSeed(Math.random()*123456721)
+      let rx,ry
+      function rn(a){
+        rx=noiseProfile.noise(now/10000*a)
+        ry=noiseProfile.noise(-now/10000*a)
+      }
+      function tl(){
+        ti=true
+        setTimeout(tl,20)
+      }
+      tl()
+      let sp,pla=false,pi=0,int
+      function p(){
+        if(int !== undefined) clearInterval(int)
+        sp=60000/tr[0][0]
+        pla=true
+        pi=-1
+        int=setInterval(()=>{
+          pi++
+          for(let i=2;i<tr.length;i++){
+            if(tr[i][pi] !== undefined) ns(...tr[1][tr[i][pi]])
+          }
+        },sp)
+      }
+      let tr=[
+        [120],//settings
+        [
+          ["d",500,40,0.5],
+          ["d",250,20,0.5]
+        ],
+        //the rest are tracks
+        [1, , ,1],
+        [ ,0, , ,0]
+      ]
+      c.onclick=p
+    </script>
+  </body>
+</html>

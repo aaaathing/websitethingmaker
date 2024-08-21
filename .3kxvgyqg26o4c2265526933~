@@ -1,0 +1,113 @@
+<!doctype html>
+<html>
+<head>
+<style>
+body{
+background:lightgray;
+height:700px;
+}
+#cnv{
+border:solid;
+background:white;
+cursor:pointer;
+}
+</style>
+</head>
+<body>
+
+<canvas 
+id="cnv"
+width="500"
+height="500"
+onmousedown="mousedn=true;"
+onmouseup="mousedn=false"></canvas>
+
+<span id="test"></span>
+
+<script>
+var square=30;
+var mx=0;
+var my=0;
+var pmx=0;
+var pmy=0;
+var btn=[50,50,200,30];
+var html=document.documentElement;
+
+var mousedn=false;
+var cnv=document.getElementById("cnv");
+var ctx=cnv.getContext("2d");
+
+var test=document.getElementById("test");
+
+cnv.onclick=function(){
+cnv.requestPointerLock();
+}
+cnv.addEventListener("mousemove",updt)
+
+function updt(e){
+if(document.pointerLockElement===cnv){
+mx+=e.movementX;
+my+=e.movementY;
+}else{
+mx=e.clientX;
+my=e.clientY+html.scrollTop;
+}
+
+if(mx<0){
+mx=0
+}
+if(mx>cnv.width-square){
+mx=cnv.width-square;
+}
+if(my<0){
+my=0
+}
+if(my>cnv.height-square){
+my=cnv.height-square;
+}
+
+ctx.fillStyle="red";
+if(mousedn){
+
+}
+
+ctx.clearRect(0,0,cnv.width,cnv.height);
+
+dbuttons();
+
+ctx.fillStyle="red";
+ctx.fillRect(mx,my,square,square);
+
+
+pmx=mx;
+pmy=my;
+}
+
+function dbuttons(){
+for(var i=0; i<btn.length; i+=4){
+
+if(isin(btn[i],btn[i+1],btn[i+2],btn[i+3])){
+if(mousedn){
+ctx.fillStyle="black"
+
+mousedn=false;
+window.open("file:///C:/Users/dongwei/Desktop/game.html");
+window.open("file:///C:/Users/dongwei/Desktop/minecraft.html");
+
+}else{
+ctx.fillStyle="gray";
+}
+}else{
+ctx.fillStyle="lightgray";
+}
+ctx.fillRect(btn[i],btn[i+1],btn[i+2],btn[i+3]);
+}
+}
+function isin(x1,y1,w,h){
+if((mx>x1)&&(mx<x1+w)&&(my>y1)&&(my<y1+h)){
+return true;
+}
+}
+</script>
+</body>
+</html>

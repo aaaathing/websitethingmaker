@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<!--
+Example Project:
+
+var sprite = new Sprite("Sprite1", [new Costume("file:///C:/users/dongwei/desktop/Minecraft_files/Images/stuff.png")], []);
+    Project.addSprite(sprite)
+    sprite.whenGFClicked = function*(me){
+      me.size = 100
+      me.goto(0,0)
+      me.pointInDirection(90);
+      while(true){
+        //yield* me.glideTo(random(-240,240),random(-180,180), 1)
+        me.turn(1)
+        me.moveSteps(0.5)
+        yield;
+      }
+    }
+    Trigger.add("green_flag", null, sprite.whenGFClicked, sprite)
+
+
+    var sprite = new Sprite("Sprite2", 
+      [new Costume("file:///C:/users/dongwei/desktop/my%20extension/nicey/head.png")], 
+      []
+    );
+    Project.addSprite(sprite)
+    sprite.whenGFClicked = function*(me){
+      me.size = 500
+      me.goto(0,0)
+      me.pointInDirection(90);
+      while(true){
+        yield* me.glideTo(1, random(-240,240),random(-180,180))
+        yield;
+      }
+    }
+    Trigger.add("green_flag", null, sprite.whenGFClicked, sprite)
+    sprite.whenGFClicked2 = function*(me){
+      while(true){
+        me.size = random(10,400)
+        yield;
+      }
+    }
+    Trigger.add("green_flag", null, sprite.whenGFClicked2, sprite)
+-->
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Scratch to JavaScript</title>
+    <link rel="shortcut icon" href="/assets/J.svg">
+    <style>
+      *{
+        box-sizing:border-box;
+      }
+      body,html{
+        margin:0;
+        padding:0;
+      }
+      body{
+        font-family:sans-serif;
+      }
+      
+      .flex-row{
+        display:flex;
+        flex-direction:row;
+        justify-content:space-between;
+      }
+      
+      #project-area{
+        width:70%;
+        margin:0 auto;
+        margin-top:20px;
+      }
+      
+      #project-area #title{
+        font-size:40px;
+        color:#575e75;
+      }
+      #project-area #authorPFP{
+        height:60px;
+        float:left;
+        margin-right:10px;
+      }
+      #project-area #authorLink{
+        color:#55f;
+        cursor:pointer;
+        text-decoration:none;
+        font-weight:bold;
+      }
+      #project-area #authorLink:hover{
+        color:#00d;
+      }
+      
+      #project-holder{
+        width:500px;
+        position:relative;
+      }
+      #project-holder #loading{display:none;}
+      #project-holder.loading #loading{
+        position:absolute;
+        display:block;
+        z-index:9;
+        top:0;
+        left:0;
+        width:100%;
+        height:100%;
+        background:#1abc9c;
+      }
+      #project-holder #loading img{
+        height:45px;
+        left:calc(50% - 50px);
+      }
+      #top-block{
+        position:absolute;
+        animation:1.5s infinite ease top-block;
+      }
+      #middle-block{
+        position:absolute;
+        animation:1.5s infinite ease middle-block;
+      }
+      #bottom-block{
+        position:absolute;
+        animation:1.5s infinite ease bottom-block;
+      }
+      
+      @keyframes top-block{
+        0%{top:calc(50% + 20px);opacity:0;}
+        30%{top:calc(50% - 50px);opacity:1;}
+        100%{top:calc(50% - 50px);opacity:1;}
+      }
+      @keyframes middle-block{
+        0%{opacity:0;}
+        30%{top:calc(50% + 20px + 42px);opacity:0;}
+        60%{top:calc(50% - 50px + 42px);opacity:1;}
+        100%{top:calc(50% - 50px + 42px);opacity:1;}
+      }
+      @keyframes bottom-block{
+        0%{opacity:0;}
+        60%{top:calc(50% + 20px + 42px + 42px);opacity:0;}
+        100%{top:calc(50% - 50px + 42px + 42px);opacity:1;}
+      }
+      
+      #project-holder #error{display:none;}
+      #project-holder #error::before{
+        content:"Oops.\aLooks like this has crashed.";
+        white-space:pre;
+        color:white;
+        display:block;
+        text-align:center;
+        font-size:40px;
+      }
+      #project-holder.error #error{
+        position:absolute;
+        display:block;
+        top:0;
+        left:0;
+        width:100%;
+        height:100%;
+        background:red;
+        color:white;
+        z-index:10;
+      }
+      #project-holder #project-control{
+        display:inline-block;
+        margin-right:10px;
+        user-select:none;
+      }
+      #project-holder #project-control img{
+        padding:6px;
+        width:32px;
+        border-radius:4px;
+        cursor:pointer;
+      }
+      #project-holder #project-control img:hover{
+        background:#1abc9c55;
+      }
+      #project-holder.running #project-control #green-flag{
+        background:#1abc9c88;
+      }
+      #project-holder #project-control #stop{
+        opacity:.5;
+      }
+      #project-holder.running #project-control #stop{
+        opacity:1;
+      }
+      
+      #project-place{
+        position:relative;
+      }
+      #project-place canvas#scratch{
+        border:1px solid #888;
+        border-radius:4px;
+        width:480px;
+        image-rendering:pixelated;
+      }
+      #project-place #watchers{
+        position:absolute;
+        top:1px;
+        left:1px;
+      }
+      #project-place #watchers .variable.norm{
+        position:absolute;
+        background:hsla(215, 100%, 95%, 1);
+        border-radius:4px;
+        border:1px solid hsla(0, 0%, 0%, 0.15);
+        padding:2px 8px;
+        white-space:nowrap;
+        font-size:12px;
+        font-weight:bold;
+      }
+      #project-place #watchers .variable.norm > div{
+        margin-left:8px;
+        display:inline-block;
+        background:darkorange;
+        border-radius:4px;
+        min-width:40px;
+        font-size:12px;
+        font-weight:normal;
+        color:white;
+        text-align:center;
+        padding:1px;
+      }
+      #project-place #watchers .variable.large{
+        position:absolute;
+        background:darkorange;
+        border:1px solid hsla(0, 0%, 0%, 0.15);
+        border-radius:5px;
+        min-width:48px;
+        font-size:15px;
+        color:white;
+        text-align:center;
+        padding:2px;
+      }
+      #project-place #watchers .variable.slider{
+        position:absolute;
+        background:hsla(215, 100%, 95%, 1);
+        border-radius:4px;
+        border:1px solid hsla(0, 0%, 0%, 0.15);
+        padding:3px;
+        white-space:nowrap;
+        font-size:12px;
+        font-weight:bold;
+        display:flex;
+        flex-direction:column;
+      }
+      #project-place #watchers .variable.slider .top{
+        display:flex;
+        flex-direction:row;
+        padding-left:5px;
+      }
+      #project-place #watchers .variable.slider .top > div{
+        margin-left:13px;
+        display:inline-block;
+        background:darkorange;
+        border-radius:4px;
+        min-width:40px;
+        font-size:12px;
+        font-weight:normal;
+        color:white;
+        text-align:center;
+        padding:1px;
+      }
+      
+      #project-info{
+        margin-left: 1rem;
+        flex-grow:1;
+        display:flex;
+        flex-direction:column;
+        height:400px;
+      }
+      #project-info .info-box{
+        flex-grow:1;
+        overflow:hidden;
+        height:1px; /*flexbox make not 1px*/
+      }
+      #project-info .info-box .text-label{
+        margin-bottom:.5rem;
+        font-size: 1rem;
+        font-weight: bold;
+        color:#575e75;
+      }
+      #project-info .info-box .text-area{
+        flex-grow:1;
+        width: 100%;
+        height: calc(100% - 2rem);
+        border:1px solid rgba(77, 151, 255, 0.1);
+        border-radius:8px;
+        background-color: rgba(77, 151, 255, 0.1);
+        padding:.5rem;
+        white-space: pre-line;
+        font-size: 1rem;
+        line-height: 1.5rem;
+        overflow-wrap: break-word;
+        overflow-y:scroll;
+        overflow-x:hidden;
+      }
+      
+      #settings{
+        margin:40px 10%;
+        background:#eee;
+        padding:20px;
+        border:1px solid black;
+      }
+      #settings h3{
+        margin:0;
+      }
+      #settings #projectId{
+        
+      }
+    </style>
+  </head>
+  <body>
+    <div id="project-area">
+      <div>
+        <img id="authorPFP" src="/assets/J.svg">
+        <div id="title">Project</div>
+        by <a id="authorLink" target="_blank" href="https://bigfarm.goodgamestudios.com">whoever made this</a>
+      </div>
+      <br>
+      <div class="flex-row">
+        <div id="project-holder" class="loading">
+          <div id="loading">
+            <img id="top-block" src="https://scratch.mit.edu/static/assets/bbbd98ae6a34eac772e34a57aaa5f977.svg" alt="1">
+            <img id="middle-block" src="https://scratch.mit.edu/static/assets/f9dce53613d5f85b311ce9f84423c08b.svg" alt="2">
+            <img id="bottom-block" src="https://scratch.mit.edu/static/assets/ce5820b006d753e4133f46ae776f4d96.svg" alt="3">
+            <span>loading</span>
+          </div>
+          <div id="error">Error</div>
+          
+          <div id="project-control">
+            <img id="green-flag" src="https://scratch.mit.edu/static/assets/2e0c4790f8f9cf28e3c346b9cef0fcb6.svg" onclick="Project.greenFlag()" alt="Green flag"><!--
+         --><img id="stop" src="https://scratch.mit.edu/static/assets/36fcc7dbca20720abcab01e49d4955f9.svg" onclick="Project.stop()" alt="Stop">
+          </div>
+          <span id="status"></span>
+          <div id="project-place">
+            <canvas id="scratch"></canvas>
+            <div id="watchers"></div>
+          </div>
+        </div>
+        <div id="project-info">
+          <div id="instruction" class="info-box">
+            <div class="text-label">Instructions</div>
+            <div class="text-area"></div>
+          </div>
+          <div id="description" class="info-box">
+            <div class="text-label">Notes and credits</div>
+            <div class="text-area"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div id="settings">
+      <h3>Settings</h3>
+      <div id="projectUrl">scratch.mit.edu/projects/<input id="projectId" type="number"></div>
+      <label for="username">Username: </label><input id="username" value="User">
+    </div>
+    
+    <script src="/assets/common.js"></script>
+    <script src="/assets/scratchjs.js"></script>
+    <script src="/assets/scratchCompile.js"></script>
+    <script>
+      var print = console.log;
+      
+      var ScratchCanv = document.querySelector("canvas#scratch");
+      Project.setCanvas(ScratchCanv);
+      var Watchers = document.querySelector("#project-place #watchers")
+      Project.setMonitorArea(Watchers);
+      
+      var holder = document.getElementById("project-holder");
+      var holderError = document.querySelector("#project-holder #error")
+      
+      function setProjectJSON(id){
+        function getText(url, response, onerror){
+          var xhr = new XMLHttpRequest();
+          xhr.open("GET", url)
+          xhr.onerror = function(){
+            if(onerror){
+              onerror("request failed")
+            };
+          }
+          var alreadyError;
+          xhr.onreadystatechange = function(){
+            if(xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+              response(xhr.responseText);
+            }
+            if(xhr.status === 404 && onerror && !alreadyError){
+              onerror(404);
+              alreadyError = true;
+            }
+          };
+          xhr.send();
+        }
+        
+        var onError = function(what){
+          holder.classList.remove("loading");
+          holder.classList.add("error");
+          
+          if(what === 404){
+            what = "404 Not found"
+          }
+          if(what === "request failed"){
+            if(!navigator.onLine){
+              what = "You are offline. Too bad... <br>Reloading when online.";
+              setInterval(()=>{if(navigator.onLine)location.reload()}, 1000);
+            }
+          }
+          console.log(what)
+          holderError.innerHTML = what || "Error";
+        }
+        
+        holder.classList.add("loading");
+        var maxLoad = 3;
+        var loaded = 0;
+        function loadDone(){
+          loaded ++;
+          if(loaded >= maxLoad){
+            if(loaded > maxLoad){
+              print(`loaded > maxLoad;  ${loaded} > ${maxLoad}`);
+            }
+            holder.classList.remove("loading");
+          }
+        }
+        
+        getText("https://projects.scratch.mit.edu/"+id, function(data){
+          var compiledScript;
+          data = JSON.parse(data);
+          try{
+            if(data.objName === "Stage"){
+              //old project not in 3.0
+              onError("Project is outdated");
+            }else if(data.targets){
+              compiledScript = parseV3(data);
+            }
+          }catch(e){
+            onError(e);
+          }
+          
+          var script = document.createElement("script");
+          script.innerHTML = compiledScript;
+          document.body.appendChild(script);
+          
+          loadDone();
+        }, onError);
+        
+        getText("https://trampoline.turbowarp.org/proxy/projects/"+id, function(data){
+          data = JSON.parse(data);
+          document.querySelector("#project-info #instruction .text-area").innerHTML = data.instructions.replace(/\n/g,"<br>");
+          document.querySelector("#project-info #description .text-area").innerHTML = data.description.replace(/\n/g,"<br>");
+          document.querySelector("#project-area #title").innerHTML = data.title;
+          document.title = data.title + " on Scratch To javascript ";
+          document.querySelector("#authorPFP").src = data.author.profile.images["90x90"];
+          var authorLink = document.querySelector("#authorLink");
+          authorLink.innerHTML = data.author.username;
+          authorLink.href = "https://scratch.mit.edu/users/"+data.author.username;
+          
+          loadDone(); //2
+          var thumb = new Image();
+          thumb.onload = function(){
+            Project.ctx.drawImage(thumb, -240, -180, 480, 360);
+            loadDone(); //3
+          }
+          thumb.src = data.images["200x200"];
+        }, function(){
+          //loadDone anyways cause info isn't really needed
+          loadDone() //2
+          loadDone() //3
+        });
+      }
+      
+      
+      var ProjectStatus = document.getElementById("status")
+      Project.onstart = function(){
+        ProjectStatus.innerHTML = "Running"
+        document.querySelector("#project-holder").classList.add("running");
+      }
+      Project.onstop = function(){
+        ProjectStatus.innerHTML = "Stopped"
+        document.querySelector("#project-holder").classList.remove("running");
+      }
+      
+      function getParameterByName(name, url = window.location.href) {
+        name = name.replace(/[\[\]]/g, '\\$&');
+        var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+            results = regex.exec(url);
+        if (!results) return null;
+        if (!results[2]) return '';
+        return decodeURIComponent(results[2].replace(/\+/g, ' '));
+      }
+      
+      var currentId = getParameterByName("id") || 501557073;
+      var projectId = document.getElementById("projectId");
+      projectId.value = currentId;
+      projectId.onchange = function(){
+        window.location.href = "?id="+projectId.value
+      }
+      
+      window.onload = function(){
+        setProjectJSON(currentId);
+        authorLink.innerHTML = "user "+random(-100000000,100000000)+"(fake)";
+      }
+      
+      var username = document.getElementById("username");
+      username.onchange = function(){
+        Project.setUsername(username.value);
+      }
+      username.onchange();
+    </script>
+  </body>
+</html>

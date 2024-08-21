@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Platformer Level Maker v 0.1</title>
+    <link id="icon" rel="icon" href="file:///C:/users/dongwei/desktop/Minecraft_files/Icons/platformer.png">
+    <meta charset="UTF-8">
+    <style>
+    body,html{
+      margin:0;
+      padding:0;
+    }
+    canvas{
+      
+    }
+    #toolbar{
+      float:right;
+      position:sticky;
+      top:0px;
+      padding:10px;
+      background:lightgray;
+      width:200px;
+      height:100%;
+    }
+    #toolbar .block{
+      width:50px;
+      height:50px;
+      display:inline-block;
+      margin-right:20px;
+      margin-bottom:20px;
+      padding:10px;
+      border:2px solid lightgray;
+    }
+    #toolbar .block:hover{
+      border:2px solid black;
+    }
+    #toolbar #exportCode{
+      font-family:monospace;
+    }
+    </style>
+  </head>
+  <body onload="ready()">
+    <div id="toolbar">
+      <h1>Blocks</h1>
+      <h3>Basic</h3>
+      <div class="block" onclick="setBlock('-')" style="background:#59f;">sky</div>
+      <div class="block" onclick="setBlock('g')" style="background:#0f0;">grass</div>
+      <div class="block" onclick="setBlock('d')" style="background:#f00;">lava</div>
+      <div class="block" onclick="setBlock('p')" style="background:#f0f;">portal</div>
+
+      <br><h3>Advanced</h3>
+      <div class="block" onclick="setBlock('w')" style="background:#840;">dirt</div>
+      <div class="block" onclick="setBlock('q')" style="background:#ff0;">quiz</div>
+      <div class="block" onclick="setBlock('G')" style="background:#0a0;">fake grass</div>
+      <div class="block" onclick="setBlock('D')" style="background:#a00;color:white;">fake lava</div>
+      <div class="block" onclick="setBlock('f')" style="background:#bbb;color:white;">blinker</div>
+      
+      <br><h3>Decoration</h3>
+      <div class="block" onclick="setBlock('b')" style="background:#fff;">white</div>
+      <div class="block" onclick="setBlock('n')" style="background:#000;color:white;">black</div>
+      
+      <br><button onclick="exportIt()">Level code</button>
+      <div id="exportCode"></div>
+    </div>
+    <canvas id="c"></canvas>
+
+    <script>
+    var mousedn=false;
+    var mouseX=0, mouseY=0;
+    var blockX=0, blockY=0;
+    function ready(){
+      window.canvas=document.getElementById("c");
+      changeLevelSize(canvas, 20,30);
+
+      canvas.onmousedown=function(){mousedn=true}
+      canvas.onmouseup=function(){mousedn=false}
+      canvas.onmousemove=function(e){
+        var scrLeft = document.documentElement.scrollLeft;
+        var scrTop = document.documentElement.scrollTop;
+        mouseX = e.clientX + scrLeft;
+        mouseY = e.clientY + scrTop;
+        blockX = Math.floor(mouseX / settings.zoom);
+        blockY = Math.floor(mouseY / settings.zoom);
+      }
+
+      window.ctx=canvas.getContext("2d");
+      
+      loop();
+    }
+    function loop(){
+      calculate();
+      render();
+      requestAnimationFrame(loop);
+    }
+    
+    window.blocks=[];
+    window.colors={
+      g:"#0f0",
+      d:"red",
+      "-":"#59f",
+      p:"#f0f",
+      w:"#840",
+      q:"#ff0",
+      G:"#0a0",
+      D:"#a00",
+      b:"#fff",
+      n:"#000",
+      f:"#bbb"
+    };
+    var currentBlock="g";
+    function setBlock(b){
+      currentBlock=b;
+    }
+    window.settings={
+      zoom:50,
+      size:{w:0, h:0}
+    }
+    function calculate(){
+      if(mousedn){
+        
+        var thatBlock = blocks[blockY];
+        if(thatBlock)thatBlock=thatBlock[blockX];
+        if(thatBlock){
+          blocks[blockY][blockX]=currentBlock;
+        }
+      }
+    }
+    function render(){
+      var x,y;
+      ctx.strokeStyle="black";
+      ctx.lineWidth=1;
+      for(y=0; y<blocks.length; y++){
+        var row = blocks[y];
+        for(x=0; x<row.length; x++){
+          var block=row[x];
+          var siz = settings.zoom;
+          ctx.fillStyle = colors[block];
+          ctx.fillRect(x*siz, y*siz, siz, siz);
+          ctx.strokeRect(x*siz, y*siz, siz, siz);
+        }
+      }
+    }
+    function changeLevelSize(cnv, wi, he){
+      settings.size={
+        w:wi,
+        h:he
+      }
+      cnv.width = wi * settings.zoom;
+      cnv.height = he * settings.zoom;
+      
+      blocks=[];
+      var x,y;
+      for(y=0; y<he; y++){
+        var row=[];
+        for(x=0; x<wi; x++){
+          row.push("-")
+        }
+        blocks.push(row);
+      }
+    }
+    function exportIt(){
+      var elmnt=document.getElementById("exportCode");
+      var text="";
+      var x,y;
+      for(y=0; y<blocks.length; y++){
+        text += "\""+blocks[y].join("")+"\",<br>";
+      }
+      elmnt.innerHTML=text;
+    }
+    </script>
+  </body>
+</html>

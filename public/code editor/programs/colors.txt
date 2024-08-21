@@ -1,0 +1,224 @@
+{"url":"colors.txt","name":"Css colors","type":"html"}
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Css colors</title>
+        <style>
+            #inside{
+                overflow:scroll;
+                height:calc(100% - 50px);
+                border:solid;
+            }
+            #inside div{
+                width:200px;
+                height:100px;
+                text-align: center;
+                line-height: 100px;
+                display:inline-block;
+            }
+            .tabbed{
+                position:relative;
+                left:30px;
+            }
+            .tabbed2{
+                position:relative;
+                left:60px;
+            }
+            body, html{
+                padding:0;
+                margin:0;
+                height:100%;
+            }
+            #top{
+                height:20px;
+                padding:10px;
+                background:lightgreen;
+            }
+        </style>
+    </head>
+    <body>
+    <div id="top">
+        <input placeholder="Color name"id="colname">
+        <button onclick="gethex()">Get Hex Value</button>
+        <div id="ctest" style="display:inline-block;width:50px;overflow:hidden;">color</div>
+        <span id="hex"></span>
+        
+        <script>
+            function gethex(){
+                var input =document.getElementById("colname").value;
+                var test=document.getElementById("ctest");
+                test.style.background=input;
+                cstyle=window.getComputedStyle(test);
+                var result=document.getElementById("hex");
+                result.innerHTML=cstyle.getPropertyValue("background-color");
+            }
+        </script>
+    </div>
+    
+    <div id="inside">
+        
+        <h1>Css color names to use</h1>
+        <p>Feel free to use these.</p>
+        
+        <span style="color:#009;">&lt;style <span style="color:red;">type=</span><span style="color:#090;">"text/css"</span>&gt;</span><br>
+        <span class="tabbed"><span style="color:#0c0;">#coloredElement</span>{</span><br>
+        <span class="tabbed2"><span style="color:#99f;">color</span>: <span style="color:blue;">red</span>;</span><br>
+        <span class="tabbed2"><span style="color:#99f;">background-color</span>: <span style="color:blue;">aqua</span>;</span><br><span class="tabbed">}</span><br>
+        <span style="color:#009;">&lt;/style&gt;</span><br>
+        
+        &lt; &gt; &le; &ge; &para; &#0; &#40;&#41;
+        
+        <br>
+        
+<div style="background:AliceBlue;">AliceBlue</div>
+<div style="background:AntiqueWhite;">AntiqueWhite</div>
+<div style="background:Aqua;">Aqua</div>
+<div style="background:Aquamarine;">AquaMarine</div>
+<div style="background:Azure;">Azure</div>
+<div style="background:beige;">Beige</div>
+<div style="background:bisque;">Bisque</div>
+<div style="background:black;color:white;">Black</div>
+<div style="background:blanchedalmond;">BlanchedAlmond</div>
+<div style="background:blue;color:white;">Blue</div>
+<div style="background:blueviolet;color:white;">BlueViolet</div>
+<div style="background:brown;color:white;">Brown</div>
+<div style="background:burlywood;">BurlyWood</div>
+<div style="background:cadetblue;color:white;">CadetBlue</div>
+<div style="background:chartreuse;">ChartReuse</div>
+<div style="background:chocolate;color:white;">Chocolate</div>
+<div style="background:coral;">Coral</div>
+<div style="background:cornflowerblue;color:white;">CornFlowerBlue</div>
+<div style="background:cornsilk;">Cornsilk</div>
+<div style="background:crimson;color:white;">Crimson</div>
+<div style="background:cyan;">Cyan (same as aqua)</div>
+<div style="background:darkblue;color:white;">DarkBlue</div>
+<div style="background:darkcyan;color:white;">DarkCyan</div>
+<div style="background:darkgoldenrod;color:white;">DarkGoldenRod</div>
+<div style="background:darkgray;color:white;">DarkGray</div>
+<div style="background:darkgrey;color:white;">DarkGrey</div>
+<div style="background:darkgreen;color:white;">DarkGreen</div>
+<div style="background:darkkhaki;">DarkKhaki</div>
+<div style="background:darkmagenta;color:white;">DarkMagenta</div>
+<div style="background:darkolivegreen;color:white;">DarkOliveGreen</div>
+<div style="background:darkorange;">DarkOrange</div>
+<div style="background:darkorchid;color:white;">DarkOrchid</div>
+<div style="background:darkred;color:white;">DarkRed</div>
+<div style="background:darksalmon;color:white;">DarkSalmon</div>
+<div style="background:darkseagreen;color:white;">DarkSeaGreen</div>
+<div style="background:darkslateblue;color:white;">DarkSlateBlue</div>
+<div style="background:darkslategray;color:white;">DarkSlateGray</div>
+<div style="background:darkslategrey;color:white;">DarkSlateGrey</div>
+<div style="background:darkturquoise;">DarkTurquoise</div>
+<div style="background:darkviolet;color:white;">DarkViolet</div>
+<div style="background:deeppink;color:white;">DeepPink</div>
+<div style="background:deepskyblue;">DeepSkyBlue</div>
+<div style="background:dimgray;color:white;">DimGray</div>
+<div style="background:dimgrey;color:white;">DimGrey</div>
+<div style="background:dodgerblue;color:white;">DodgerBlue</div>
+<div style="background:firebrick;color:white;">Firebrick</div>
+<div style="background:floralwhite;">FloralWhite</div>
+<div style="background:forestgreen;color:white;">ForestGreen</div>
+<div style="background:fuchsia;">Fuchsia</div>
+<div style="background:gainsboro;">Gainsboro</div>
+<div style="background:ghostwhite;">GhostWhite</div>
+<div style="background:Gold;">Gold</div>
+<div style="background:Goldenrod;">GoldenRod</div>
+<div style="background:Gray;color:white;">Gray</div>
+<div style="background:Grey;color:white;">Grey</div>
+<div style="background:Green;color:white;">Green</div>
+<div style="background:Greenyellow;">GreenYellow</div>
+<div style="background:honeydew;">Honeydew</div>
+<div style="background:hotpink;color:white;">HotPink</div>
+<div style="background:indianred;color:white;">IndianRed</div>
+<div style="background:indigo;color:white;">Indigo</div>
+<div style="background:ivory;">Ivory</div>
+<div style="background:khaki;">Khaki</div>
+<div style="background:lavender;">Lavender</div>
+<div style="background:lavenderblush;">LavenderBlush</div>
+<div style="background:lawngreen;">LawnGreen</div>
+<div style="background:lemonchiffon;">LemonChiffon</div>
+<div style="background:lightblue;">LightBlue</div>
+<div style="background:lightcoral;color:white;">LightCoral</div>
+<div style="background:lightcyan;">LightCyan</div>
+<div style="background:lightgoldenrodyellow;">LightGoldenRodYellow</div>
+<div style="background:lightgray;">LightGray</div>
+<div style="background:lightgrey;">LightGrey</div>
+<div style="background:lightgreen;">LightGreen</div>
+<div style="background:lightpink;">LightPink</div>
+<div style="background:lightsalmon;">LightSalmon</div>
+<div style="background:lightseagreen;color:white;">LightSeaGreen</div>
+<div style="background:lightskyblue;">LightSkyBlue</div>
+<div style="background:lightslategray;color:white;">LightSlateGray</div>
+<div style="background:lightslategrey;color:white;">LightSlateGrey</div>
+<div style="background:lightsteelblue;">LightSteelBlue</div>
+<div style="background:lightyellow;">LightYellow</div>
+<div style="background:lime;">Lime</div>
+<div style="background:limegreen;color:white;">LimeGreen</div>
+<div style="background:linen;">Linen</div>
+<div style="background:magenta;">Magenta</div>
+<div style="background:maroon;color:white;">Maroon</div>
+<div style="background:mediumaquamarine;">MediumAquaMarine</div>
+<div style="background:mediumblue;color:white;">MediumBlue</div>
+<div style="background:mediumorchid;color:white;">MediumOrchid</div>
+<div style="background:mediumpurple;color:white;">MediumPurple</div>
+<div style="background:mediumseagreen;">MediumSeaGreen</div>
+<div style="background:mediumslateblue;color:white;">MediumSlateBlue</div>
+<div style="background:mediumspringgreen;">MediumSpringGreen</div>
+<div style="background:mediumturquoise;">MediumTurquoise</div>
+<div style="background:mediumvioletred;color:white;">MediumVioletRed</div>
+<div style="background:midnightblue;color:white;">MidnightBlue</div>
+<div style="background:mintcream;">MintCream</div>
+<div style="background:mistyrose;">Mistyrose</div>
+<div style="background:moccasin;">Moccasin</div>
+<div style="background:navajowhite;">NavajoWhite</div>
+<div style="background:navy;color:white;">Navy</div>
+<div style="background:oldlace;">OldLace</div>
+<div style="background:olive;">Olive</div>
+<div style="background:olivedrab;">OliveDrab</div>
+<div style="background:orange;">Orange</div>
+<div style="background:orangered;">OrangeRed</div>
+<div style="background:orchid;">Orchid</div>
+<div style="background:palegoldenrod;">PaleGoldenRod</div>
+<div style="background:palegreen;">PaleGreen</div>
+<div style="background:paleturquoise;">PaleTurquoise</div>
+<div style="background:palevioletred;">PaleVioletRed</div>
+<div style="background:papayawhip;">PapayaWhip</div>
+<div style="background:peachPuff;">PeachPuff</div>
+<div style="background:peru;color:white;">Peru</div>
+<div style="background:pink;">Pink</div>
+<div style="background:plum;">Plum</div>
+<div style="background:powderblue;">PowderBlue</div>
+<div style="background:purple;color:white;">Purple</div>
+<div style="background:rebeccapurple;color:white;">RebeccaPurple</div>
+<div style="background:red;color:white;">Red</div>
+<div style="background:rosybrown;color:white;">RosyBrown</div>
+<div style="background:royalblue;color:white;">RoyalBlue</div>
+<div style="background:saddlebrown;color:white;">SaddleBrown</div>
+<div style="background:salmon;">Salmon</div>
+<div style="background:sandybrown;">SandyBrown</div>
+<div style="background:seagreen;color:white;">SeaGreen</div>
+<div style="background:seashell;">SeaShell</div>
+<div style="background:sienna;color:white;">Sienna</div>
+<div style="background:silver;">Silver</div>
+<div style="background:skyblue;">SkyBlue</div>
+<div style="background:slateblue;color:white;">SlateBlue</div>
+<div style="background:slategray;color:white;">SlateGray</div>
+<div style="background:slategrey;color:white;">SlateGrey</div>
+<div style="background:snow;">Snow</div>
+<div style="background:springgreen;">SpringGreen</div>
+<div style="background:steelblue;color:white;">SteelBlue</div>
+<div style="background:tan;">Tan</div>
+<div style="background:thistle;">Thistle</div>
+<div style="background:tomato;color:white;">Tamato</div>
+<div style="background:turquoise;">Turquoise</div>
+<div style="background:violet;">Violet</div>
+<div style="background:wheat;">Wheat</div>
+<div style="background:white;">White</div>
+<div style="background:whitesmoke;">WhiteSmoke</div>
+<div style="background:yellow;">Yellow</div>
+<div style="background:yellowgreen;">YelloGreen</div>
+
+    </div>
+    </body>
+</html>

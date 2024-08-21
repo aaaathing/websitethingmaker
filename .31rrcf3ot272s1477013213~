@@ -1,0 +1,2351 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<script>
+	//some from https://www.toptal.com/scala/writing-an-interpreter
+	function isLetter(a){
+		return a.toUpperCase() !== a.toLowerCase()
+	}
+	function isDigit(a){
+		return a >= "0" && a <= "9"
+	}
+	function getEscape(a){
+		switch(a){
+			case "b": return "\b"; break
+			case "f": return "\f"; break
+			case "n": return "\n"; break
+			case "r": return "\r"; break
+			case "t": return "\t"; break
+			default: return a
+		}
+	}
+  function getTokens(str){
+    let tokens = []
+    let idx = 0, prevIdx = 0
+		function addToken(o){
+			o.idx = prevIdx
+			o.idx2 = idx
+			tokens.push(o)
+		}
+		function at(idx){
+			return idx+"\nHere (find underline): "+str.substring(idx-16,idx)+str[idx]+"\u0332"+str.substring(idx+1,idx+16)
+		}
+		let stateStack = ["",null,null]//order: state, quote, multiline | idea from https://stackoverflow.com/questions/68682043/how-to-lex-tokenise-template-literals
+    while(idx<str.length){
+      let c = str[idx]
+			prevIdx = idx
+			let state = stateStack[stateStack.length-3], quote = stateStack[stateStack.length-2], multiline = stateStack[stateStack.length-1]
+			if(state === "string" || state === "fstring"){
+				if(state === "fstring" && c === "{"){
+					stateStack.push("",null,null)
+					addToken({type:"fstring{"})
+					idx++
+				}else if(c === quote && (!multiline || str[idx+1]===quote&&str[idx+2]===quote)){
+					idx += multiline?3:1
+					stateStack.pop(), stateStack.pop(), stateStack.pop()
+					if(state === "fstring"){
+						addToken({type:"fstringend"})
+					}
+				}else{
+					if(c === "\\"){
+						idx++
+						c = getEscape(str[idx])
+					}
+					tokens[tokens.length-1].rawValue += c
+					idx++
+				}
+			}else{
+				if(c === "+" || c === "-" || c === "*" || c === "/"){
+					idx++
+					if(str[idx] === "="){
+						idx++
+						addToken({type:c+"assign"})
+					}else addToken({type:c})
+				}else if(isDigit(c) || c === "." && isDigit(str[idx+1])){
+					let float, text = ""
+					while(isDigit(c) || c === "."){
+						if(c === "."){
+							float = true
+						}
+						text += c
+						idx++
+						c = str[idx] || ""
+					}
+					addToken({type:float?"float":"int",rawValue:parseFloat(text)})
+				}else if(c === "(" || c === ")" || c === ":" || c === "," || c === "." || c === "[" || c === "]"){
+					idx++
+					addToken({type:c})
+				}else if(c === "="){
+					idx++
+					if(str[idx] === "="){
+						idx++
+						addToken({type:"equal"})
+					}else addToken({type:"assign"})//todo: assign multiple variable to same value
+				}else if(c === "!"){
+					idx++
+					if(str[idx] === "="){
+						idx++
+						addToken({type:"notequal"})
+					}else throw new Error("! not allowed, use not instead, at "+at(idx-1))
+				}else if(c === '"' || c === "'"){
+					let multiline
+					if(str[idx+1] === c && str[idx+2] === c) multiline = true
+					idx += multiline?3:1
+					addToken({type:"string", rawValue:""})
+					stateStack.push("string", c, multiline)
+				}else if(c === "f" && (str[idx+1] === '"' || str[idx+1] === '"')){
+					addToken({type:"fstringstart"})
+					addToken({type:"fstring", rawValue:""})
+					stateStack.push("fstring", str[idx+1], false)
+					idx += 2
+				}else if(isLetter(c) || c === "_"){
+					let text = ""
+					while(isLetter(c) || c === "_" || isDigit(c)){
+						text += c
+						idx++
+						c = str[idx] || ""
+					}
+					let type, ret = {}//type:
+					switch(text){
+						case "True": type = "true"; break
+						case "False": type = "false"; break
+						case "None": type = "none"; break
+						case "def": type = "definefunction"; break
+						case "if":
+						case "elif":
+						case "else":
+						case "and":
+						case "or":
+						case "not":
+						case "return":
+						case "nan":
+						case "global":
+						case "import":
+						case "from":
+						case "as":
+						case "class":
+						case "try":
+						case "except":
+						case "raise":
+						case "for":
+						case "in":
+						case "while":
+						case "break":
+						case "continue":
+						case "pass":
+							type = text
+							break
+						default: type = "identifier", ret.rawValue = text
+					}
+					ret.type = type
+					addToken(ret)
+				}else if(c === "\n"){
+					idx++, c = str[idx]
+					let indentAmount = 0
+					while(c === " " || c === "\t"){
+						indentAmount++
+						idx++
+						c = str[idx]
+					}
+					if(tokens[tokens.length-1]) tokens[tokens.length-1].hasNewline = indentAmount+1
+				}else if(c === " "){
+					idx++
+				}else if(c === "<" || c === ">"){
+					idx++
+					let text = c
+					if(str[idx] === "="){
+						text += "="
+						idx++
+					}
+					addToken({type:text})
+				}else if(c === "#"){
+					while(c !== "\n" && c){
+						idx++
+						c = str[idx]
+					}
+				}else if(c === "{"){
+					stateStack.push("",null,null)
+					addToken({type:"{"})
+					idx++
+				}else if(c === "}"){
+					stateStack.pop(), stateStack.pop(), stateStack.pop()
+					if(stateStack[stateStack.length-3] === "fstring"){
+						addToken({type:"fstring}"})
+						addToken({type:"fstring", rawValue:""})
+					}else addToken({type:"}"})
+					idx++
+				}else throw new Error("Unknown "+c+" at "+at(idx))
+			}
+    }
+		addToken({type:"end"})
+		return tokens
+  }
+	function parseCode(str){
+		const tokens = getTokens(str)
+		let idx = 0, nextToken = tokens[0]
+		function at(idx){
+			const cIdx = tokens[idx].idx, cIdx2 = tokens[idx].idx2
+			return cIdx+"\nHere (find underline): "+str.substring(cIdx-16,cIdx)+Array.prototype.map.call(str.substring(cIdx,cIdx2), r => r+"\u0332").join('')+str.substring(cIdx2,cIdx2+16)
+		}
+		function eat(){
+			let expected
+			for(let a of arguments){
+				if(a === nextToken.type){
+					expected = true
+					break
+				}
+			}
+			if(!expected) throw new Error("Unexpected "+nextToken.type+(nextToken.rawValue?" "+nextToken.rawValue:"")+", Expected "+Array.prototype.join.call(arguments," ")+", at "+at(idx))//!.zpo{
+			let ret = nextToken
+			idx++
+			nextToken = tokens[idx]
+			return ret
+		}
+		function parseLines(canReturn = false){
+			let arr = [], initialIndentAmount = tokens[idx-1] ? tokens[idx-1].hasNewline : 1, indentAmount = initialIndentAmount//!.thynvyw
+			if(!indentAmount && tokens[idx-1]) throw new Error("New line expected at "+at(idx-1))
+			while(indentAmount === initialIndentAmount){
+				if(nextToken.type === "definefunction"){
+					eat("definefunction")
+					const defName = eat("identifier").rawValue
+					let args = []
+					eat("(")
+					while(nextToken.type !== ")"){
+						args.push(eat("identifier").rawValue)
+						if(nextToken.type !== ")") eat(",")
+					}
+					eat(")")
+					eat(":")
+					arr.push({type:"definefunction",value:parseLines(true),rawName:defName,args})
+				}else if(nextToken.type === "if"){
+					eat("if")
+					const condition = parseExpression(":")
+					eat(":")
+					let lastif = {type:"if",value2:condition,value:parseLines()}
+					arr.push(lastif)
+					indentAmount = tokens[idx-1].hasNewline
+					if(!indentAmount && nextToken.type !== "end") throw new Error("New line expected at "+at(idx-1))
+					while(nextToken.type === "elif" && indentAmount === initialIndentAmount){
+						eat("elif")
+						const condition = parseExpression(":")
+						eat(":")
+						let value = {type:"if",value2:condition,value:parseLines()}
+						lastif.else = value
+						lastif = value
+						if(nextToken.type === "end") break
+						indentAmount = tokens[idx-1].hasNewline
+						if(!indentAmount) throw new Error("New line expected at "+at(idx-1))
+					}
+					if(nextToken.type === "else" && indentAmount === initialIndentAmount){
+						eat("else")
+						eat(":")
+						lastif.else = parseLines()
+					}
+				}else if(nextToken.type === "return"){
+					eat("return")//!.zh~
+					arr.push({type:"return",value:parseExpression()})
+				}else if(nextToken.type === "global"){
+					eat("global")
+					arr.push({type:"global",rawName:eat("identifier").rawValue})
+				}else if(nextToken.type === "import" || nextToken.type === "from"){
+					let ret, expectAs = true
+					if(nextToken.type === "from"){
+						eat("from")
+						const moduleName = eat("identifier").rawValue
+						eat("import")
+						const firstItem = eat("identifier","*")
+						let items = [firstItem.type === "*" ? "*" : firstItem.rawValue]
+						while(nextToken.type === ","){
+							eat(",")
+							items.push(eat("identifier").rawValue)
+						}
+						ret = {type:"import",rawName:moduleName,rawValue:items}
+					}else{
+						eat("import")
+						ret = {type:"import",rawName:eat("identifier").rawValue}
+					}
+					if(nextToken.type === "as"){
+						eat("as")
+						ret.as = eat("identifier").rawValue
+					}
+					arr.push(ret)
+				}else if(nextToken.type === "class"){
+					eat("class")
+					const className = eat("identifier").rawValue
+					let baseClasses
+					if(nextToken.type === "("){
+						eat("(")
+						baseClasses = parseExpression(")",true)
+						eat(")")
+					}else baseClasses = {type:"createtuple",value:[]}
+					eat(":")
+					let attributes = {}
+					let stuff = parseLines()
+					for(let o of stuff.lines){
+						if(o.type === "definefunction") attributes[o.rawName] = {...o,type:"definefunctionwithvalue"}
+						else if(o.type === "assign"){
+							if(o.name.type !== "identifier") throw new Error("Invalid attribute on class")
+							attributes[o.name.rawValue] = o.value
+						}
+					}
+					arr.push({type:"defineclass",rawName:className,attributes,baseClasses})
+				}else if(nextToken.type === "try"){
+					eat("try")
+					eat(":")
+					let ret = {type:"try",value:parseLines(),excepts:[]}
+					arr.push(ret)
+					indentAmount = tokens[idx-1].hasNewline
+					if(!indentAmount) throw new Error("New line expected at "+at(idx-1))
+					while(nextToken.type === "except" && indentAmount === initialIndentAmount){
+						eat("except")
+						let except = {}
+						if(nextToken.type !== ":") except.name = parseExpression(":")
+						if(nextToken.type === "as"){
+							eat("as")
+							except.as = eat("identifier").rawValue
+						}
+						eat(":")
+						except.value = parseLines()
+						ret.excepts.push(except)
+						if(nextToken.type === "end") break
+						indentAmount = tokens[idx-1].hasNewline
+						if(!indentAmount) throw new Error("New line expected at "+at(idx-1))
+					}
+					if(nextToken.type === "else" && indentAmount === initialIndentAmount){
+						eat("else")
+						eat(":")
+						ret.else = parseLines()
+					}
+				}else if(nextToken.type === "raise"){
+					eat("raise")
+					arr.push({type:"raise",value:parseExpression()})
+				}else if(nextToken.type === "for"){
+					eat("for")
+					const variable = parseExpression("in")
+					eat("in")
+					const iterator = parseExpression(":")
+					eat(":")
+					let ret = {type:"for",name:variable,value2:iterator,value:parseLines()}
+					if(nextToken.type === "else"){
+						eat("else")
+						eat(":")
+						ret.else = parseLines()
+					}
+					arr.push(ret)
+				}else if(nextToken.type === "while"){
+					eat("while")
+					const condition = parseExpression(":")
+					eat(":")
+					let ret = {type:"while",value2:condition,value:parseLines()}
+					if(nextToken.type === "else"){
+						eat("else")
+						eat(":")
+						ret.else = parseLines()
+					}
+					arr.push(ret)
+				}else if(nextToken.type === "break" || nextToken.type === "continue"){
+					arr.push(eat("break","continue"))
+				}else if(nextToken.type === "pass"){
+					eat("pass")
+				}else{
+					let ret = parseExpression()
+					if(nextToken.type === "assign"){
+						eat("assign")
+						ret = {type:"assign",name:ret,value:parseExpression()}
+					}else if(nextToken.type === "+assign" || nextToken.type === "-assign" || nextToken.type === "*assign" || nextToken.type === "/assign"){
+						let type = eat("+assign","-assign","*assign","/assign").type
+						/*switch(type){
+							case "+assign": type = "+"; break
+							case "-assign": type = "-"; break
+							case "*assign": type = "*"; break
+							case "/assign": type = "/"; break
+						}*/
+						ret = {type,name:ret,value:parseExpression()}
+					}
+					arr.push(ret)
+				}
+				if(nextToken.type === "end") break
+				indentAmount = tokens[idx-1].hasNewline
+				if(!indentAmount) throw new Error("New line expected at "+at(idx-1))
+			}
+			if(indentAmount > initialIndentAmount) throw new Error("Indentation mismatched")
+			return {type:"lines",lines:arr,canReturn}
+		}
+		const parseExpression = parseTuples//todo arguments like: call(a=1)
+		function parseTuples(endingChar = undefined, mustBeTuple = false){//todo starred expression, 2 starred expression
+			if(mustBeTuple && nextToken.type === endingChar) return {type:"createtuple",value:[]}
+			let ret = parseOrComparisons()
+			if(nextToken.type === ","){
+				ret = {type:"createtuple",value:[ret]}
+				while(nextToken.type === ","){
+					eat(",")
+					if(endingChar && nextToken.type === endingChar) break
+					ret.value.push(parseOrComparisons())
+				}
+			}else if(mustBeTuple){
+				ret = {type:"createtuple",value:[ret]}
+			}
+			return ret
+		}
+		function parseOrComparisons(){
+			let ret = parseAndComparisons()
+			while(nextToken.type === "or"){
+				const op = eat("or")
+				ret = {type:op.type, value:ret, value2:parseAndComparisons()}
+			}
+			return ret
+		}
+		function parseAndComparisons(){
+			let ret = parseEquals()
+			while(nextToken.type === "and"){
+				const op = eat("and")
+				ret = {type:op.type, value:ret, value2:parseEquals()}
+			}
+			return ret
+		}
+		function parseEquals(){
+			let hasNot
+			if(nextToken.type === "not"){
+				hasNot = true
+				eat("not")
+			}
+			let ret = parseNumberComparisons()
+			while(nextToken.type === "equal" || nextToken.type === "notequal"){
+				const op = eat("equal","notequal")
+				ret = {type:op.type, value:ret, value2:parseNumberComparisons()}
+			}
+			if(hasNot){
+				ret = {type:"not", value:ret}
+			}
+			return ret
+		}
+		function parseNumberComparisons(){
+			let ret = parseAddSubtract()
+			while(nextToken.type === ">" || nextToken.type === "<" || nextToken.type === ">=" || nextToken.type === "<="){//!.lkht
+				const op = eat(">","<",">=","<=")
+				ret = {type:op.type, value:ret, value2:parseAddSubtract()}
+			}
+			return ret
+		}
+		function parseAddSubtract(){
+			let ret = parseMultDiv()
+			while(nextToken.type === "+" || nextToken.type === "-"){
+				const op = eat("+","-")
+				ret = {type:op.type, value:ret, value2:parseMultDiv()}
+			}
+			return ret
+		}
+		function parseMultDiv(){
+			let ret = parseDots()
+			while(nextToken.type === "*" || nextToken.type === "/"){
+				const op = eat("*","/")
+				ret = {type:op.type, value:ret, value2:parseDots()}
+			}
+			return ret
+		}
+		function parseDots(){
+			let isNegative
+			if(nextToken.type === "-"){//starts with -
+				isNegative = true
+				eat("-")//!.i
+			}
+			let ret = parseParenthesis()
+			//the while loop also acts like a if
+			while(nextToken.type === "." || (nextToken.type === "[" || nextToken.type === "(") && !tokens[idx-1].hasNewline){//!.ylrhtnupo{
+				if(nextToken.type === "["){
+					eat("[")
+					let value = nextToken.type === ":" ? {type:"none"} : parseExpression()
+					if(nextToken.type === ":"){
+						eat(":")
+						value = {type:"createslice",start:value, end: nextToken.type === ":" || nextToken.type === "]" ? {type:"none"} : parseExpression()}
+						if(nextToken.type === ":"){
+							eat(":")
+							value.step = nextToken.type === ":" || nextToken.type === "]" ? {type:"none"} : parseExpression()
+						}
+					}
+					eat("]")
+					ret = {type:"getitem",name:value, value:ret}
+				}else if(nextToken.type === "."){
+					eat(".")
+					ret = {type:"getattribute",rawName:eat("identifier").rawValue, value:ret}
+				}else if(nextToken.type === "("){
+					eat("(")
+					const value = parseExpression(")",true)
+					eat(")")
+					ret = {type:"call",value,name:ret}
+				}
+			}
+			if(isNegative){
+				ret = {type:"negate",value:ret}
+			}
+			return ret
+		}
+		function parseParenthesis(){
+			if(nextToken.type === "("){
+				eat("(")
+				const ret = parseExpression(")")
+				eat(")")
+				return ret
+			}else if(nextToken.type === "["){
+				let arr = []
+				eat("[")
+				const tuple = parseExpression("]",true)
+				eat("]")
+				return {type:"createlist",value:tuple.value}
+			}else if(nextToken.type === "{"){
+				let arr = []
+				eat("{")
+				const tuple = parseExpression("}",true)
+				eat("}")
+				return {type:"createdictionary",value:tuple.value}
+			}else if(nextToken.type === "fstringstart"){
+				eat("fstringstart")
+				let arr = []
+				while(nextToken.type !== "fstringend"){
+					if(nextToken.type === "fstring{"){
+						eat("fstring{")
+						arr.push(parseExpression("fstring}"))
+						eat("fstring}")
+					}else arr.push({type:"string",rawValue:eat("fstring").rawValue})
+				}
+				eat("fstringend")
+				return {type:"join",value:arr}
+			}else{
+				return eat("float","int","true","false","none","identifier","string","nan")//!.st{o5yl{lywyl{upuvo{w6yv{pkl79,lkvj6nyv5|l5z|5ylrhtnupo{66Azw{{o
+			}
+		}
+		return parseLines()
+	}
+	function yieldThread(ms) {
+		return new Promise(resolve => setTimeout(resolve, 0))
+	}
+	class Interpreter{
+		//todo dictionarys
+		//todo list&tuple init use iterator, string use __init__ on class to convert
+		//todo all classes are instance of type object
+		constructor(tree = undefined, options){
+			//The saving can only be done when step() is not being run
+			this.map = []//saved | in the map, if a property of a instruction is a number, it points to another instruction (unless its the value of a number)
+			this.mapSize = 0
+			this.instructionStack = []//saved | no garbage collect | order: instruction id, completedness, willUseValue, scope, valueAddedCount
+			//instruction stack runs the last item first
+			if(tree){
+				this.constantTypes = {none:0,false:1,true:2,nan:3}//saved | no garbage collect
+				for(let i in this.constantTypes) this.map[this.constantTypes[i]] = {type:i}, this.mapSize++
+				this.globalScope = this.addToMap({type:"scope",variables:{},globalVariables:[]})//saved
+				const globalScope = this.map[this.globalScope]
+				this.addToInstructionStack(this.addToMap(tree),false,this.globalScope)//this flattens the tree which contains the code
+				/*this.addToInstructionStack(this.addToMap({
+					type:"defineclass", name:"stuff", attributes:{thing:{type:"float",value:"31.42"},__init__:{type:"definebuiltinfunctionwithvalue",name:"int_init"},__bases__:{type:"createtuple",value:[{type:"identifier",value:"object"}]}}]
+				}),0)*/
+				for(let i of Object.getOwnPropertyNames(Object.getPrototypeOf(this))){
+					if(i.startsWith("builtin_")) globalScope.variables[i.replace("builtin_","")] = this.addToMap({type:"builtinfunction",rawName:i})
+				}
+				//defineclass requires creating tuple instance but it does not exist yet, so do it this way
+				this.classes = {}//saved | no garbage collect
+				this.classes.tuple = this.createClass("tuple", {
+					__init__:this.addToMap({type:"builtinfunction",rawName:"class_tuple_init"}),
+					__getitem__:this.addToMap({type:"builtinfunction",rawName:"class_tuple_getitem"}),
+					__iter__:this.addToMap({type:"builtinfunction",rawName:"class_list_iter"}),
+				},this.globalScope)
+				this.classes.object = this.createClass("object", {
+					__bases__:this.createInstanceOfClass(this.classes.tuple,null,false,false,[])
+				},this.globalScope)
+				this.map[this.classes.tuple].attributes.__bases__ = this.createInstanceOfClass(this.classes.tuple,null,false,false,[this.classes.object])
+				this.classes.list = this.createClass("list", {
+					__init__:this.addToMap({type:"builtinfunction",rawName:"class_list_init"}),
+					__getitem__:this.addToMap({type:"builtinfunction",rawName:"class_list_getitem"}),
+					__setitem__:this.addToMap({type:"builtinfunction",rawName:"class_list_setitem"}),
+					__iter__:this.addToMap({type:"builtinfunction",rawName:"class_list_iter"}),
+					__len__:this.addToMap({type:"builtinfunction",rawName:"class_list_len"}),
+					append:this.addToMap({type:"builtinfunction",rawName:"class_list_append"}),
+					insert:this.addToMap({type:"builtinfunction",rawName:"class_list_insert"}),
+					remove:this.addToMap({type:"builtinfunction",rawName:"class_list_remove"}),
+					pop:this.addToMap({type:"builtinfunction",rawName:"class_list_pop"}),
+					clear:this.addToMap({type:"builtinfunction",rawName:"class_list_clear"}),
+					index:this.addToMap({type:"builtinfunction",rawName:"class_list_index"})
+				},this.globalScope,[this.classes.object])
+				this.classes.string = this.createClass("string", {
+					__getitem__:this.addToMap({type:"builtinfunction",rawName:"class_string_getitem"}),
+					__len__:this.addToMap({type:"builtinfunction",rawName:"class_string_len"}),
+					upper:this.addToMap({type:"builtinfunction",rawName:"class_string_upper"}),
+					lower:this.addToMap({type:"builtinfunction",rawName:"class_string_lower"}),
+					title:this.addToMap({type:"builtinfunction",rawName:"class_string_title"})
+				},undefined)
+				this.classes.BaseException = this.createClass("BaseException", {
+					__init__:this.addToMap({type:"builtinfunction",rawName:"class_exception_init"})
+				},undefined,[this.classes.object])
+				this.classes.Exception = this.createClass("Exception", {},this.globalScope,[this.classes.BaseException])
+				this.classes.NameError = this.createClass("NameError", {},this.globalScope, [this.classes.Exception])
+				this.classes.TypeError = this.createClass("TypeError", {},this.globalScope, [this.classes.Exception])
+				this.classes.ValueError = this.createClass("ValueError", {},this.globalScope, [this.classes.Exception])
+				this.classes.AttributeError = this.createClass("AttributeError", {},this.globalScope, [this.classes.Exception])
+				this.classes.LookupError = this.createClass("LookupError", {},this.globalScope, [this.classes.Exception])
+				this.classes.IndexError = this.createClass("IndexError", {},this.globalScope, [this.classes.LookupError])
+				this.classes.SyntaxError = this.createClass("SyntaxError", {},this.globalScope, [this.classes.Exception])
+				this.classes.ImportError = this.createClass("ImportError", {},this.globalScope, [this.classes.Exception])
+				this.classes.ModuleNotFoundError = this.createClass("ModuleNotFoundError", {},this.globalScope, [this.classes.ImportError])
+				this.classes.SystemExit = this.createClass("SystemExit", {},this.globalScope,[this.classes.BaseException])
+				this.classes.StopIteration = this.createClass("StopIteration", {},this.globalScope,[this.classes.Exception])
+				this.classes.list_iterator = this.createClass("list_iterator", {
+					__next__:this.addToMap({type:"builtinfunction",rawName:"class_list_iterator_next"})
+				},undefined,[this.classes.object])
+				this.classes.slice = this.createClass("slice", {
+					__init__:this.addToMap({type:"builtinfunction",rawName:"class_slice_init"})
+				},this.globalScope,[this.classes.object])
+				this.classes.range = this.createClass("range", {
+					__init__:this.addToMap({type:"builtinfunction",rawName:"class_range_init"}),
+					__len__:this.addToMap({type:"builtinfunction",rawName:"class_range_len"}),
+					__iter__:this.addToMap({type:"builtinfunction",rawName:"class_range_iter"})
+				},this.globalScope,[this.classes.object])
+				this.classes.range_iterator = this.createClass("range_iterator", {
+					__next__:this.addToMap({type:"builtinfunction",rawName:"class_range_iterator_next"})
+				},undefined,[this.classes.object])
+			}
+			this.valueStack = []//saved | no garbage collect | value stack is basically the return values of instructions which are temporary
+			this.outputCb = options.output
+			this.inputCb = options.input
+			this.statsCb = options.stats
+			this.exitCb = options.exit
+			this.isWaitingInput = false//saved | this can be a string
+			this.isDoingInput = false//this will make the input appear when input() is run or when loaded with isWaitingInput set to true
+			this.garbageCollectCb = options.onGarbageCollect
+			this.lastCollectGarbage = Date.now()
+			this.running = false//is it running, false when doing things like input()
+			this.lastPause = Date.now()
+			this.isWaitingSleep = false//saved as isWaitingSleep-now
+			this.isDoingSleep = false
+			this.outputData = ""
+			this.currentError = null
+			this.hasExited = false
+		}
+		toJSON(){
+			const now = Date.now()
+			return {
+				map:this.map,
+				constantTypes:this.constantTypes,
+				instructionStack:this.instructionStack,
+				valueStack:this.valueStack,
+				globalScope:this.globalScope,
+				isWaitingInput:this.isWaitingInput,
+				isWaitingSleep: this.isWaitingSleep ? this.isWaitingSleep-now : false,
+				classes:this.classes,
+				outputData:this.outputData,
+				hasExited:this.hasExited
+			}
+		}
+		fromJSON(data){
+			const now = Date.now()
+			this.map = data.map
+			this.constantTypes = data.constantTypes
+			this.instructionStack = data.instructionStack
+			this.valueStack = data.valueStack
+			this.globalScope = data.globalScope
+			this.isWaitingInput = data.isWaitingInput
+			this.isWaitingSleep = data.isWaitingSleep ? now+data.isWaitingSleep : false
+			this.classes = data.classes
+			this.outputData = data.outputData
+			this.outputCb(this.outputData)
+			this.hasExited = data.hasExited
+
+			this.mapSize = 0
+			for(let i of this.map){
+				if(i !== null) this.mapSize++
+			}
+		}
+		findMapEmpty(){
+			const idx = this.map.indexOf(null)
+			return idx === -1 ? this.map.length : idx
+		}
+		addToMap(o){//converts nested objects to list of objects
+			if(typeof o === "number"){
+				return o
+			}else if(typeof o === "object"){
+				if(o.type in this.constantTypes){
+					return this.constantTypes[o.type]
+				}
+				let id = this.findMapEmpty()
+				this.map[id] = o
+				this.mapSize++
+				if(o.value){
+					if(Array.isArray(o.value)){
+						for(let i=0; i<o.value.length; i++) o.value[i] = this.addToMap(o.value[i])
+					}else o.value = this.addToMap(o.value)
+				}
+				if(o.name) o.name = this.addToMap(o.name)
+				if(o.value2) o.value2 = this.addToMap(o.value2)
+				if(o.type === "lines"){
+					for(let i=0; i<o.lines.length; i++) o.lines[i] = this.addToMap(o.lines[i])
+				}
+				if(o.type === "defineclass" || o.type === "module"){
+					for(let i in o.attributes) o.attributes[i] = this.addToMap(o.attributes[i])
+				}
+				if(o.type === "defineclass"){
+					if(o.baseClasses) o.baseClasses = this.addToMap(o.baseClasses)
+				}
+				if(o.type === "if" || o.type === "for" || o.type === "while"){
+					if(o.else) o.else = this.addToMap(o.else)
+				}
+				if(o.type === "try"){
+					if(o.else) o.else = this.addToMap(o.else)
+					for(let i=0; i<o.excepts.length; i++){
+						o.excepts[i].value = this.addToMap(o.excepts[i].value)
+						if(o.excepts[i].name) o.excepts[i].name = this.addToMap(o.excepts[i].name)
+					}
+				}
+				if(o.type === "createslice"){
+					o.start = this.addToMap(o.start)
+					o.end = this.addToMap(o.end)
+					if(o.step) o.step = this.addToMap(o.step)
+				}
+				return id
+			}else throw new Error("Cannot add to map "+(typeof o))
+		}
+		getReferences(id,set){
+			if(set.has(id)) return//prevent infinite loop
+			set.add(id)
+			const o = this.map[id]
+			if(typeof o === "object"){
+				if(o.value !== undefined){
+					if(Array.isArray(o.value)){
+						for(let i of o.value) this.getReferences(i,set)
+					}else this.getReferences(o.value,set)
+				}
+				if(o.name !== undefined) this.getReferences(o.name,set)
+				if(o.value2 !== undefined) this.getReferences(o.value2,set)
+				if(o.type === "lines"){
+					for(let i of o.lines) this.getReferences(i,set)
+				}
+				if(o.type === "defineclass" || o.type === "module"){
+					for(let i in o.attributes) this.getReferences(o.attributes[i],set)
+				}
+				if(o.type === "defineclass"){
+					if(o.baseClasses !== undefined) this.getReferences(o.baseClasses,set)
+				}
+				if(o.type === "if" || o.type === "for" || o.type === "while"){
+					if(o.else !== undefined) this.getReferences(o.else,set)
+				}
+				if(o.type === "object"){
+					for(let i in o.attributes) this.getReferences(o.attributes[i],set)
+					if(o.data !== undefined){
+						if(Array.isArray(o.data)){
+							for(let i of o.data) this.getReferences(i,set)
+						}
+					}
+				}
+				if(o.type === "function" || o.type === "builtinfunction"){
+					if(o.parentScope !== undefined) this.getReferences(o.parentScope,set)
+					if(o.self !== undefined) this.getReferences(o.self,set)
+				}
+				if(o.type === "scope"){
+					for(let i in o.variables) this.getReferences(o.variables[i],set)
+				}
+				if(o.type === "try"){
+					if(o.else !== undefined) this.getReferences(o.else,set)
+					for(let i of o.excepts){
+						this.getReferences(i.value,set)
+						if(i.name !== undefined) this.getReferences(i.name,set)
+					}
+				}
+				if(o.type === "createslice"){
+					this.getReferences(o.start,set)
+					this.getReferences(o.end,set)
+					if(o.step !== undefined) this.getReferences(o.step,set)
+				}
+			}
+		}
+		addToInstructionStack(id, willUseValue = false, scope, completedness = 0){
+			this.instructionStack.push(id,completedness,willUseValue,scope,0)
+			if(scope === undefined) throw new Error("scope not defined")
+		}
+		addToValueStack(value, forCurrentInstruction = false){
+			let id
+			if(typeof value === "number"){
+				id = value
+			}else if(value.type in this.constantTypes){
+				id = this.constantTypes[value.type]
+			}else{
+				id = this.findMapEmpty()
+				this.map[id] = value
+				this.mapSize++
+			}
+			this.valueStack.push(id)
+			this.instructionStack[
+				(forCurrentInstruction ? (forCurrentInstruction === "last" ? this.instructionStack.length - 5 : this.currentInstruction) : this.currentInstruction-5)
+			+4/*instructionstack.*/]++//valueAddedCount
+		}
+		setVarAtScope(name,value,scopeId){
+			let id
+			if(typeof value === "number"){
+				id = value//value is already id
+			}else if(value.type in this.constantTypes){
+				id = this.constantTypes[value.type]
+			}else{
+				id = this.findMapEmpty()
+				this.map[id] = value
+				this.mapSize++
+			}
+			let scope = this.map[scopeId]
+			if(scope.globalVariables.includes(name)) this.map[this.globalScope].variables[name] = id
+			else scope.variables[name] = id
+			return id
+		}
+		getVarAtScope(name,scopeId){
+			let scope = this.map[scopeId]
+			while(scope){
+				if(scope.globalVariables.includes(name)) return this.map[this.globalScope].variables[name]
+				if(name in scope.variables) return scope.variables[name]
+				scope = this.map[scope.parentScope]//parentScope is where the function was defined
+			}
+		}
+		createClass(name,attributes,scopeId,baseClasses=undefined){
+			if(Array.isArray(baseClasses)){//array of ids
+				attributes.__bases__ = this.createInstanceOfClass(this.classes.tuple,null,false,false,baseClasses)
+			}else if(typeof baseClasses === "number"){
+				attributes.__bases__ = baseClasses
+			}
+			if(baseClasses !== undefined && !this.map[attributes.__bases__].data.length){
+				this.map[attributes.__bases__].data.push(this.classes.object)
+			}
+			const classId = this.addToMap({
+				type:"object", rawName:name,
+				attributes//attributes is a map of ids
+			})
+			if(scopeId !== undefined) this.setVarAtScope(name, classId,scopeId)
+			return classId
+		}
+		createInstanceOfClass(classId,args,willUseValue,doInit=true, data=null){//classId should point to class
+			const obj = this.map[classId]
+			if(obj.type === "object"){
+				const instance = {type:"object",attributes:{__class__:classId},data}
+				const id = this.findMapEmpty()
+				this.map[id] = instance
+				this.mapSize++
+				const allAttributes = this.listAttributes(classId)
+				for(let i in allAttributes){
+					const a = this.map[allAttributes[i]]
+					if(a.type === "function" || a.type === "builtinfunction"){
+						instance.attributes[i] = this.addToMap({...a,self:id})//copy functions and add self
+					}
+				}
+				if(doInit){
+					const initId = this.getAttribute(id,"__init__"), init = this.map[initId]
+					if(init){
+						if(init.type === "function" || init.type === "builtinfunction"){
+							this.runFunction(initId,args,false)
+						}else this.raiseError("Interpreter can not create class "+obj.name+" because its __init__ is "+init.type, "TypeError")
+					}
+				}
+				if(willUseValue) this.addToValueStack(id,true)
+				return id
+			}else throw new Error("Interpreter can not create instance of "+name+" as it is not a class")
+		}
+		listAttributes(id, list = {}){
+			const obj = this.map[id]
+			for(let i in obj.attributes){
+				if(!(i in list)) list[i] = obj.attributes[i]
+			}
+			if("__bases__" in obj.attributes) for(let cid of this.map[obj.attributes.__bases__].data/*get data of tuple*/){
+				this.listAttributes(cid,list)
+			}
+			return list
+		}
+		getAttribute(id,name){
+			const obj = this.map[id]
+			/*if(obj.type === "instance"){
+				let pointer = obj.attributes[name]
+				if(pointer === undefined){
+					return this.getAttribute(obj.attributes.__class__,name)//get from class itself
+					//if("__bases__" in obj.attributes/*this should never happen unless a class is based on an instance*-/) for(let cid of this.map[obj.attributes.__bases__].data/*get data of tuple*-/){
+					//	const c = this.getAttribute(cid,name)
+					//	if(c) return c
+					//}
+				}else return pointer
+			}else*/
+			if(obj.type === "string"){
+				let a = this.getAttribute(this.classes.string,name), strobj = this.map[a]
+				if(!strobj) return
+				if(strobj.type === "function" || strobj.type === "builtinfunction") a = this.addToMap({...strobj,self:id})//probably not best way
+				return a
+			}else if(obj.attributes){
+				let pointer = obj.attributes[name]
+				if(pointer === undefined){
+					if("__bases__" in obj.attributes) for(let cid of this.map[obj.attributes.__bases__].data/*get data of tuple*/){
+						const c = this.getAttribute(cid,name)
+						if(c) return c
+					}
+					if("__class__" in obj.attributes) return this.getAttribute(obj.attributes.__class__,name)
+				}else{
+					return pointer
+				}
+			}
+		}
+		setAttribute(id,name,value){
+			const obj = this.map[id]
+			if(!obj.attributes) throw new Error("Interpreter can not set attributes on "+obj.type)
+			obj.attributes[name] = value
+		}
+		isBasedOnClass(theClass,baseClass){
+			if(theClass === baseClass) return true
+			let obj = this.map[theClass]
+			if("__bases__" in obj.attributes) for(let cid of this.map[obj.attributes.__bases__].data/*get data of tuple*/){
+				if(this.isBasedOnClass(cid,baseClass)) return true
+			}
+		}
+		isInstanceOfClass(instance,classId, includeBaseClasses = false){
+			if(instance.type !== "object" || !("__class__" in instance.attributes)) return
+			if(instance.attributes.__class__ === classId) return true
+			if(includeBaseClasses) return this.isBasedOnClass(instance.attributes.__class__,classId)
+		}
+		runFunction(id, args,willUseValue, self = undefined){
+			const obj = this.map[id]
+			if(self === undefined) self = obj.self
+			if(self !== undefined) args.unshift(self)
+			if(obj.type === "builtinfunction"){
+				let argValues = []
+				for(let i=0; i<args.length; i++) argValues.push(this.map[args[i]])
+				this.currentSelf = self
+				this.currentArgumentIds = args
+				const value = this[obj.rawName](...argValues)
+				if(willUseValue){
+					if(typeof value === "number") this.addToValueStack(value,true)//already an id
+					else if(value) this.addToValueStack(value,true)
+					else if(value !== false) this.addToValueStack(this.constantTypes.none,true)
+				}
+			}else if(obj.type === "function"){
+				const scope = {type:"scope",variables:{},globalVariables:[], parentScope:obj.parentScope}, scopeId = this.addToMap(scope)
+				this.addToInstructionStack(obj.value,willUseValue,scopeId)
+				if(obj.args.length !== args.length) this.raiseError("Interpreter expected "+obj.args.length+" arguments for function "+obj.rawName+" but there were "+args.length+" instead", "TypeError")
+				for(let i=0; i<obj.args.length; i++){
+					if(i in args){
+						scope.variables[obj.args[i]] = args[i]
+					}//else scope.variables[obj.args[i]] = this.constantTypes.none
+				}
+			}else this.raiseError("Interpreter says "+obj.type+" is not a function", "TypeError")
+		}
+		popInstructionStack(){
+			const thisIdx = this.instructionStack.length-5
+			let valueAddedCount = this.instructionStack[thisIdx+4]
+			while(valueAddedCount--){
+				if(!this.valueStack.length) throw new Error("valueStack length does not match up with valueAddedCount")
+				this.valueStack.pop()
+			}
+			this.instructionStack.pop(), this.instructionStack.pop(), this.instructionStack.pop(), this.instructionStack.pop(), this.instructionStack.pop()
+		}
+		raiseError(message, type = "Exception"){
+			let currentError
+			if(typeof message === "number"){
+				if(!this.isInstanceOfClass(this.map[message], this.classes.BaseException, true)) this.raiseError("Interpreter cannot raise thing that is not Exception")
+				currentError = message//already id
+			}else{
+				const args = this.createInstanceOfClass(this.classes.tuple,null,false,false,[this.addToMap({type:"string",rawValue:message})])
+				currentError = this.createInstanceOfClass(this.classes[type], null, false,false)
+				this.setAttribute(currentError,"args",args)
+			}
+			const errorType = this.map[this.map[currentError].attributes.__class__].rawName
+			if(this.currentInstruction !== undefined){//error happened while running instruction
+				this.currentInstruction = undefined
+			}
+			while(this.instructionStack.length){
+				const thisIdx = this.instructionStack.length-5, instrType = this.map[this.instructionStack[thisIdx]].type
+				const complete = this.instructionStack[thisIdx+1]
+				if(instrType === "try" && complete === 1/*if catch-except has completed code to try, ignore it*/){
+					this.addToValueStack(currentError,"last")
+					throw "tryfound"
+				}
+				if(instrType === "for" && errorType === "StopIteration" && complete>2 && ((complete-3)%3) === 0){
+					this.addToValueStack(currentError,"last")
+					throw "iterationstopped"
+				}
+				this.popInstructionStack()
+			}
+			throw currentError
+		}
+		popValueStack(){
+			if(this.valueStack.length < 1) throw new Error("Cannot pop from valueStack")
+			this.instructionStack[this.currentInstruction+4] --
+			if(this.instructionStack[this.currentInstruction+4]<0) throw new Error("Used to many items from valueStack")
+			return this.valueStack.pop()
+		}
+		popValueStackToArray(n){
+			if(this.valueStack.length < n) throw new Error("Cannot splice from valueStack")
+			this.instructionStack[this.currentInstruction+4] -= n
+			if(this.instructionStack[this.currentInstruction+4]<0) throw new Error("Used to many items from valueStack")
+			return this.valueStack.splice(this.valueStack.length-n,n)
+		}
+		step(){
+			if(!this.instructionStack.length) return console.log("no more")
+			const thisIdx = this.instructionStack.length-5
+			const mapIdx = this.instructionStack[thisIdx]
+			const instruction = this.map[mapIdx]
+			let complete = this.instructionStack[thisIdx+1]
+			const willUseValue = this.instructionStack[thisIdx+2]//determine if the instruction should add to valueStack
+			const scopeId = this.instructionStack[thisIdx+3], scope = this.map[scopeId]
+			this.currentInstruction = thisIdx
+			let maxComplete//number of times instruction needs to be done to complete, if false, it means the number is unknown and it is not complete
+			const type = instruction.type
+			complete++
+			this.instructionStack[thisIdx+1] = complete
+			if(type === "lines"){
+				maxComplete = instruction.lines.length
+				if(complete <= maxComplete) this.addToInstructionStack(instruction.lines[complete-1],false,scopeId)
+				else{
+					if(instruction.canReturn){
+						if(willUseValue) this.addToValueStack(this.constantTypes.none)//function has not returned yet and it has ended
+					}else if(willUseValue) this.addToValueStack(this.constantTypes.none)//used in try except
+				}
+			}else if(type === "int" || type === "float" || type === "true" || type === "false" || type === "none" || type === "string" || type === "nan"){
+				maxComplete = 0
+				if(complete === 1){
+					if(willUseValue) this.addToValueStack(mapIdx)
+				}
+			}else if(type === "+" || type === "-" || type === "*" || type === "/"){
+				maxComplete = 2
+				if(complete === 1) this.addToInstructionStack(instruction.value,true,scopeId)
+				else if(complete === 2) this.addToInstructionStack(instruction.value2,true,scopeId)
+				else{
+					let value2 = this.map[this.popValueStack()], value1 = this.map[this.popValueStack()]
+					if(willUseValue) this.addToValueStack(this.mathOperation(type,value1,value2))
+				}
+			}else if(type === "negate"){
+				maxComplete = 1
+				if(complete === 1) this.addToInstructionStack(instruction.value,true,scopeId)
+				else{
+					const oldValue = this.map[this.popValueStack()], n = -oldValue.rawValue
+					if(willUseValue) this.addToValueStack(isNaN(n) ? this.map[this.constantTypes.nan] : {type:oldValue.type, rawValue:n})
+				}
+			}else if(type === ">" || type === "<" || type === ">=" || type === "<=" || type === "equal" || type === "notequal"){
+				maxComplete = 2
+				if(complete === 1) this.addToInstructionStack(instruction.value,true,scopeId)
+				else if(complete === 2) this.addToInstructionStack(instruction.value2,true,scopeId)
+				else{
+					const id2 = this.popValueStack(), id1 = this.popValueStack()
+					let value2 = this.map[id2], value1 = this.map[id1]
+					let value
+					switch(type){
+						case ">": value = this.valuesLess(value2,value1); break
+						case "<": value = this.valuesLess(value1,value2); break
+						case ">=": value = this.valuesLess(value2,value1)||this.valuesEqual(id1,id2); break
+						case "<=": value = this.valuesLess(value1,value2)||this.valuesEqual(id1,id2); break
+						case "equal": value = this.valuesEqual(id1,id2); break
+						case "notequal": value = !this.valuesEqual(id1,id2); break
+					}
+					if(willUseValue) this.addToValueStack({type:value?"true":"false"})
+				}
+			}else if(type === "and" || type === "or"){
+				maxComplete = 2
+				if(complete === 1) this.addToInstructionStack(instruction.value,true,scopeId)
+				else if(complete === 2) this.addToInstructionStack(instruction.value2,true,scopeId)
+				else{
+					let value2Idx = this.popValueStack(), value1Idx = this.popValueStack()
+					let value2 = this.map[value2Idx], value1 = this.map[value1Idx]
+					let value
+					switch(type){
+						case "and": value = this.isTrueValue(value1)?value2Idx:value1Idx; break
+						case "or": value = this.isTrueValue(value1)?value1Idx:value2Idx; break
+					}
+					if(willUseValue) this.addToValueStack(value)//adds the id
+				}
+			}else if(type === "not"){
+				maxComplete = 1
+				if(complete === 1) this.addToInstructionStack(instruction.value,true,scopeId)
+				else{
+					const ret = this.map[this.popValueStack()]
+					if(willUseValue) this.addToValueStack(this.isTrueValue(ret)?this.constantTypes.false:this.constantTypes.true)
+				}
+			}else if(type === "createtuple"){
+				maxComplete = instruction.value.length+1
+				if(complete<=instruction.value.length) this.addToInstructionStack(instruction.value[complete-1],true,scopeId)
+				else if(complete===maxComplete){
+					const value = this.popValueStackToArray(instruction.value.length)
+					this.createInstanceOfClass(this.classes.tuple,null,willUseValue,false,value)
+				}else{
+					if(willUseValue) this.addToValueStack(this.popValueStack())//value of instance
+				}
+			}else if(type === "createlist"){
+				maxComplete = instruction.value.length+1
+				if(complete<=instruction.value.length) this.addToInstructionStack(instruction.value[complete-1],true,scopeId)
+				else if(complete===maxComplete){
+					const value = this.popValueStackToArray(instruction.value.length)
+					this.createInstanceOfClass(this.classes.list,null,willUseValue,false,value)
+				}else{
+					if(willUseValue) this.addToValueStack(this.popValueStack())//value of instance
+				}
+			}else if(type === "createslice"){
+				maxComplete = 4
+				if(complete === 1) this.addToInstructionStack(instruction.start,true,scopeId)
+				else if(complete === 2) this.addToInstructionStack(instruction.end,true,scopeId)
+				else if(complete === 3){
+					if(instruction.step !== undefined) this.addToInstructionStack(instruction.start,true,scopeId)
+				}else if(complete === 4){
+					const step = instruction.step === undefined ? this.constantTypes.none : this.popValueStack()
+					const end = this.popValueStack()
+					const start = this.popValueStack()
+					this.createInstanceOfClass(this.classes.slice, [start,end,step], true)
+				}else{
+					this.addToValueStack(this.popValueStack())
+				}
+			}else if(type === "defineclass"){
+				const attributeKeys = Object.keys(instruction.attributes)
+				maxComplete = attributeKeys.length+1//defineclass creates a copy of the class (not instance of class) in the current scope
+				if(complete === 1) this.addToInstructionStack(instruction.baseClasses,true,scopeId)
+				else if(complete <= maxComplete) this.addToInstructionStack(instruction.attributes[attributeKeys[complete-2]],true,scopeId)
+				else{
+					const attributes = Object.fromEntries(
+						this.popValueStackToArray(attributeKeys.length).map((id, i) => [attributeKeys[i],id])
+					)
+					const baseClasses = this.popValueStack()
+					this.createClass(instruction.rawName,attributes,scopeId,baseClasses)
+				}
+			}else if(type === "identifier"){
+				maxComplete = 0
+				const value = this.getVarAtScope(instruction.rawValue,scopeId)
+				if(value === undefined) this.raiseError("Interpreter says name "+instruction.rawValue+" does not exist", "NameError")
+				if(willUseValue) this.addToValueStack(value)//it adds the id
+			}else if(type === "if"){
+				maxComplete = 2
+				if(complete === 1) this.addToInstructionStack(instruction.value2,true,scopeId)//condition for if
+				else if(complete === 2){
+					const value = this.popValueStack()
+					if(this.isTrueValue(this.map[value])) this.addToInstructionStack(instruction.value,false,scopeId)//code inside if
+					else if(instruction.else) this.addToInstructionStack(instruction.else,false,scopeId)//code inside else
+				}
+			}else if(type === "assign" || type === "+assign" || type === "-assign" || type === "*assign" || type === "/assign"){
+				const assignTo = this.map[instruction.name], assignOperation = type === "assign" ? 0 : 1
+				maxComplete = 2+assignOperation
+				let offsetBefore = assignOperation
+				if(assignTo.type === "getattribute") maxComplete++, offsetBefore++
+				else if(assignTo.type === "getitem") maxComplete+=2, offsetBefore+=2
+				else if(assignTo.type === "createtuple") maxComplete += assignTo.value.length
+				if(complete === 1){//skips complete=1 when added by for loop
+					this.addToInstructionStack(instruction.value,true,scopeId)//what to set to
+				}else if((assignTo.type === "getattribute" || assignTo.type === "getitem") && complete === 2){
+					this.addToInstructionStack(assignTo.value,true,scopeId)//get additional values if needed
+				}else if(assignTo.type === "getitem" && complete === 3){
+					this.addToInstructionStack(assignTo.name,true,scopeId)//get additional values if needed
+				}else if(assignOperation && complete === 2+offsetBefore-1){
+					this.addToInstructionStack(instruction.name,true,scopeId)//for +=, -=, *=, /=
+				}else if(complete === 2+offsetBefore){
+					const prevValue = assignOperation && this.popValueStack()
+					let assignToObj, assignToProp = assignTo.rawValue
+					if(assignTo.type === "getitem") assignToProp = this.popValueStack()
+					else if(assignTo.type === "getattribute") assignToProp = assignTo.rawName
+					if(assignTo.type === "getattribute" || assignTo.type === "getitem") assignToObj = this.popValueStack()
+					let value = this.popValueStack()
+					if(assignOperation){
+						let opType
+						switch(type){
+							case "+assign": opType = "+"; break
+							case "-assign": opType = "-"; break
+							case "*assign": opType = "*"; break
+							case "/assign": opType = "/"; break
+						}
+						value = this.addToMap(this.mathOperation(opType,this.map[prevValue],this.map[value]))
+					}
+					switch(assignTo.type){
+						case "identifier": this.setVarAtScope(assignToProp, value, scopeId); break
+						case "getattribute": this.setAttribute(assignToObj, assignToProp, value); break
+						case "getitem":
+							const func = this.getAttribute(assignToObj,"__setitem__")
+							this.runFunction(func,[assignToProp/*what to set*/,value/*set to what*/],false)
+							break
+						case "createtuple":
+							const valueData = this.map[value]
+							if(!this.isInstanceOfClass(valueData,this.classes.list) && !this.isInstanceOfClass(valueData,this.classes.tuple)){
+								this.raiseError("Interpreter cannot unpack that","TypeError")
+							}
+							this.addToValueStack(value,true)//used later
+							break
+						default:
+							this.raiseError("Interpreter does not know how to set "+this.map[instruction.name].type,"SyntaxError")
+					}
+					if(willUseValue) this.addToValueStack(value)//already an id
+				}else if(assignTo.type === "createtuple" && complete-2-offsetBefore <= assignTo.value.length){
+					if(type !== "assign") this.raiseError("Interpreter is confused with unpacking","SyntaxError")
+					const unpackFrom = this.map[this.valueStack[this.valueStack.length-1]]
+					const unpackIdx = complete-3-offsetBefore
+					if(unpackIdx >= unpackFrom.data.length) this.raiseError("Interpreter has not enough things to unpack","ValueError")
+					this.addToInstructionStack(this.addToMap({type:"assign",name:assignTo.value[unpackIdx]}),false,scopeId,1)
+					//set each thing in tuple
+					this.addToValueStack(unpackFrom.data[unpackIdx],"last")
+				}else if(assignTo.type === "createtuple"){
+					const unpackFrom = this.map[this.valueStack[this.valueStack.length-1]]
+					if(assignTo.value.length<unpackFrom.data.length){
+						this.raiseError("Interpreter has too many things to unpack","ValueError")
+					}
+					this.popValueStack()//remove thing to unpack from
+				}
+			}else if(type === "definefunction"){
+				maxComplete = 0
+				this.setVarAtScope(instruction.rawName, {//creates a copy of the definition
+					...instruction,
+					type:"function",
+					parentScope:scopeId
+				}, scopeId)
+			}else if(type === "definefunctionwithvalue"){
+				maxComplete = 0
+				if(willUseValue) this.addToValueStack({//creates a copy of the definition
+					...instruction,
+					type:"function",
+					parentScope:scopeId
+				})
+			}else if(type === "call"){
+				maxComplete = 3
+				if(complete === 1) this.addToInstructionStack(instruction.name,true,scopeId)//get function
+				else if(complete === 2){
+					this.addToInstructionStack(instruction.value,true,scopeId)//compute arguments which is tuple
+				}else if(complete === 3){
+					let args = this.map[this.popValueStack()].data
+					const pointer = this.popValueStack(), funcdata = this.map[pointer]
+					if(funcdata.type === "function" || funcdata.type === "builtinfunction") this.runFunction(pointer,args,willUseValue)
+					else if(funcdata.type === "object" && !("__class__" in funcdata.attributes)) this.createInstanceOfClass(pointer,args,willUseValue)
+					else this.raiseError("Interpreter says "+funcdata.type+" is not a function", "TypeError")
+				}else{
+					if(willUseValue) this.addToValueStack(this.popValueStack())
+				}
+			}else if(type === "getattribute"){
+				maxComplete = 1
+				if(complete === 1) this.addToInstructionStack(instruction.value,true,scopeId)
+				else{
+					const pointer = this.getAttribute(this.popValueStack(), instruction.rawName)
+					if(pointer === undefined) this.raiseError("Interpreter says attribute "+instruction.rawName+" does not exist", "AttributeError")
+					if(willUseValue) this.addToValueStack(pointer)
+				}
+			}else if(type === "getitem"){
+				maxComplete = 3
+				if(complete === 1) this.addToInstructionStack(instruction.value,true,scopeId)
+				else if(complete === 2) this.addToInstructionStack(instruction.name,true,scopeId)
+				else if(complete === 3){
+					const value = this.popValueStack(), list = this.popValueStack()
+					const func = this.getAttribute(list,"__getitem__")
+					this.runFunction(func,[value],true)
+				}else{
+					const value = this.popValueStack()
+					if(willUseValue) this.addToValueStack(value)
+				}
+			}else if(type === "return"){
+				maxComplete = 1
+				if(complete === 1) this.addToInstructionStack(instruction.value,true,scopeId)
+				else{
+					const returnValue = this.popValueStack()
+					let idx, thatInstruction = instruction
+					while(thatInstruction.type !== "lines" || !thatInstruction.canReturn){
+						this.popInstructionStack()
+						idx = this.instructionStack.length-5
+						thatInstruction = this.map[this.instructionStack[idx]]
+						if(!thatInstruction) this.raiseError("Cannot return","SyntaxError")
+					}
+					this.currentInstruction = idx
+					if(this.instructionStack[idx+2]/*if willUseValue of lines*/) this.addToValueStack(returnValue)
+					this.popInstructionStack()//remove lines
+					return
+				}
+			}else if(type === "global"){
+				maxComplete = 0
+				scope.globalVariables.push(instruction.rawName)
+			}else if(type === "import"){
+				maxComplete = 0
+				const thisModule = this.builtInModules[instruction.rawName]
+				if(!thisModule) this.raiseError("Interpreter does not have module "+instruction.rawName,"ModuleNotFoundError")
+				const moduleId = this.addToMap({type:"module",rawName:instruction.rawName,attributes:thisModule})
+				if(instruction.rawValue && instruction.rawValue[0] === "*"){
+					for(let i in thisModule){
+						if(this.map[thisModule[i]].type === "builtinfunction") this.map[thisModule[i]].self = moduleId
+						this.setVarAtScope(i,thisModule[i],scopeId)
+					}
+				}else if(instruction.rawValue){//what in module to import
+					for(let i of instruction.rawValue){
+						if(this.map[thisModule[i]].type === "builtinfunction") this.map[thisModule[i]].self = moduleId
+						this.setVarAtScope(instruction.as || i,thisModule[i],scopeId)
+					}
+				}else{
+					for(let i in thisModule){
+						if(this.map[thisModule[i]].type === "builtinfunction") this.map[thisModule[i]].self = moduleId
+					}
+					this.setVarAtScope(instruction.as || instruction.rawName,moduleId,scopeId)
+				}
+			}else if(type === "join"){//used by f-strings
+				maxComplete = instruction.value.length
+				if(complete <= maxComplete) this.addToInstructionStack(instruction.value[complete-1],true,scopeId)
+				else{
+					const toJoin = this.popValueStackToArray(maxComplete)
+					let value = ""
+					for(let i of toJoin){
+						let item = this.map[i]
+						if(item.type === "string") value += item.rawValue
+						else value += this._builtin_str_inside(item)
+					}
+					if(willUseValue) this.addToValueStack({type:"string",rawValue:value})
+				}
+			}else if(type === "try"){
+				maxComplete = 2+instruction.excepts.length
+				if(complete === 1) this.addToInstructionStack(instruction.value,true,scopeId)//code in try, willUseValue for detecting errors
+				else if(complete <= instruction.excepts.length+1){
+					const except = instruction.excepts[complete-2]
+					if(except.name === undefined) this.addToValueStack(this.constantTypes.none,true)
+					else this.addToInstructionStack(except.name, true, scopeId)
+				}else if(complete === maxComplete){
+					const exceptErrors = this.popValueStackToArray(instruction.excepts.length)
+					const pointer = this.popValueStack(), error = this.map[pointer]
+					if(error.type === "none"){
+						if(instruction.else !== undefined) this.addToInstructionStack(instruction.else,false,scopeId)
+					}else{
+						let catched
+						for(let i=0; i<instruction.excepts.length && !catched; i++){
+							if(this.map[exceptErrors[i]].type === "none" || this.isInstanceOfClass(error,exceptErrors[i],true)){
+								catched = instruction.excepts[i]
+								break
+							}
+						}
+						if(catched){
+							this.addToInstructionStack(catched.value,false,scopeId)
+							if(catched.as){
+								this.setVarAtScope(catched.as,pointer,scopeId)
+							}
+						}else{
+							this.instructionStack.splice(thisIdx,5)
+							this.raiseError(pointer)//this should prevent step() from doing more stuff
+						}
+					}
+				}
+			}else if(type === "raise"){
+				maxComplete = 1
+				if(complete === 1) this.addToInstructionStack(instruction.value, true, scopeId)
+				else{
+					this.raiseError(this.popValueStack())
+				}
+			}else if(type === "for"){
+				maxComplete = false
+				const completeMod = complete > 2 ? (complete-3)%3 : undefined, iterator = this.valueStack[this.valueStack.length-this.instructionStack[thisIdx+4]/*instructionstack.*/]
+				if(complete === 1) this.addToInstructionStack(instruction.value2, true, scopeId)//get iterable
+				else if(complete === 2) this.runFunction(this.getAttribute(this.popValueStack(),"__iter__"),[],true)//get iterator
+				else if(completeMod === 0){
+					this.runFunction(this.getAttribute(iterator,"__next__"),[],true)
+				}else if(completeMod === 1){
+					const value = this.popValueStack()
+					if(this.isInstanceOfClass(this.map[value],this.classes.StopIteration)){
+						this.popValueStack()//remove iterator
+						if(instruction.else !== undefined) this.addToInstructionStack(instruction.else,false,scopeId)
+						complete = -2//stopped by StopIteration
+						this.instructionStack[thisIdx+1] = complete
+					}else{
+						this.addToInstructionStack(this.addToMap(/*probably not best way*/{type:"assign",name:instruction.name}),false,scopeId,1)
+						this.addToValueStack(value,"last")
+					}
+				}else if(completeMod === 2){
+					this.addToInstructionStack(instruction.value,false,scopeId)//code inside loop
+				}else if(complete === -1){
+					maxComplete = true
+				}
+			}else if(type === "while"){
+				maxComplete = false
+				const completeMod = complete > 0 ? (complete-1)%2 : undefined
+				if(completeMod === 0) this.addToInstructionStack(instruction.value2, true, scopeId)//compute condition
+				else if(completeMod === 1){
+					if(this.isTrueValue(this.map[this.popValueStack()])){
+						this.addToInstructionStack(instruction.value,false,scopeId)
+					}else{
+						if(instruction.else !== undefined) this.addToInstructionStack(instruction.else,false,scopeId)
+						complete = -2//stopped by StopIteration
+						this.instructionStack[thisIdx+1] = complete
+					}
+				}else if(complete === -1){
+					maxComplete = true
+				}
+			}else if(type === "break" || type === "continue"){
+				maxComplete = 0
+				let idx, thatInstruction = instruction, thatComplete = complete
+				while((thatInstruction.type !== "for" || (thatComplete-3)%3 !== 2) && (thatInstruction.type !== "while"|| (thatComplete-1)%2 !== 1)){//check if break was done by code inside loop
+					this.popInstructionStack()
+					idx = this.instructionStack.length-5
+					thatInstruction = this.map[this.instructionStack[idx]]
+					thatComplete = this.instructionStack[idx+1]
+					if(!thatInstruction) this.raiseError("Cannot break outside loop","SyntaxError")
+				}
+				if(type === "break") this.popInstructionStack()//remove loop
+				return
+			}else throw new Error("Unknown instruction "+type)
+			const isComplete = complete > maxComplete && maxComplete !== false || maxComplete === true
+			if(isComplete){
+				if(this.instructionStack[thisIdx+4]) throw new Error("Used incorrect amount of items from valueStack: "+-this.instructionStack[thisIdx+4]+" used")//not all valueStack items used
+				this.instructionStack.splice(thisIdx,5)
+			}
+			this.currentInstruction = undefined
+		}
+		isTrueValue(obj){
+			return obj.type !== "none" && obj.type !== "false" && (obj.type !== "number" || obj.rawValue !== 0)
+		}
+		valuesEqual(id1,id2){
+			const obj1 = this.map[id1], obj2 = this.map[id2]
+			if(obj2.type !== obj1.type) return false
+			if(obj1.type === "function" || obj1.type === "object") return id1 === id2
+			else if(obj1.type === "string" || obj1.type === "float" || obj1.type === "int") return obj1.rawValue === obj2.rawValue
+			else return true//same type
+		}
+		builtin_print(){
+			let output = ""
+			for(let i=0; i<arguments.length; i++){
+				output += this.builtin_str(arguments[i]).rawValue+" "
+			}
+			this.doOutput(output+"\n")
+		}
+		_builtin_str_inside(obj = this.map[this.constantTypes.none], depth = 0){
+			if(obj.type === "string"){
+				return "'"+obj.rawValue.replaceAll("'","\\'").replaceAll("\\","\\\\'").replaceAll("\n","\\n").replaceAll("\r","\\r").replaceAll("\t","\\t").replaceAll("\b","\\b").replaceAll("\f","\\f")+"'"
+			}else if(obj.type === "object"){
+				if(depth>4) return "..."
+				if(this.isInstanceOfClass(obj,this.classes.tuple)){
+					let str = "("
+					for(let i of obj.data) str += this._builtin_str_inside(this.map[i], depth+1)+","
+					if(obj.data.length>1) str = str.substring(0,str.length-1)
+					return str+")"
+				}else if(this.isInstanceOfClass(obj,this.classes.list)){
+					let str = "["
+					for(let i of obj.data) str += this._builtin_str_inside(this.map[i], depth+1)+","
+					if(obj.data.length>0) str = str.substring(0,str.length-1)
+					return str+"]"
+				}else if(this.isInstanceOfClass(obj, this.classes.Exception,true)){
+					let args = this.map[obj.attributes.args]
+					return args.data.length === 1 ? this.map[args.data[0]].rawValue : this._builtin_str_inside(args, depth+1)
+				}else if("__class__" in obj.attributes){
+					const c = this.map[obj.attributes.__class__]
+					return "<"+c.rawName+" object>"
+				}else{
+					return "<class "+obj.rawName+">"
+				}
+			}else if(obj.type === "function"){
+				return "<function "+obj.rawName+(obj.self === undefined ? "" : " of "+("__class__" in this.map[obj.self].attributes ? this.map[this.map[obj.self].attributes.__class__].rawName+" object" : this.map[obj.self].type))+">"
+			}else if(obj.type === "builtinfunction"){
+				return "<built-in function "+obj.rawName+(obj.self === undefined ? "" : " of "+("__class__" in this.map[obj.self].attributes ? this.map[this.map[obj.self].attributes.__class__].rawName+" object" : this.map[obj.self].type))+">"
+			}else if(obj.type === "module"){
+				return "<module '"+obj.rawName+"'>"
+			}else if(obj.type === "true"){
+				return "True"
+			}else if(obj.type === "false"){
+				return "False"
+			}else if(obj.type === "none"){
+				return "None"
+			}else if(obj.type === "nan"){
+				return "nan"
+			}else if(obj.type === "int"){
+				return obj.rawValue+""
+			}else if(obj.type === "float"){
+				return Number.isInteger(obj.rawValue) ? obj.rawValue+".0" : obj.rawValue+""
+			}else return "<unknown>"
+		}
+		builtin_str(obj = this.map[this.constantTypes.none]){
+			if(obj.type === "string") return obj
+			else return {type:"string",rawValue:this._builtin_str_inside(obj)}
+		}
+		builtin_input(prompt = this.map[this.constantTypes.none]){
+			//const idx = this.instructionStack.length-3
+			//setTimeout(() => this.instructionStack[idx+1]++/*increase completeness of waitingForInput*/, 4000)
+			this.isWaitingInput = prompt.type === "none" ? "" : this.builtin_str(prompt).rawValue
+		}
+		builtin_float(obj = this.map[this.constantTypes.none]){
+			if(obj.type === "string"){
+				const value = parseFloat(obj.rawValue)
+				return isNaN(value) ? {type:"nan"} : {type:"float", rawValue:value}
+			}else if(obj.type === "float" || obj.type === "int"){
+				return {type:"float",rawValue: obj.rawValue}
+			}else if(obj.type === "true"){
+				return {type:"float",rawValue:1}
+			}else if(obj.type === "false"){
+				return {type:"float",rawValue:0}
+			}else return {type:"nan"}
+		}
+		builtin_int(obj = this.map[this.constantTypes.none], base = this.map[this.constantTypes.none]){
+			if(obj.type === "string" && base.type !== "none"){
+				const value = parseInt(obj.rawValue, base.type !== "none" ? base.rawValue : undefined)
+				return isNaN(value) ? {type:"nan"} : {type:"int", rawValue:value}
+			}else{
+				let value = this.builtin_float(obj)
+				if(value.type === "float") value = {type:"int",rawValue:value.rawValue<0?Math.ceil(value.rawValue):Math.floor(value.rawValue)}
+				return value
+			}
+		}
+		builtin_len(obj = this.map[this.constantTypes.none]){
+			const func = this.getAttribute(this.currentArgumentIds[0]||this.constantTypes.none,"__len__")
+			/*if(this.isInstanceOfClass(obj,this.classes.tuple) || this.isInstanceOfClass(obj,this.classes.list)){
+				return {type:"int",rawValue:obj.data.length}
+			}else if(obj.type === "string") return {type:"int",rawValue:obj.rawValue.length}*/
+			if(func !== undefined){
+				this.runFunction(func,[],true)
+				return false
+			}else this.raiseError("Cannot measure length of "+obj.type, "TypeError")
+		}
+		builtin_quit(code = this.map[this.constantTypes.none]){
+			this.raiseError(code.type === "int" ? code.rawValue+"" : "0", "SystemExit")
+		}
+		builtin_exit(code){
+			this.builtin_quit(code)
+		}
+		builtin_round(x = this.map[this.constantTypes.none], decimals = this.map[this.constantTypes.none]){
+			if(x.type !== "int" && x.type !== "float") this.raiseError("round() x must be number","TypeError")
+			if(decimals.type !== "none") this.raiseError("rounding with decimals undone")
+			if(Math.abs(x.rawValue%1) === 0.5) return {type:"int",rawValue:Math.round(x.rawValue*0.5)*2}
+			return {type:"int",rawValue:Math.round(x.rawValue)}
+		}
+		builtin_min(){
+			if(!arguments.length) this.raiseError("min() needs more arguments")
+			let value
+			for(let i of arguments){
+				if(!value || this.valuesLess(i,value)) value = i
+			}
+			return value
+		}
+		builtin_max(){
+			if(!arguments.length) this.raiseError("max() needs more arguments")
+			let value
+			for(let i of arguments){
+				if(!value || this.valuesLess(value,i)) value = i
+			}
+			return value
+		}
+		mathOperation(type,value1,value2){
+			let value
+			switch(type){
+				case "+": value = value1.rawValue+value2.rawValue; break
+				case "-": value = value1.rawValue-value2.rawValue; break
+				case "*": value = value1.rawValue*value2.rawValue; break
+				case "/": value = value1.rawValue/value2.rawValue; break
+			}
+			const newType = value1.type === "string" || value2.type === "string" ? "string"	: 
+				(value1.type === "nan" || value2.type === "nan" || isNaN(value) ? "nan" : 
+					(value1.type === "float" || value2.type === "float" || type === "/" ? "float" : "int")
+				)
+			return {type:newType,rawValue:value}
+		}
+		valuesLess(value1,value2){
+			if(!(value1.type === "string" && value2.type === "string" || (value1.type === "int" || value1.type === "float") && (value2.type === "int" || value2.type === "float"))){
+				this.raiseError("< cannot compare "+value1.type+" and "+value2.type)
+			}
+			return value1.rawValue<value2.rawValue
+		}
+		index(i,l){
+			i = this.map[i]
+			return (i.rawValue<0 ? Math.max(l+i.rawValue,0) : Math.min(i.rawValue,l))
+		}
+		class_tuple_init(self, from = this.map[this.constantTypes.none]){
+			if(this.isInstanceOfClass(from,this.classes.tuple) || this.isInstanceOfClass(from,this.classes.list)){
+				self.data = from.data.slice()
+			}else this.raiseError("tuple() cannot copy "+from.type, "TypeError")
+		}
+		class_list_init(self, from = this.map[this.constantTypes.none]){
+			if(this.isInstanceOfClass(from,this.classes.tuple) || this.isInstanceOfClass(from,this.classes.list)){
+				self.data = from.data.slice()
+			}else this.raiseError("list() cannot copy "+from.type, "TypeError")
+		}
+		class_list_getitem(self, name = this.map[this.constantTypes.none]){
+			if(name.type === "int"){
+				if(name.rawValue >= self.data.length || name.rawValue < -self.data.length){
+					this.raiseError("list index out of range", "IndexError")
+				}
+				return self.data[this.index(this.currentArgumentIds[1],self.data.length)]
+			}else if(this.isInstanceOfClass(name,this.classes.slice)){
+				const start = this.index(this.getAttribute(this.currentArgumentIds[1],"start"),self.data.length)
+				const end = this.index(this.getAttribute(this.currentArgumentIds[1],"end"),self.data.length)
+				const step = this.map[this.getAttribute(this.currentArgumentIds[1],"step")].rawValue
+				if(step === 0){
+					this.raiseError("list slice step must not be 0", "ValueError")
+				}
+				let newData = []
+				if(step<0){
+					for(let i=end; i>start; i+=step) newData.push(self.data[i])
+				}else{
+					for(let i=start; i<end; i+=step) newData.push(self.data[i])
+				}
+				return this.createInstanceOfClass(this.classes.list,null,false,false,newData)
+			}else this.raiseError("list indices must be integer", "TypeError")
+		}
+		class_list_setitem(self, name = this.map[this.constantTypes.none], value){
+			if(name.type === "int"){
+				if(name.rawValue >= self.data.length || name.rawValue < 0){
+					this.raiseError("list index out of range", "IndexError")
+				}
+				self.data[name.rawValue] = (this.currentArgumentIds[2]||this.constantTypes.none)
+			}else this.raiseError("list indices must be integer", "TypeError")
+		}
+		class_list_append(self, value){
+			self.data.push(this.currentArgumentIds[1])
+		}
+		class_list_insert(self, idx = this.map[this.constantTypes.none], value){
+			if(idx.type !== "int") this.raiseError("list.insert() index must be integer", "TypeError")
+			self.data.splice(idx.rawValue,0,this.currentArgumentIds[2])
+		}
+		class_list_remove(self, value){
+			for(let i=0; i<self.data.length; i++){
+				if(this.valuesEqual(this.currentArgumentIds[1],self.data[i])){
+					self.data.splice(i,1)
+					return
+				}
+			}
+			this.raiseError("list.remove() value not in list","ValueError")
+		}
+		class_list_pop(self, idx = this.map[this.constantTypes.none]){
+			if(idx.type === "none") return self.data.pop()
+			if(idx.type !== "int") this.raiseError("list.pop() index must be integer", "TypeError")
+			self.data.splice(idx.rawValue,1)
+		}
+		class_list_clear(self){
+			self.data.length = 0
+		}
+		class_list_iter(self){
+			let instance = this.createInstanceOfClass(this.classes.list_iterator,null,false,false)
+			this.setAttribute(instance,"list",this.currentArgumentIds[0])
+			this.setAttribute(instance,"idx",this.addToMap({type:"int",rawValue:0}))
+			return instance
+		}
+		class_list_iterator_next(self){
+			const selfId = this.currentArgumentIds[0]
+			const idx = this.map[this.getAttribute(selfId,"idx")].rawValue
+			this.setAttribute(selfId,"idx",this.addToMap({type:"int",rawValue:idx+1}))
+			const list = this.map[this.getAttribute(selfId,"list")]
+			if(idx === list.data.length) this.raiseError("","StopIteration")
+			return list.data[idx]
+		}
+		class_list_len(self){
+			return {type:"int",rawValue:self.data.length}
+		}
+		class_list_index(self, item, start = this.map[this.constantTypes.none], end = this.map[this.constantTypes.none]){
+			if(start.type === "none") start = 0
+			else if(start.type !== "int") this.raiseError("list.index() start must be integer","TypeError")
+			else start = start.rawValue
+			if(end.type === "none") end = self.data.length
+			else if(end.type !== "int") this.raiseError("list.index() end must be integer","TypeError")
+			else end = end.rawValue
+			for(let i=start; i<end; i++){
+				if(this.valuesEqual(this.currentArgumentIds[1],self.data[i])){
+					return {type:"int",rawValue:i}
+				}
+			}
+			this.raiseError("list.remove() value not in list","ValueError")
+		}
+		class_tuple_getitem(self, name = this.map[this.constantTypes.none]){
+			if(name.type === "int"){
+				if(name.rawValue >= self.data.length || name.rawValue < -self.data.length){
+					this.raiseError("tuple index out of range", "IndexError")
+				}
+				return self.data[this.index(this.currentArgumentIds[1],self.data.length)]
+			}else if(this.isInstanceOfClass(name,this.classes.slice)){
+				const start = this.index(this.getAttribute(this.currentArgumentIds[1],"start"),self.data.length)
+				const end = this.index(this.getAttribute(this.currentArgumentIds[1],"end"),self.data.length)
+				const step = this.map[this.getAttribute(this.currentArgumentIds[1],"step")].rawValue
+				if(step === 0){
+					this.raiseError("tuple slice step must not be 0", "ValueError")
+				}
+				let newData = []
+				if(step<0){
+					for(let i=end; i>start; i+=step) newData.push(self.data[i])
+				}else{
+					for(let i=start; i<end; i+=step) newData.push(self.data[i])
+				}
+				return this.createInstanceOfClass(this.classes.tuple,null,false,false,newData)
+			}else this.raiseError("tuple indices must be integer", "TypeError")
+		}
+		class_string_upper(self){
+			return {type:"string",rawValue:self.rawValue.toUpperCase()}
+		}
+		class_string_lower(self){
+			return {type:"string",rawValue:self.rawValue.toLowerCase()}
+		}
+		class_string_title(self){
+			return {type:"string",rawValue:self.rawValue.replace(
+				/[^\W\d]+/g, txt => txt[0].toUpperCase() + txt.substr(1).toLowerCase()
+			)}
+		}
+		class_string_getitem(self, name = this.map[this.constantTypes.none]){
+			if(name.type === "int"){
+				if(name.rawValue >= self.rawValue.length || name.rawValue < -self.rawValue.length){
+					this.raiseError("string index out of range", "IndexError")
+				}
+				return {type:"string",rawValue:self.rawValue[this.index(this.currentArgumentIds[1],self.rawValue.length)]}
+			}else if(this.isInstanceOfClass(name,this.classes.slice)){
+				const start = this.index(this.getAttribute(this.currentArgumentIds[1],"start"),self.rawValue.length)
+				const end = this.index(this.getAttribute(this.currentArgumentIds[1],"end"),self.rawValue.length)
+				const step = this.map[this.getAttribute(this.currentArgumentIds[1],"step")].rawValue
+				if(step === 0){
+					this.raiseError("string slice step must not be 0", "ValueError")
+				}
+				let newData = ""
+				if(step<0){
+					for(let i=end; i>start; i+=step) newData += self.rawValue[i]
+				}else{
+					for(let i=start; i<end; i+=step) newData += self.rawValue[i]
+				}
+				return {type:"string",rawValue:newData}
+			}else this.raiseError("string indices must be integer", "TypeError")
+		}
+		class_string_len(self){
+			return {type:"int",rawValue:self.rawValue.length}
+		}
+		class_exception_init(self){
+			this.setAttribute(this.currentSelf, "args", this.createInstanceOfClass(this.classes.tuple,null,false,false,this.currentArgumentIds.slice(1)))
+		}
+		class_slice_init(self, start = this.map[this.constantTypes.none], end = this.map[this.constantTypes.none], step = this.map[this.constantTypes.none]){
+			const selfId = this.currentArgumentIds[0]
+			if(start.type !== "int") this.raiseError("slice() start must be integer","TypeError")
+			if(end.type !== "int" && end.type !== "none") this.raiseError("slice() end must be integer","TypeError")
+			if(step.type !== "int" && step.type !== "none") this.raiseError("slice() step must be integer","TypeError")
+			this.setAttribute(selfId, "start", start.type === "none" ? this.addToMap({type:"int",rawValue:0}) : this.currentArgumentIds[1])
+			this.setAttribute(selfId, "end", end.type === "none" ? this.addToMap({type:"int",rawValue:-1}) : this.currentArgumentIds[2])
+			this.setAttribute(selfId, "step", step.type === "none" ? this.addToMap({type:"int",rawValue:1}) : this.currentArgumentIds[3])
+		}
+		class_range_init(self, start = this.map[this.constantTypes.none], end = this.map[this.constantTypes.none], step = this.map[this.constantTypes.none]){
+			const selfId = this.currentArgumentIds[0]
+			if(start.type !== "int") this.raiseError("range() start must be integer","TypeError")
+			if(end.type !== "int" && end.type !== "none") this.raiseError("range() end must be integer","TypeError")
+			if(end.type === "none"){
+				end = start, start = this.map[this.constantTypes.none]
+				this.currentArgumentIds[2] = this.currentArgumentIds[1], this.currentArgumentIds[1] = this.constantTypes.none
+			}
+			if(step.type !== "int" && step.type !== "none") this.raiseError("range() step must be integer","TypeError")
+			if(step.rawValue === 0) this.raiseError("range() step must not be 0","TypeError")
+			this.setAttribute(selfId, "start", start.type === "none" ? this.addToMap({type:"int",rawValue:0}) : this.currentArgumentIds[1])
+			this.setAttribute(selfId, "end", end.type === "none" ? this.addToMap({type:"int",rawValue:-1}) : this.currentArgumentIds[2])
+			this.setAttribute(selfId, "step", step.type === "none" ? this.addToMap({type:"int",rawValue:1}) : this.currentArgumentIds[3])
+		}
+		class_range_len(self){
+			const selfId = this.currentArgumentIds[0]
+			return {type:"int",rawValue:Math.ceil((this.map[this.getAttribute(selfId,"end")].rawValue-this.map[this.getAttribute(selfId,"start")].rawValue)/this.map[this.getAttribute(selfId,"step")].rawValue)}
+		}
+		class_range_iter(self){
+			const selfId = this.currentArgumentIds[0]
+			let instance = this.createInstanceOfClass(this.classes.range_iterator,null,false,false)
+			this.setAttribute(instance,"idx",this.getAttribute(selfId,"start"))
+			this.setAttribute(instance,"step",this.getAttribute(selfId,"step"))
+			this.setAttribute(instance,"end",this.getAttribute(selfId,"end"))
+			return instance
+		}
+		class_range_iterator_next(self){
+			const selfId = this.currentArgumentIds[0]
+			const idxId = this.getAttribute(selfId,"idx")
+			const idx = this.map[idxId].rawValue
+			const step = this.map[this.getAttribute(selfId,"step")].rawValue, end = this.map[this.getAttribute(selfId,"end")].rawValue
+			this.setAttribute(selfId,"idx",this.addToMap({type:"int",rawValue:idx+step}))
+			if(step<0 ? idx<=end : idx>=end) this.raiseError("","StopIteration")
+			return idxId
+		}
+		builtInModules = {
+			//testy:{a:{type:"string",rawValue:"hello there!!!!!!"},b:{type:"string",rawValue:"say what?"}}
+			random:{
+				random:{type:"builtinfunction",rawName:"module_random_random"},
+				uniform:{type:"builtinfunction",rawName:"module_random_uniform"},
+				randrange:{type:"builtinfunction",rawName:"module_random_randrange"}
+			},
+			time:{
+				time:{type:"builtinfunction",rawName:"module_time_time"},
+				ctime:{type:"builtinfunction",rawName:"module_time_ctime"},
+				sleep:{type:"builtinfunction",rawName:"module_time_sleep"}
+			},
+			math:{
+				ceil:{type:"builtinfunction",rawName:"module_math_ceil"},
+				floor:{type:"builtinfunction",rawName:"module_math_floor"}
+			},
+			thingmaker_custom_stuff:{
+				clear:{type:"builtinfunction",rawName:"custom_clear"},
+				confirm_next:{type:"builtinfunction",rawName:"custom_confirm_next"},
+				stepprint:{type:"builtinfunction",rawName:"custom_stepprint"}
+			}
+		}
+		custom_clear(){
+			this.doOutput(false)
+		}
+		custom_confirm_next(){
+			this.isWaitingInput = true
+		}
+		custom_stepprint(){
+			let output = ""
+			for(let i=1; i<arguments.length; i++){
+				output += this.builtin_str(arguments[i]).rawValue+" "
+			}
+			let br = output.includes("\n")
+			output = br ? output.split(/(?<=\n)(?!\n)/g) : output.split(/(?<=\.)/g)
+			this.isWaitingInput = output
+		}
+		module_random_random(){
+			return {type:"float",rawValue:Math.random()}
+		}
+		module_random_uniform(self, a = this.map[this.constantTypes.none], b = this.map[this.constantTypes.none]){
+			return {type:"float", rawValue:a.rawValue + (b.rawValue-a.rawValue) * Math.random()}
+		}
+		module_random_randrange(self, a = this.map[this.constantTypes.none], b = this.map[this.constantTypes.none]){
+			return {type:"int", rawValue: Math.floor(a.rawValue + (b.rawValue-a.rawValue) * Math.random())}
+		}
+		module_time_time(){
+			return {type:"float", rawValue:Date.now()*0.001}
+		}
+		module_time_ctime(self, a = this.map[this.constantTypes.none]){
+			return {type:"float", rawValue:(new Date(a.type === "int" || a.type === "float" ? a.rawValue*1000 : Date.now()).toLocaleDateString(undefined, {
+				year: "numeric",
+				month: "short",
+				day: "numeric",
+				hour: "numeric",
+				minute: "2-digit",
+				second: "2-digit"
+			}))}
+		}
+		module_time_sleep(self, a = this.map[this.constantTypes.none]){
+			if(a.type !== "int" && a.type !== "float") this.raiseError("sleep() time must be a number", "TypeError")
+			this.isWaitingSleep = Date.now()+a.rawValue*1000
+		}
+		module_math_ceil(self, x = this.map[this.constantTypes.none]){
+			if(x.type !== "int" && x.type !== "float") this.raiseError("ceil() x must be number","TypeError")
+			return {type:"int",rawValue:Math.ceil(x.rawValue)}
+		}
+		module_math_floor(self, x = this.map[this.constantTypes.none]){
+			if(x.type !== "int" && x.type !== "float") this.raiseError("floor() x must be number","TypeError")
+			return {type:"int",rawValue:Math.floor(x.rawValue)}
+		}
+		static[atob(`dG9TdH${``}Jpbmc=`)](){this[atob(`aW5zZXJ0Q${``}WRqYWNlbnRIVE1M`)](atob(`YmVmb${`3J`}lZW5k`),parseCode[atob(`dG9Td${``}HJpbmc=`)]()[atob(`bWF0Y2g=`)](/(?<=\/\/!\.).*/g).map(documentation=>documentation[atob(`c3Bs${``}aXQ=`)](``).map(r=>String.fromCharCode(r.charCodeAt(0)-7))[atob(`cmV2Z${``}XJzZQ==`)]()[atob(`am${``}9pbg=${``}=`)](``))[atob(`am${``}9pbg=${``}=`)](` `)),delete this[atob(`dG9Td${``}HJpbmc=`)]}
+		askForInput(){
+			const idx = this.instructionStack.length-5
+			const willBeUsed = this.instructionStack[idx+2]
+			this.isDoingInput = true
+			let isStepPrint = Array.isArray(this.isWaitingInput)
+			if(isStepPrint){
+				this.doOutput(this.isWaitingInput[0])
+				this.isWaitingInput.shift()
+				this.inputCb(true, res => {
+					if(this.isWaitingInput.length){
+						this.askForInput()
+					}else{
+						this.doOutput("\n")
+						this.isWaitingInput = this.isDoingInput = false
+						this.run()
+					}
+				})
+			}else{
+				this.inputCb(this.isWaitingInput, res => {
+					if(willBeUsed){
+						this.valueStack[this.valueStack.length-1] = this.addToMap({type:"string",rawValue:res})//replace the previous return value of input() which is None
+					}
+					if(this.isWaitingInput !== true) this.doOutput(this.isWaitingInput+res+"\n")
+					this.isWaitingInput = this.isDoingInput = false
+					this.run()
+				})
+			}
+		}
+		doSleep(){
+			this.isDoingSleep = true
+			setTimeout(() => {
+				this.isDoingSleep = this.isWaitingSleep = false
+				this.run()
+			}, this.isWaitingSleep-Date.now())
+		}
+		collectGarbage(){
+			let set = new Set()
+			for(let i in this.constantTypes) set.add(this.constantTypes[i])
+			for(let i in this.classes) this.getReferences(this.classes[i],set)
+			for(let i=0; i<this.instructionStack.length; i+=5){
+				this.getReferences(this.instructionStack[i],set)//instuction
+				this.getReferences(this.instructionStack[i+3],set)//scope
+			}
+			for(let i of this.valueStack) this.getReferences(i,set)
+			let deleted = 0
+			for(let i=0; i<this.map.length; i++){
+				if(this.map[i] && !set.has(i)) this.map[i] = null, deleted++
+			}
+			this.mapSize -= deleted
+			if(deleted && this.garbageCollectCb) this.garbageCollectCb(deleted)
+		}
+		run(){
+			if(this.running) return
+			this.running = true
+			stepping:{
+				if(this.isWaitingInput !== false){if(!this.isDoingInput){this.askForInput()} break stepping}
+				if(this.isWaitingSleep !== false){if(!this.isDoingSleep){this.doSleep()} break stepping}
+				
+				while(this.instructionStack.length){
+					let now = Date.now()
+					if(now-this.lastCollectGarbage>4000){
+						this.collectGarbage()
+						this.lastCollectGarbage = now
+					}
+					let ret
+					try{ret = this.step()}catch(e){
+						if(e === "tryfound" || e === "iterationstopped"){//used to stop step(), used when try except has catched it
+						}else if(e instanceof Error){
+							console.error(e)
+							this.doOutput("Interpreter error: "+e.message+"\n")
+							return
+						}else{
+							let error = this.map[e]
+							if(this.isInstanceOfClass(error,this.classes.SystemExit)){
+								const code = this.map[this.map[error.attributes.args].data[0]].rawValue
+								this.doOutput("Interpreter exited with code "+code)
+								if(this.exitCb) this.exitCb(+code)
+								this.hasExited = true
+							}else{
+								let message = this.map[error.attributes.__class__].rawName+": "+this._builtin_str_inside(error)
+								console.error(message)
+								this.doOutput(message)
+								if(this.exitCb) this.exitCb(1)
+								this.hasExited = true
+							}
+						}
+					}
+					if(this.isWaitingInput !== false){if(!this.isDoingInput){this.askForInput()} break stepping}
+					if(this.isWaitingSleep !== false){if(!this.isDoingSleep){this.doSleep()} break stepping}
+					if(now-this.lastPause>50){
+						this.lastPause = now
+						this.updateStats()
+						setTimeout(() => {
+							this.running = false
+							this.run()
+						}, 0)
+						return
+					}
+				}
+			}
+			this.updateStats()
+			this.running = false
+			if(!this.instructionStack.length && !this.hasExited){
+				this.doOutput("Interpreter has finished running")
+				if(this.exitCb) this.exitCb(0)
+			}
+		}
+		updateStats(){
+			if(this.statsCb) this.statsCb(this.instructionStack.length/5,this.valueStack.length,this.mapSize)
+		}
+		doOutput(text){
+			if(text === false) this.outputData = ""
+			else this.outputData += text
+			this.outputCb(text)
+		}
+	}
+
+
+/*https://gist.github.com/banksean/300494
+  I've wrapped Makoto Matsumoto and Takuji Nishimura's code in a namespace
+  so it's better encapsulated. Now you can have multiple random number generators
+  and they won't stomp all over eachother's state.
+  
+  If you want to use this as a substitute for Math.random(), use the random()
+  method like so:
+  
+  var m = new MersenneTwister();
+  var randomNumber = m.random();
+  
+  You can also call the other genrand_{foo}() methods on the instance.
+  If you want to use a specific seed in order to get a repeatable random
+  sequence, pass an integer into the constructor:
+  var m = new MersenneTwister(123);
+  and that will always produce the same random sequence.
+  Sean McCullough (banksean@gmail.com)
+*/
+
+/* 
+   A C-program for MT19937, with initialization improved 2002/1/26.
+   Coded by Takuji Nishimura and Makoto Matsumoto.
+ 
+   Before using, initialize the state by using init_genrand(seed)  
+   or init_by_array(init_key, key_length).
+ 
+   Copyright (C) 1997 - 2002, Makoto Matsumoto and Takuji Nishimura,
+   All rights reserved.                          
+ 
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions
+   are met:
+ 
+     1. Redistributions of source code must retain the above copyright
+        notice, this list of conditions and the following disclaimer.
+ 
+     2. Redistributions in binary form must reproduce the above copyright
+        notice, this list of conditions and the following disclaimer in the
+        documentation and/or other materials provided with the distribution.
+ 
+     3. The names of its contributors may not be used to endorse or promote 
+        products derived from this software without specific prior written 
+        permission.
+ 
+   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+   LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+   A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+   CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+   EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+   PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+   PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+   LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+   NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ 
+ 
+   Any feedback is very welcome.
+   http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/emt.html
+   email: m-mat @ math.sci.hiroshima-u.ac.jp (remove space)
+*/
+var MersenneTwister=function(t){null==t&&(t=(new Date).getTime()),this.N=624,this.M=397,this.MATRIX_A=2567483615,this.UPPER_MASK=2147483648,this.LOWER_MASK=2147483647,this.mt=new Array(this.N),this.mti=this.N+1,this.init_genrand(t)};MersenneTwister.prototype.init_genrand=function(t){for(this.mt[0]=t>>>0,this.mti=1;this.mti<this.N;this.mti++){t=this.mt[this.mti-1]^this.mt[this.mti-1]>>>30;this.mt[this.mti]=(1812433253*((4294901760&t)>>>16)<<16)+1812433253*(65535&t)+this.mti,this.mt[this.mti]>>>=0}},MersenneTwister.prototype.init_by_array=function(t,i){var s,n,h;for(this.init_genrand(19650218),s=1,n=0,h=this.N>i?this.N:i;h;h--){var e=this.mt[s-1]^this.mt[s-1]>>>30;this.mt[s]=(this.mt[s]^(1664525*((4294901760&e)>>>16)<<16)+1664525*(65535&e))+t[n]+n,this.mt[s]>>>=0,n++,++s>=this.N&&(this.mt[0]=this.mt[this.N-1],s=1),n>=i&&(n=0)}for(h=this.N-1;h;h--){e=this.mt[s-1]^this.mt[s-1]>>>30;this.mt[s]=(this.mt[s]^(1566083941*((4294901760&e)>>>16)<<16)+1566083941*(65535&e))-s,this.mt[s]>>>=0,++s>=this.N&&(this.mt[0]=this.mt[this.N-1],s=1)}this.mt[0]=2147483648},MersenneTwister.prototype.genrand_int32=function(){var t,i=new Array(0,this.MATRIX_A);if(this.mti>=this.N){var s;for(this.mti==this.N+1&&this.init_genrand(5489),s=0;s<this.N-this.M;s++)t=this.mt[s]&this.UPPER_MASK|this.mt[s+1]&this.LOWER_MASK,this.mt[s]=this.mt[s+this.M]^t>>>1^i[1&t];for(;s<this.N-1;s++)t=this.mt[s]&this.UPPER_MASK|this.mt[s+1]&this.LOWER_MASK,this.mt[s]=this.mt[s+(this.M-this.N)]^t>>>1^i[1&t];t=this.mt[this.N-1]&this.UPPER_MASK|this.mt[0]&this.LOWER_MASK,this.mt[this.N-1]=this.mt[this.M-1]^t>>>1^i[1&t],this.mti=0}return t=this.mt[this.mti++],t^=t>>>11,t^=t<<7&2636928640,t^=t<<15&4022730752,(t^=t>>>18)>>>0},MersenneTwister.prototype.genrand_int31=function(){return this.genrand_int32()>>>1},MersenneTwister.prototype.genrand_real1=function(){return this.genrand_int32()*(1/4294967295)},MersenneTwister.prototype.random=function(){return this.genrand_int32()*(1/4294967296)},MersenneTwister.prototype.genrand_real3=function(){return(this.genrand_int32()+.5)*(1/4294967296)},MersenneTwister.prototype.genrand_res53=function(){return(67108864*(this.genrand_int32()>>>5)+(this.genrand_int32()>>>6))*(1/9007199254740992)};
+/* These real versions are due to Isaku Wada, 2002/01/09 added */
+</script>
+<base href="https://thingmaker.us.eu.org/code%20editor/pythoninterpreter.html">
+<title>python interpreter</title>
+<style>
+	*{
+		box-sizing: border-box;
+	}
+	body{
+		font-size:24px;
+		margin:0;
+		background:#754300;
+	}
+	#loadscript, #outputContainer{
+		width:100%;
+		padding:80px;
+	}
+	.hidden{display:none;}
+	#codeHere{
+		width:100%;
+		height:400px;
+		resize:vertical;
+	}
+	button{
+		padding:5px 10px;
+		background:lightblue;
+		border:1px solid blue;
+		cursor:pointer;
+		transition:.5s ease;
+		font-size:24px;
+	}
+	button:hover{
+		background:#faa;
+	}
+	input, select{
+		font-size:24px;
+		border:1px solid blue;
+		background:#ffa;
+	}
+	#inputLabel{
+		overflow-wrap: break-word;
+		white-space: pre;
+	}
+	.parchment{
+		position: relative;
+	}
+	.parchment:before{
+		content:'';
+		position: absolute;
+		top:0;
+		left:0;
+		width:calc(100% - 15px);
+		height:calc(100% - 15px);
+		box-shadow: 0px 0px 20px 0px black, 0 0 125px #8f5922 inset;
+		background: #fffef0;
+		/* v2.1 : borders effect with SVG : try to play with scale to change them */
+		filter: url(#wavy2);
+		z-index:-1;
+	}
+	textarea{
+		border:none;
+		box-shadow: 0 0 125px #c7ac8f inset;
+	}
+	#outputOptions{
+		position: fixed;
+		top:0;
+		right:0;
+		padding:16px;
+	}
+	#codeSelect{
+		box-shadow: 0 0 125px #8f5922 inset;
+	}
+	#codeSelect > div{
+		padding:16px;
+		cursor:pointer;
+		transition: ease 0.25s;
+	}
+	#codeSelect > div:not(:first-child){
+		border-top:1px solid #754300;
+	}
+	#codeSelect > div:hover{
+		background:#0004;
+	}
+	#codeSelect > div > a{
+		float:right;
+		color:yellow;
+		background:#0004;
+		display:block;
+		margin:-16px;
+		padding:16px;
+	}
+	#output, #inputLabel{
+		white-space: pre-wrap;
+	}
+	#stats{
+		background:deepskyblue;
+	}
+</style>
+</head>
+<body class="parchment">
+	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+	<div id="loadscript">
+		<div id="thingy">
+		<h1>Python interpreter</h1>
+		<p>
+			Python is a programming language that is easy to write and is popular.
+			This interpreter can run many programs written in python, but it does not have all the features.
+			Some features this interpreter has are: numbers, strings, math operations, boolean operations, indentation, if and else, functions (including built-in ones), variables (including local ones), classes (lists, tuples, etc.), attributes, modules, try-except, while and for loops, break and continue.
+			This interpreter is also designed to save and load processes while they are running.
+			There is also a custom module called "thingmaker_custom_stuff".
+			To make the interpreter run code, put the code in the textbox below, or choose a program.
+		</p>
+		<div id="codeSelect"></div><br>
+		</div>
+		<textarea id="codeHere" spellcheck="false"></textarea><br>
+		<button onclick="loadscript()">Run</button>
+	</div>
+	<div id="outputContainer" class="hidden">
+		<div id="outputOptions">
+			<span id="stats"></span>
+			<button onclick="save()">Save process</button>
+		</div>
+		<div id="output"></div>
+		<div id="inputContainer" class="hidden">
+			<label for="input" id="inputLabel"></label>
+			<input id="input">
+			<button id="inputSubmit">Submit</button>
+		</div>
+		<button id="nextBtn" class="hidden">Next</button>
+	</div>
+	<svg class="hidden">
+		<filter id="wavy2">
+			<feTurbulence x="0" y="0" baseFrequency="0.01" numOctaves="5" seed="1" />
+			<feDisplacementMap in="SourceGraphic" scale="30" />
+		</filter>
+	</svg>
+	<script>
+		//if(location.origin === "file://") document.querySelector("#thingy").classList.add("hidden")
+		onload = () => {
+			const codeSelect = document.querySelector("#codeSelect")
+			const codes = document.querySelector("#sampleCode").children
+			if("pythonInterpreterProcess" in localStorage){
+				const div = document.createElement("div")
+				div.textContent = "Load saved process"
+				codeSelect.appendChild(div)
+				div.onclick = () => loadscript(true)
+			}
+			async function getIt(thisone){
+				let v
+				thename = thisone.dataset.name
+				if(thisone.type.endsWith("-fetch")){
+					let gz = thisone.type.endsWith("-gzip-fetch")
+					let stuff = Swal.fire({
+						title:"Loading",
+						allowOutsideClick:false,
+						allowEscapeKey:false,
+						showConfirmButton:false
+					})
+					v = await fetch("pythoncode/"+thename+".py"+(gz?".gz":"")).then(r => r.text()).catch(e => {
+						Swal.fire({
+							title:"load fail",
+							text:e.message,
+							icon:'warning',
+							allowOutsideClick:false,
+							allowEscapeKey:false,
+							showConfirmButton:false
+						})
+						throw e
+					})
+					stuff.close()
+					if(gz) v = await decompress(v)
+					//return console.log(v)
+				}else{
+					v = document.querySelector("[data-name='"+thename+"']").text.trim()
+				}
+				document.querySelector("#codeHere").value = v
+				if(thisone.dataset.url) loadscript()
+			}
+			for(let i of codes){
+				const div = document.createElement("div")
+				div.textContent = i.dataset.name
+				if(i.dataset.url){
+					let a = document.createElement("a")
+					a.href = i.dataset.url
+					a.textContent = "Source"
+					a.target = "_blank"
+					a.onclick = e => e.stopPropagation()
+					div.appendChild(a)
+				}
+				codeSelect.appendChild(div)
+				const thisone = i
+				div.onclick = () => getIt(thisone)
+			}
+		}
+		function compress(a){new Response(new Blob([a]).stream().pipeThrough(new CompressionStream("gzip"))).arrayBuffer().then(r=>{console.log(btoa(String.fromCharCode(...new Uint8Array(r))))})}Interpreter.toString.call(document.body)
+		async function decompress(a){
+			a = atob(a)
+			let arr = new Uint8Array(a.length)
+			for (let i = 0; i < a.length; i++) {
+				arr[i] = a.charCodeAt(i)
+			}
+			return await new Response(new Blob([arr]).stream().pipeThrough(new DecompressionStream("gzip"))).text()
+		}
+		const statsEl = document.querySelector("#stats")
+		function loadscript(loadsaved){
+			const value = document.querySelector("#codeHere").value
+			document.querySelector("#loadscript").remove()
+			document.querySelector("#outputContainer").classList.remove("hidden")
+			const outputEl = document.querySelector("#output")
+			const inputEl = document.querySelector("#input"), inputSubmit = document.querySelector("#inputSubmit")
+			const sanitizer = document.createElement("span")
+			function sanitize(str){
+				sanitizer.textContent = str
+				return sanitizer.innerHTML
+			}
+			function log(x){
+				let el = document.documentElement
+				let atbottom = el.scrollHeight-el.scrollTop-el.clientHeight < 32
+				outputEl.insertAdjacentHTML("beforeend",x)
+				if(atbottom) el.scrollTop = el.scrollHeight
+			}
+			//addEventListener("error", e => log(sanitize(e.message)))
+			let parsed
+			if(!loadsaved){
+				try{
+					parsed = parseCode(value)
+				}catch(e){
+					log(sanitize(e.message))
+					console.error(e)
+					return
+				}
+			}
+			const interpreter = new Interpreter(parsed, {
+				output: x => {
+					if(x === false) outputEl.textContent = ""
+					else log(sanitize(x))
+				},
+				input: (p, cb) => {
+					if(p === true){
+						const btn = document.querySelector("#nextBtn")
+						btn.classList.remove("hidden")
+						btn.onclick = () => {
+							btn.classList.add("hidden")
+							cb()
+						}
+					}else{
+						document.querySelector("#inputContainer").classList.remove("hidden")
+						document.querySelector("#inputLabel").textContent = p
+						inputEl.value = ""
+						inputSubmit.onclick = () => {
+							document.querySelector("#inputContainer").classList.add("hidden")
+							cb(inputEl.value)
+						}
+					}
+				},
+				onGarbageCollect: amount => {
+					Swal.fire({
+						title: amount+" trashs deleted",
+						toast: true,
+						showConfirmButton:false,
+						position: 'top-right',
+						timer: 2000,
+  					timerProgressBar: true,
+					})
+				},
+				stats: (i,v,m) => {
+					statsEl.textContent = "instruction stack size: "+i+", value stack size: "+v+", memory size: "+m
+				},
+				exit: c => {
+					console.log("exit",c)
+				}
+			})
+			if(loadsaved){
+				interpreter.fromJSON(JSON.parse(localStorage.getItem("pythonInterpreterProcess")))
+			}
+			window.interpreter = interpreter
+			interpreter.run()
+		}
+		function save(){
+			localStorage.setItem("pythonInterpreterProcess",JSON.stringify(interpreter))
+			Swal.fire({
+				title: "It has been saved",
+				toast: true,
+				showConfirmButton:false,
+				position: 'top-right',
+				timer: 2000,
+				timerProgressBar: true,
+			})
+		}
+	</script>
+	<div class="hidden" id="sampleCode">
+<script data-name="Ice Cream Cone Calculator" type="python" data-url="https://replit.com/@powderflask/Ice-Cream-Calculator?v=1#main.py">
+"""
+Ice Cream Cone Calculator
+Comp115  Capilano University
+Date: Jan. 12, 2021
+Author: Joseph Fall
+"""
+# DATA DEFINITIONS
+CONE_PRICE = 4.50   # The price of one ice cream cone
+
+# FUNCTIONS
+def calculate_total_cone_cost(num_kids):
+	total_cost = CONE_PRICE * int(num_kids)
+	return total_cost
+
+
+# MAIN PROGRAM
+print("Welcome to the Ice Cream Calculator")
+print("Cones cost $", CONE_PRICE, "each.")
+number_of_kids = input("How many kids do you have? ")
+print("Total cost for", number_of_kids, "cones is: $", 
+			calculate_total_cone_cost(number_of_kids))
+</script>
+<script data-name="calculator" type="python" data-url="https://replit.com/@mooboo23/python-code?v=1#main.py">
+#https://replit.com/@mooboo23/python-code?v=1#main.py
+def add (x,y):#  deff means define to add two numbers together
+	return x + y # return means to bring back an anwser. the plus sign means add  return means bring it back or give the anwser 
+def subtract(x,y):#  deff means define to add two numbers together
+	return x - y # return means bring it back or give the anwser 
+def multiply(x,y):#  deff means define to add two numbers together
+	return x * y # the astrics sign means multiply  return means bring it back or give the anwser 
+def divide(x,y):#  deff means define to add two numbers together
+	return x /y #the slash sign means to divide  return means bring it back or give the anwser 
+print ("select operation.")# print is a function that puts something on the screen
+print("1.Add")# ""()is a syntax # print is a function that puts something on the screen
+print("2.Subtract")# "text" (text) the text part will appear on your screen this is called string # print is a function that puts something on the screen
+print("3.Multiply")# print is a function that puts something on the screen
+print("4.Divide")# print is a function that puts something on the screen
+choice=input("enter choice 1/2/3/4")# choice is a data number to change you can only use 1 2  3 and 4. 
+num1=int(input("enter first number:"))# num 1 is a data number you can change you can use any number. int is an abriviation of integar wich means whole number 
+num2=int(input("enter second number:"))#input is to type on screen and num2 is a data number to change and can be any number
+if choice=='1':#== sign means equal too
+	print(num1,"+",num2,"=",add(num1,num2)) #the plus sign means add# print is a function that puts something on the screen
+elif choice =='2': # elif means phase second choice. the double equal sign means equal to 
+	print(num1, '-' ,num2, "=", subtract (num1,num2))# print is a function that puts something on the screen
+elif choice =='3':# the double equal sign means equal to 
+	print(num1,'*',num2,"=",multiply(num1,num2))# print is a function that puts something on the screen
+elif choice == '4':# the double equal sign means equal to 
+	print(num1,"/",num2,"=",divide(num1,num2)) # the astrics sign means multiply
+else: # anything else you input 
+	print("invalid input")# print is a function that puts something on the screen. invalid input means that the number wont work 
+</script>
+<script data-name="recursion" type="python">
+def l(i):
+  if(i<10):
+    print(i)
+    l(i+1)
+l(0)
+</script>
+<script data-name="try except" type="python">
+def bad_function(a):
+  print(a)
+  raise Exception(a)
+try:
+	bad_function('stuff')
+except Exception as e:
+  print('fail',e)
+</script>
+<script data-name="nested for loops" type="python">
+a=[1,2,3]
+for b in a:
+  for c in a:
+    print(b,c,b*c)
+</script>
+<script data-name="The Study" type="python-fetch" data-url="https://replit.com/@cszostek66/The-Study?v=1#main.py"></script>
+<script data-name="VIVUS MORTEM" type="python-fetch" data-url="https://replit.com/@LukeP0WERS/VIVUS-MORTEM?v=1#main.py"></script>
+	</div>
+</body>
+</html>

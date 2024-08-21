@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+		<title>who cares</title>
+		<style>
+			*{
+				box-sizing: border-box;
+			}
+			body{
+				display:flex;
+				flex-direction:row;
+				margin:0;
+				font-family: sans-serif;
+			}
+			.hidden{display:none;}
+			#glCanvas{
+				display:block;
+				background:black;
+			}
+			#uiCanvas{
+				position:absolute;
+				top:0;
+				left:0;
+			}
+			#controls{
+				width:100%;
+				background:#333;
+				color:white;
+				padding:8px;
+				overflow-y:scroll;
+				height:100vh;
+			}
+			button{
+				background:#222;
+				color:white;
+				cursor:pointer;
+				border:1px solid gray;
+				padding:5px;
+			}
+			button:hover{
+				background:black;
+			}
+			.circle{
+				width:100px;
+				height:100px;
+				border-radius:100%;
+				cursor:pointer;
+				display:inline-block;
+				position:relative;
+			}
+			.circle:hover{
+				outline:4px solid black;
+			}
+			.circle.selected{
+				outline:4px solid gray;
+			}
+			.circle > div{
+				position:absolute;
+				top:50%;
+				left:50%;
+				transform: translateX(-50%) translateY(-50%);
+				font-size:20px;
+			}
+			.smallCircle{
+				width:20px;
+				height:20px;
+				border-radius:100%;
+			}
+			#pAttract{
+				border:1px solid gray;
+				margin-top:8px;
+				padding:8px;
+				cursor:pointer;
+			}
+			h1,h2,h3,h4,h5,h6{
+				margin-bottom: 0;
+			}
+			#tools > div{
+				display:inline-block;
+				cursor:pointer;
+				margin:0 4px;
+				padding:8px;
+			}
+			#tools > div:hover{
+				background:#555;
+			}
+			#tools > div.selected{
+				background: gray;
+			}
+			.modal{
+				position: absolute;
+				top:25%;
+				left:25%;
+				width:50%;
+				height:50%;
+				background:#111;
+				border:1px solid gray;
+				padding:8px;
+				color:white;
+				overflow: auto;
+			}
+			.modal button{
+				position: absolute;
+				bottom:10px;
+				left:10px;
+				right:10px;
+				padding:15px;
+			}
+			.modal input{
+				width:100%;
+				font-size: 20px;
+				padding:8px;
+			}
+			.premade{
+				padding:15px;
+				background:#333;
+				border:1px solid gray;
+				cursor:pointer;
+			}
+			.premade:hover{
+				background: #111;
+			}
+			@keyframes appear{
+				from{
+					left:75vw;
+					opacity:0;
+				}
+			}
+			@keyframes disappear{
+				to{
+					left:75vw;
+					opacity:0;
+				}
+			}
+			#show{
+				position:absolute;
+				right:8px;
+				top:8px;
+			}
+			pre{
+				white-space: break-spaces;
+			}
+		</style>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/gl-matrix/2.8.1/gl-matrix-min.js'></script>
+		<script src='https://cdn.jsdelivr.net/gh/Dddatt/D.js@v1.1.1/index.js'></script>
+	<body>
+		<canvas id="glCanvas"></canvas>
+		<canvas id="uiCanvas"></canvas>
+		<button class="hidden" onclick="show()" id="show">Show controls</button>
+		<div id="controls">
+			<button style="float:right;" onclick="hide()">Hide controls</button>
+			<h1>particle life</h1>
+			<div id="tools">
+				<div onclick="changeTool('none')" id="tool_none">None</div>
+				<div onclick="changeTool('move')" id="tool_move">Move</div>
+				<div onclick="changeTool('draw')" id="tool_draw">Draw</div>
+				<div onclick="changeTool('erase')" id="tool_erase">Erase</div>
+			</div>
+			<br><br>
+			<span id="stats"></span><br>
+			<button onclick="document.documentElement.requestFullscreen()">Fullscreen</button>
+			<button onclick="pause = !pause">Pause/play</button>
+			<button onclick="camera.x = camera.y = camera.z = 0">Recenter</button>
+			<br>
+			<button onclick="p.length = 0">Clear</button>
+			<button onclick="save()">Save</button>
+			<button onclick="load()">Load</button>
+			<button onclick="randomParticles()">Generate Random particles</button>
+			<button onclick="choose()">Load premade</button>
+			<br>
+			<button onclick="randomize()">Spawn random particles</button>
+			<button onclick="spawnCenter()">Spawn particles at center</button>
+			<br>
+			<button onclick="addParticle()">Add particle</button>
+			<br>
+			<label for="friction">Friction:</label><input id="friction" type="range" min="0" max="1" step="any" value="0.1"><span id="frictionValue"></span><br>
+			<label for="masterSpeed">Master Speed:</label><input id="masterSpeed" type="number" value="1" step="any"><br>
+			<label for="reachDist">Reach distance:</label><input id="reachDist" type="range" value="100" step="1" min="10" max="1000"><span id="reachDistValue"></span><br>
+			<label for="pointerLockEnabled">Enable Pointer Lock:</label><input id="pointerLockEnabled" type="checkbox"><br>
+			<label for="borderEnabled">Enable Border:</label><input id="borderEnabled" type="checkbox" checked="true"><br>
+			<label for="gravity">Gravity:</label><input id="gravity" type="number" step="any" value="0"><br><br>
+			<div id="p"></div>
+			<div id="editP" class="hidden">
+				<h2 id="editWhat"></h2>
+				<span style="float:right;cursor:pointer;" onclick="editP.classList.add('hidden')">&times;</span>
+				<span id="pInfo"></span>
+				<input type="color" id="color" onchange="editColor(this.value)"><br>
+				<button onclick="removeParticle()">Delete</button>
+				<h3>Attract and repel</h3>
+				<div id="pAttract" onclick="editAttract()"></div><br>
+				<label for="minDist">Min dist:</label><input id="minDist" type="number" step="any" onchange="editParticleProp('minDist',parseFloat(this.value))"><br>
+				<label for="speed">Speed:</label><input id="speed" type="number" step="any" onchange="editParticleProp('speed',parseFloat(this.value))"><br>
+			</div>
+			<div>
+				<h2>Keyboard controls</h2>
+				<pre>
+W: Forward
+S: Backward
+A: Left
+D: Right
+Space: Up
+Shift: Down
+Arrow keys: Look around
+Q: Move Faster
+				</pre>
+				<h2>Notes</h2>
+				<pre>
+The math for the particle movment is very simple.
+The simulation may be creepy or scary sometimes.
+				</pre>
+			</div>
+		</div>
+		<script>
+			let glCanvas = document.querySelector("#glCanvas"), gl = D.getContext(glCanvas,"webgl2")
+			let uiCanvas = document.querySelector("#uiCanvas"), ctx = uiCanvas.getContext("2d")
+			let controls = document.querySelector("#controls")
+			D.enable3D()
+			D.enableBlend()
+			let width, height, aspect
+			let proj, mat = mat4.identity(new Float32Array(16))
+			let fov = 70
+			onresize = function(){
+				glCanvas.width = uiCanvas.width = width = Math.round(innerWidth*(controls.classList.contains("hidden") ? 1 : 0.7))
+				glCanvas.height = uiCanvas.height = height = innerHeight
+				aspect = width/height
+				proj = D.prespectiveMatrix(fov,aspect,0.1,1000000)
+				D.viewport(0,0,width,height)
+			}
+			let data = {
+				red:{
+					name:"red",
+					color:"#ff0000",
+					attracts:{red:1},
+					minDist:5,
+					speed:0.1
+				}
+			}
+			function hide(){
+				document.querySelector("#show").classList.remove('hidden')
+				controls.classList.add('hidden')
+				onresize()
+			}
+			function show(){
+				document.querySelector("#show").classList.add('hidden')
+				controls.classList.remove('hidden')
+				onresize()
+			}
+			let list = document.querySelector("#p"), stats = document.querySelector("#stats")
+			let selected = null
+			function updateList(){
+				let html = ""
+				for(let i in data){
+					var c = data[i].color.substring(1);      // strip #
+					var rgb = parseInt(c, 16);   // convert rrggbb to decimal
+					var r = (rgb >> 16) & 0xff;  // extract red
+					var g = (rgb >>  8) & 0xff;  // extract green
+					var b = (rgb >>  0) & 0xff;  // extract blue
+					var luma = 0.2126 * r + 0.7152 * g + 0.0722 * b; // per ITU-R BT.709
+					html += `
+<div class='circle${selected === data[i] ? " selected" : ""}' style='background:${data[i].color};' id="particle_${data[i].name}" onclick="editParticle(this.id)"><div style="color:${luma<128?"white":"black"};">${data[i].name}</div></div>
+`
+				}
+				list.innerHTML = html
+			}
+			let editP = document.querySelector("#editP"), pAttract = document.querySelector("#pAttract"), pInfo = document.querySelector("#pInfo")
+			let speed = document.querySelector("#speed"), minDist = document.querySelector("#minDist")
+			let color = document.querySelector("#color")
+			function editParticle(id){
+				id = id.replace("particle_","")
+				let particle = data[id]
+				selected = particle
+				document.querySelector("#editWhat").innerHTML = "Edit "+particle.name
+				pInfo.innerHTML = ``
+				color.value = selected.color
+				updateAttract()
+				minDist.value = particle.minDist
+				speed.value = particle.speed
+				editP.classList.remove('hidden')
+				updateList()
+			}
+			function editParticleProp(name,value){
+				selected[name] = value
+			}
+			async function addParticle(){
+				let name = await prompt("Name")
+				if(!name) return
+				name = sanitize(name)
+				data[name] = {
+					name,
+					color:"#000000",
+					attracts:{},
+					minDist:5,
+					speed:0.1
+				}
+				updateList()
+			}
+			function randomParticles(){
+				data = {}
+				let beginnings = "BCDFGHJKLMNPQRSTVWXYZ"
+				let consonants = "bcdfghjklmnpqrstvwxyz".split(""), vowels = "aeiou".split("")
+				consonants.push("ck","sk","ts","st")
+				vowels.push("ea",'ee','ei','eu','ou','ar','er','ir','or','ur','al','el','il','ol','ul')
+				let endings = consonants.slice()
+				endings.push('cks','sks','y','cky','sky')
+				let types = []
+				for(let i=0; i<10; i++){
+					let name = "", l = Math.round(Math.random()*5+1)
+					name += beginnings[Math.floor(Math.random()*beginnings.length)]
+					for(let j=0; j<l; j++){
+						if(j%2) name += consonants[Math.floor(Math.random()*consonants.length)]
+						else name += vowels[Math.floor(Math.random()*vowels.length)]
+					}
+					if(l%2) name += endings[Math.floor(Math.random()*endings.length)]
+					if(data[name]) return
+					data[name] = {
+						name,
+						color:'#'+(Math.random() * 0xFFFFFF << 0).toString(16).padStart(6, '0'),
+						attracts:{},
+						minDist:Math.random()*10+5,
+						speed:1/(Math.random()*4+1)
+					}
+					types.push(name)
+				}
+				for(let i in data){
+					for(let j of types){
+						data[i].attracts[j] = Math.random()*2-1
+					}
+				}
+				p.length = 0
+				selected = null
+				editP.classList.add('hidden')
+				updateList()
+			}
+			function removeParticle(){
+				delete data[selected.name]
+				for(let i=0; i<p.length; i++){
+					if(p[i].type === selected){
+						p[i].canDespawn = true
+					}
+				}
+				selected = null
+				editP.classList.add('hidden')
+				updateList()
+			}
+			function editColor(c){
+				selected.color = c
+				for(let i of p){
+					if(i.type === selected){
+						i.updateColor()
+					}
+				}
+				updateList()
+			}
+			function updateAttract(){
+				let attractHTML = ""
+				for(let i in selected.attracts){
+					attractHTML += `${i}: ${selected.attracts[i]}<br>`
+				}
+				pAttract.innerHTML = attractHTML
+			}
+			function editAttract(){
+				let attractHTML = `
+<span style="float:right;cursor:pointer;" onclick="updateAttract();event.stopPropagation()">&times;</span>
+<button onclick="addAttract();event.stopPropagation()">Add</button><br>
+`
+				for(let i in selected.attracts){
+					attractHTML += `${i}: <input onclick="event.stopPropagation()" onchange="editAttractProp('${i}',parseFloat(this.value))" type="number" step="any" value="${selected.attracts[i]}"><button onclick="removeAttract('${i}');event.stopPropagation()">Delete</button><br>`
+				}
+				pAttract.innerHTML = attractHTML
+			}
+			function editAttractProp(name,value){
+				selected.attracts[name] = value
+			}
+			async function addAttract(){
+				let name = await prompt("Name")
+				if(!name) return
+				name = sanitize(name)
+				selected.attracts[name] = 0
+				updateAttract()
+			}
+			function removeAttract(name){
+				delete selected.attracts[name]
+				updateAttract()
+			}
+			let tool, tools = document.querySelector("#tools")
+			function changeTool(name){
+				for(let i of tools.querySelectorAll(".selected")){
+					i.classList.remove("selected")
+				}
+				let el = document.querySelector("#tool_"+name)
+				el.classList.add("selected")
+				tool = name
+			}
+			let frictionEl = document.getElementById("friction"), frictionValue = document.querySelector("#frictionValue")
+			let drag
+			frictionEl.oninput = function(){
+				frictionValue.innerText = this.value
+				drag = 1-parseFloat(this.value)
+			}
+			frictionEl.oninput()
+			let masterSpeedEl = document.getElementById("masterSpeed")
+			let masterSpeed
+			masterSpeedEl.oninput = function(){
+				masterSpeed = parseFloat(this.value) || 0
+			}
+			masterSpeedEl.oninput()
+			let reachDistEl = document.getElementById("reachDist"), reachDistValue = document.getElementById("reachDistValue")
+			let reachDist
+			reachDistEl.oninput = function(){
+				reachDistValue.innerText = this.value
+				reachDist = parseFloat(this.value)
+			}
+			reachDistEl.oninput()
+			let pointerLockEnabled, pointerLockEnabledEl = document.getElementById("pointerLockEnabled")
+			pointerLockEnabledEl.oninput = function(){
+				pointerLockEnabled = this.checked
+			}
+			pointerLockEnabledEl.oninput()
+			let borderEnabled, borderEnabledEl = document.getElementById("borderEnabled")
+			borderEnabledEl.oninput = function(){
+				borderEnabled = this.checked
+			}
+			borderEnabledEl.oninput()
+			let gravity, gravityEl = document.getElementById("gravity")
+			gravityEl.oninput = function(){
+				gravity = parseFloat(this.value) || 0
+			}
+			gravityEl.oninput()
+			let span = document.createElement("span")
+			function sanitize(str){
+				span.textContent = str
+				return span.innerHTML
+			}
+			function save(){
+				let arr = []
+				for(let i in data) arr.push(data[i])
+				prompt("copy",JSON.stringify(arr))
+			}
+			async function load(str){
+				str = str || await prompt("save code")
+				if(!str) return
+				let arr = JSON.parse(str)
+				data = {}
+				for(let i of arr){
+					data[i.name] = i
+				}
+				updateList()
+				selected = null
+				editP.classList.add('hidden')
+				p.length = 0
+			}
+			let alertId = 0, alerts = {}
+			function alert(html){
+				return new Promise(resolve => {
+					alertId++
+					html = html.replace(/\{CLOSEALERT\}/g,"alerts["+alertId+"]()")
+					let el = document.createElement("div")
+					el.className = "modal"
+					el.innerHTML = html
+					el.id = "alert"+alertId
+					let button = document.createElement("button")
+					button.innerHTML = "OK"
+					button.onclick = () => {
+						el.style.animation = "disappear 0.3s cubic-bezier(0, 0, 1, 0.5)"
+						delete alerts[alertId]
+						setTimeout(() => el.remove(), 300)
+						resolve(el)
+					}
+					alerts[alertId] = button.onclick
+					el.appendChild(button)
+					document.body.appendChild(el)
+					el.style.animation = "appear 0.3s cubic-bezier(0, 0, 0, 1)"
+				})
+			}
+			async function prompt(html, text = ""){
+				let el = await alert(html+"<input type='text' value='"+text.replace(/'/g,"\\'")+"'>")
+				return el.querySelector("input").value
+			}
+			let chooseFrom = {
+				"default":'[{"name":"red","color":"#ff0000","attracts":{"red":1},"minDist":5,"speed":0.1}]',
+				"chain":'[{"name":"red","color":"#ff0000","attracts":{"red":-10,"green":10},"minDist":5,"speed":0.1},{"name":"green","color":"#00ff00","attracts":{"red":10,"green":-10},"minDist":5,"speed":0.1}]',
+			}
+			function choose(){
+				let html = ""
+				for(let i in chooseFrom){
+					html += "<div class='premade' onclick='load(chooseFrom[\""+i+"\"]);{CLOSEALERT}'>"+i+"</div>"
+				}
+				alert(html)
+			}
+			function dist(x,y,z,x2,y2,z2,size){
+				if(
+					!size ||
+					Math.abs(x-x2) < size+size && 
+					Math.abs(y-y2) < size+size && 
+					Math.abs(z-z2) < size+size
+				){
+					let dx = x2-x, dy = y2-y, dz = z2-z
+					let d = Math.sqrt(dx*dx+dy*dy+dz*dz)
+					if(!size || d < size) return size ? d/size : d
+				}
+				return 0
+			}
+			let colorCanvas = document.createElement("canvas"), colorCtx = colorCanvas.getContext("2d",{willReadFrequently:true})
+			colorCanvas.width = colorCanvas.height = 1
+			function getColor(str){
+				colorCtx.fillStyle = str
+				colorCtx.fillRect(0,0,1,1)
+				return colorCtx.getImageData(0,0,1,1).data
+			}
+			class Particle{
+				constructor(x,y,z,type){
+					this.x = x
+					this.y = y
+					this.z = z
+					this.type = data[type]
+					this.velx = 0
+					this.vely = 0
+					this.velz = 0
+					this.size = 5
+					this.canDespawn = false
+					let color = getColor(this.type.color)
+					this.renderData = [x,y,z,this.size,color[0]/255,color[1]/255,color[2]/255,color[3]/255]
+				}
+				updateColor(){
+					let color = getColor(this.type.color)
+					this.renderData[4] = color[0]/255
+					this.renderData[5] = color[1]/255
+					this.renderData[6] = color[2]/255
+					this.renderData[7] = color[3]/255
+				}
+				preupdate(){
+					let x = 0, y = 0, z = 0
+					for(let i of p){
+						let d = dist(this.x,this.y,this.z,i.x,i.y,i.z,/*this.type.maxDist*/)
+						if(!d) continue
+						let direction = i.type.attracts[this.type.name]
+						if(!direction) continue
+						direction *= this.type.speed
+						/*if(d*this.type.maxDist < this.type.minDist+i.type.minDist){//go away from each other if overlap
+							let a = this.type.minDist*2//(this.type.minDist+i.type.minDist)
+							let dx = i.x-this.x, dy = i.y-this.y
+							d *= this.type.maxDist/a
+							x -= dx//d*(1-d)
+							y -= dy//d*(1-d)
+						}else{*/
+						let dx = i.x-this.x, dy = i.y-this.y, dz = i.z-this.z
+						/*if(direction > 0 && d < this.type.minDist+i.type.minDist){
+							let speed = -(this.type.minDist+i.type.minDist)/d
+							speed /= this.type.minDist+i.type.minDist
+							ix += dx/d*speed
+							iy += dy/d*speed
+							iz += dz/d*speed
+						}else{*/
+						let speed = direction/d/d//1/d*this.type.speed*gravity*direction
+						if(d-direction < this.type.minDist+i.type.minDist) speed -= ((this.type.minDist+i.type.minDist)-(d-direction))/d
+						x += dx*speed
+						y += dy*speed
+						z += dz*speed
+					}
+					this.velx += x*dt*masterSpeed, this.vely += y*dt*masterSpeed, this.velz += z*dt*masterSpeed
+					//if(ix || iy || iz) this.velx = this.vely = this.velz = 0
+					this.vely -= gravity
+				}
+				update(){
+					if(mouseDown){
+						let d = dist(this.x,this.y,this.z,pointerX,pointerY,pointerZ,50)
+						if(d){
+							if(tool === "erase") this.canDespawn = true
+							else if(tool === "move") this.x += moveX, this.y += moveY, this.z += moveZ
+						}
+					}
+					if(pause) return
+					this.x += this.velx*dt*masterSpeed
+					this.y += this.vely*dt*masterSpeed
+					this.z += this.velz*dt*masterSpeed
+					this.vely += (this.vely * drag - this.vely) * dt*masterSpeed
+					this.velx += (this.velx * drag - this.velx) * dt*masterSpeed
+					this.velz += (this.velz * drag - this.velz) * dt*masterSpeed
+					if(borderEnabled){
+						if(this.x > 1000) this.x = 1000
+						if(this.x < -1000) this.x = -1000
+						if(this.y > 1000) this.y = 1000
+						if(this.y < -1000) this.y = -1000
+						if(this.z > 1000) this.z = 1000
+						if(this.z < -1000) this.z = -1000
+					}
+					this.renderData[0] = this.x
+					this.renderData[1] = this.y
+					this.renderData[2] = this.z
+				}
+				render(){
+					/*ctx.fillStyle = this.type.color
+					ctx.beginPath()
+					ctx.ellipse(this.x,this.y,this.size,this.size,0,0,Math.PI*2)
+					ctx.fill()*/
+					D.addInstance(particle,this.renderData)
+				}
+			}
+			let particleProgram = D.createProgram(
+			`#version 300 es
+			precision lowp float;
+					in vec3 vertPos;
+					in vec4 instancePos;
+					in vec4 instanceCol;
+					uniform mat4 viewMatrix;
+					out vec4 pixCol;
+					void main(){
+							vec4 pos=viewMatrix*vec4(vertPos*instancePos.w+instancePos.xyz,1);
+							gl_Position=pos;
+							pixCol=instanceCol;
+					}
+			`,
+			`#version 300 es
+			precision lowp float;
+					uniform sampler2D tex;
+					in vec4 pixCol;
+					out vec4 FragColor;
+					void main(){
+							FragColor=pixCol;
+					}
+			`)
+			let particleMesh = D.createMeshData({
+					meshes:[
+							{type:'sphere',x:0,y:0,z:0,radius:1,detail:0},
+					],
+					order:['x','y','z'],
+			})
+
+			let particle = D.createMesh(
+					particleMesh,
+					[
+							['vertPos',3,3*4,0],
+					],
+					[
+							['instancePos',4,8*4,0],
+							['instanceCol',4,8*4,4*4]
+					]
+			)
+			let sphereMesh = D.createMeshData({
+					meshes:[
+							{type:'sphere',x:0,y:0,z:0,radius:1,detail:3},
+					],
+					order:['x','y','z'],
+			})
+			let sphere = D.createMesh(
+					sphereMesh,
+					[
+							['vertPos',3,3*4,0],
+					],
+					[
+							['instancePos',4,8*4,0],
+							['instanceCol',4,8*4,4*4]
+					]
+			)
+			let boxProgram=D.createProgram(
+			`#version 300 es
+			precision lowp float;
+					in vec3 vertPos;
+					in vec4 vertCol;
+					uniform mat4 viewMatrix;
+					out vec4 pixCol;
+					void main(){
+							vec4 pos=viewMatrix*vec4(vertPos,1);
+							gl_Position=pos;
+							pixCol=vertCol;
+					}
+			`,
+			`#version 300 es
+			precision lowp float;
+					uniform sampler2D tex;
+					in vec4 pixCol;
+					out vec4 FragColor;
+					void main(){
+							FragColor=pixCol;
+					}
+			`)
+			let boxMesh = D.createMeshData({
+					meshes:[
+						...(new Array(20).fill().map((r,i) => ({type:'box',x:i*100-1000,y:-1000,z:0,w:1,h:1,l:2000,r:1,g:1,b:1}))),//bottom
+						...(new Array(20).fill().map((r,i) => ({type:'box',x:0,y:-1000,z:i*100-1000,w:2000,h:1,l:1,r:1,g:1,b:1}))),
+						...(new Array(20).fill().map((r,i) => ({type:'box',x:(20-i)*100-1000,y:1000,z:0,w:1,h:1,l:2000,r:1,g:1,b:1}))),//top
+						...(new Array(20).fill().map((r,i) => ({type:'box',x:0,y:1000,z:(20-i)*100-1000,w:2000,h:1,l:1,r:1,g:1,b:1}))),
+						...(new Array(20).fill().map((r,i) => ({type:'box',x:1000,y:i*100-1000,z:0,w:1,h:1,l:2000,r:1,g:1,b:1}))),
+						...(new Array(20).fill().map((r,i) => ({type:'box',x:1000,y:0,z:i*100-1000,w:1,h:2000,l:1,r:1,g:1,b:1}))),
+						...(new Array(20).fill().map((r,i) => ({type:'box',x:-1000,y:(20-i)*100-1000,z:0,w:1,h:1,l:2000,r:1,g:1,b:1}))),
+						...(new Array(20).fill().map((r,i) => ({type:'box',x:-1000,y:0,z:(20-i)*100-1000,w:1,h:2000,l:1,r:1,g:1,b:1}))),
+						...(new Array(20).fill().map((r,i) => ({type:'box',x:0,y:i*100-1000,z:1000,w:2000,h:1,l:1,r:1,g:1,b:1}))),//back
+						...(new Array(20).fill().map((r,i) => ({type:'box',x:(20-i)*100-1000,y:0,z:1000,w:1,h:2000,l:1,r:1,g:1,b:1}))),
+						...(new Array(20).fill().map((r,i) => ({type:'box',x:0,y:(20-i)*100-1000,z:-1000,w:2000,h:1,l:1,r:1,g:1,b:1}))),//front
+						...(new Array(20).fill().map((r,i) => ({type:'box',x:i*100-1000,y:0,z:-1000,w:1,h:2000,l:1,r:1,g:1,b:1})))
+						//{type:'box',x:0,y:0,z:0,w:-1000,h:-1000,l:-1000,r:1,g:1,b:1,a:0.2},
+						//{type:'box',x:0,y:0,z:0,w:-1000,h:-1000,l:-1000,r:1,g:1,b:1,a:0.2},
+					],
+					order:['x','y','z','r','g','b','a'],
+			})
+			let box = D.createMesh(
+					boxMesh,
+					[
+						['vertPos',3,7*4,0],
+						['vertCol',4,7*4,12],
+					]
+			)
+			//D.addInstance(box,[0,0,0,1000,1000,1000, 1,1,1,0.2, 0,0])
+
+			let p = []
+			function randomize(){
+				let t = Object.keys(data)
+				for(let i=0; i<10; i++){
+					p.push(new Particle(Math.random()*1000-500,Math.random()*1000-500,Math.random()*1000-500,t[Math.floor(Math.random()*t.length)]))
+				}
+			}
+			function spawnCenter(){
+				let t = Object.keys(data)
+				for(let i=0; i<10; i++){
+					p.push(new Particle(Math.random(),Math.random(),Math.random(),t[Math.floor(Math.random()*t.length)]))
+				}
+			}
+			let mouseX, mouseY, mouseDown, pmouseX, pmouseY
+			let toolTouch = null
+			let camera = {
+				x:0,
+				y:0,
+				z:10,
+				rx:0,
+				ry:0
+			}
+			onmousedown = function(e){
+				if(e.target !== uiCanvas) return
+				if(pointerLockEnabled && document.pointerLockElement !== uiCanvas) getPointer()
+				if(e.changedTouches && !toolTouch){
+					toolTouch = e.changedTouches[0].identifier
+					e.x = e.changedTouches[0].pageX
+					e.y = e.changedTouches[0].pageY
+				}
+				if(document.pointerLockElement === uiCanvas){
+					pmouseX = mouseX = width/2, pmouseY = mouseY = height/2
+				}else{
+					pmouseX = mouseX = e.x, pmouseY = mouseY = e.y
+				}
+				mouseDown = true
+			}
+			onmousemove = function(e){
+				if(e.changedTouches && toolTouch === e.changedTouches[0].identifier){
+					e.x = e.changedTouches[0].pageX
+					e.y = e.changedTouches[0].pageY
+				}
+				pmouseX = mouseX, pmouseY = mouseY
+				if(document.pointerLockElement === uiCanvas){
+					mouseX = width/2, mouseY = height/2
+					camera.ry += e.movementX*0.01
+					camera.rx += e.movementY*0.01
+				}else{
+					mouseX = e.x, mouseY = e.y
+				}
+				if(mouseDown) e.preventDefault()
+			}
+			onmouseup = function(e){
+				mouseDown = false
+				if(e.changedTouches && toolTouch === e.changedTouches[0].identifier) toolTouch = null
+			}
+			uiCanvas.addEventListener("touchstart",onmousedown)
+			uiCanvas.addEventListener("touchmove",onmousemove)
+			uiCanvas.addEventListener("touchend",onmouseup)
+			uiCanvas.addEventListener("touchcancel",onmouseup)
+			let key = {}
+			onkeydown = function(e){
+				key[e.key.toLowerCase()] = true
+			}
+			onkeyup = function(e){
+				key[e.key.toLowerCase()] = false
+			}
+			function getPointer() {
+				if (uiCanvas.requestPointerLock) {
+					try{
+						uiCanvas.requestPointerLock()
+					}catch(e){
+						console.error(e)
+					}
+				}
+			}
+			function releasePointer() {
+				if (document.exitPointerLock) {
+					document.exitPointerLock()
+				}
+			}
+			let move = {}
+			let dirVec = vec3.create(), dirVec2 = vec3.create()
+			let sqrt2 = Math.sqrt(2)
+			let pointerX = 0, pointerY = 0, pointerZ = 0, pointer = [0,0,0,50,1,1,1,0.2]
+			let moveX = 0, moveY = 0, moveZ = 0
+			function runControls(){
+				move.x = move.z = 0
+				let speed = (key.q ? 5 : 1) * dt
+				if(key.w) move.z-=speed
+				if(key.s) move.z+=speed
+				if(key.a) move.x-=speed
+				if(key.d) move.x+=speed
+				if(key[" "]) camera.y+=speed
+				if(key.shift) camera.y-=speed
+
+				if(key.arrowleft) camera.ry-=dt/10
+				if(key.arrowright) camera.ry+=dt/10
+				if(key.arrowup) camera.rx-=dt/10
+				if(key.arrowdown) camera.rx+=dt/10
+				if(camera.rx > D.HALF_PI) camera.rx = D.HALF_PI
+				if(camera.rx < -D.HALF_PI) camera.rx = -D.HALF_PI
+				if(camera.ry > D.TWO_PI) camera.ry -= D.TWO_PI
+				if(camera.ry < 0) camera.ry += D.TWO_PI
+
+				let co = Math.cos(camera.ry)
+				let si = Math.sin(camera.ry)
+				camera.x += (co * move.x - si * move.z)
+      	camera.z += (si * move.x + co * move.z)
+
+				let fovRadians = (Math.PI * (fov / 2)) / 180,
+				halfHeight = Math.tan(fovRadians),
+				halfWidth = aspect * halfHeight
+				dirVec[0] = -(mouseX-width/2)/width*2*halfWidth
+				dirVec[1] = -(mouseY-width/2)/height*2*halfHeight+(1-aspect)/sqrt2 //(1-aspect)/sqrt2 <-- how does that work???
+				dirVec[2] = 1
+				vec3.copy(dirVec2,dirVec)
+
+				vec3.copy(dirVec,dirVec2)
+				co = Math.cos(camera.rx)
+				si = Math.sin(camera.rx)
+				dirVec2[1] = co * dirVec[1] - si * dirVec[2]
+				dirVec2[2] = si * dirVec[1] + co * dirVec[2]
+
+				vec3.copy(dirVec,dirVec2)
+				co = Math.cos(camera.ry+Math.PI)
+				si = Math.sin(camera.ry+Math.PI)
+				dirVec2[0] = co * dirVec[0] - si * dirVec[2]
+				dirVec2[2] = si * dirVec[0] + co * dirVec[2]
+
+				let px = pointerX, py = pointerY, pz = pointerZ
+				pointerX = camera.x + dirVec2[0]*reachDist
+				pointerY = camera.y + dirVec2[1]*reachDist
+				pointerZ = camera.z + dirVec2[2]*reachDist
+				moveX = pointerX - px, moveY = pointerY - py, moveZ = pointerZ - pz
+				if(mouseDown){
+					if(tool === "draw" && selected){
+						let can = true
+						for(let i of p){
+							if(dist(i.x,i.y,i.z,pointerX,pointerY,pointerZ,i.size*2)){
+								can = false
+								break
+							}
+						}
+						if(can) p.push(new Particle(pointerX,pointerY,pointerZ,selected.name))
+					}
+				}
+			}
+			let pause = false
+			let lastUpdate = performance.now(), dt, now
+			let analytics = {
+				fps:0,
+				frames:0,
+				lastUpdate:Date.now()
+			}
+			function update(){
+				now = performance.now()
+				dt = (now - lastUpdate) / 33
+				dt = dt > 2 ? 2 : dt
+				lastUpdate = now
+				runControls()
+				if(!pause) for(let i of p){
+					i.preupdate()
+				}
+				for(let i=0;i<p.length;i++){
+					p[i].update()
+					if(p[i].canDespawn){
+						p.splice(i,1)
+						i--
+					}
+				}
+				ctx.clearRect(0,0,width,height)
+				D.clear(0)
+    		D.setViewMatrix(mat,proj,camera.x,camera.y,camera.z,camera.ry,camera.rx,0)
+				D.clearInstances(particle)
+				for(let i of p){
+					i.render()
+				}
+				D.clearInstances(sphere)
+				if(mouseDown && (tool === "move" || tool === "erase")){
+					/*ctx.strokeStyle = "white"
+					ctx.lineWidth = 1
+					ctx.beginPath()
+					ctx.ellipse(mouseX,mouseY,50,50,0,0,Math.PI*2)
+					ctx.stroke()*/
+					pointer[0] = pointerX
+					pointer[1] = pointerY
+					pointer[2] = pointerZ
+					D.addInstance(sphere,pointer)
+				}
+				D.useProgram(particleProgram)
+				D.setUniform('viewMatrix',mat)
+				D.renderMesh(particle)
+				D.useProgram(boxProgram)
+				D.setUniform('viewMatrix',mat)
+				if(borderEnabled) D.renderMesh(box)
+				D.useProgram(particleProgram)
+				D.renderMesh(sphere)
+				
+				let dnow = Date.now()
+				if(dnow - analytics.lastUpdate > 500){
+					analytics.fps = Math.round(analytics.frames * 1000 / (dnow - analytics.lastUpdate))
+					analytics.frames = 0
+					analytics.lastUpdate = dnow
+				}
+				analytics.frames++
+				let co = 'FPS: '+analytics.fps+'<br>Particles: '+p.length
+				if(stats.innerHTML !== co) stats.innerHTML = co
+				requestAnimationFrame(update)
+			}
+			function init(){
+				onresize()
+				randomize()
+				updateList()
+				changeTool("move")
+			}
+			init()
+			update()
+		</script>
+	</body>
+</html>

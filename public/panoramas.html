@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+  <meta charset="utf-8">
+  <title>Panoramas</title>
+  <style>
+    body{
+      background:black;
+    }
+    #container{
+      perspective:var(--perspective);
+      position:absolute;
+      top:50vh;
+      left:50vw;
+    }
+    #offset{
+      transform-style: preserve-3d;
+      transform: translate3d(0, 0, var(--perspective));
+    }
+    #camera{
+      transform-style: preserve-3d;
+    }
+    #camera img{
+      width:1024px;
+      height:1024px;
+      position:absolute;
+      top:-512px;
+      left:-512px;
+    }
+    #img0{
+      transform:translateZ(-512px);
+      background:red;
+    }
+    #img1{
+      transform:translateX(512px) rotateY(-90deg);
+      background:yellow;
+    }
+    #img2{
+      transform:translateZ(512px)rotateY(180deg);
+      background:green;
+    }
+    #img3{
+      transform:translateX(-512px) rotateY(90deg);
+      background:cyan;
+    }
+    #img4{
+      transform:translateY(-512px) rotateX(-90deg);
+      background:darkblue;
+    }
+    #img5{
+      transform:translateY(512px) rotateX(90deg);
+      background:purple;
+    }
+  </style>
+  <div id="container">
+    <div id="offset">
+      <div id="camera">
+        <img id="img0">
+        <img id="img1">
+        <img id="img2">
+        <img id="img3">
+        <img id="img4">
+        <img id="img5">
+      </div>
+    </div>
+  </div>
+  <script>
+    let imgs = new Array(6).fill().map((r,i) => document.getElementById("img"+i))
+    function loadPanorama(base){
+      for(let i=0; i<6; i++){
+        imgs[i]._lOaDeDwithNEWsrc = false
+        imgs[i].onload = function(){
+          this._lOaDeDwithNEWsrc = true
+          this.onload = null
+        }
+        imgs[i].src = base.replace("{NUM}",i)
+      }
+    }
+    function allImgsLoaded(){
+      for(let i of imgs) if(!i._lOaDeDwithNEWsrc) return
+      return true
+    }
+    let panoramas = [
+      "https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.20/assets/minecraft/textures/gui/title/background/panorama_{NUM}.png",
+      "https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.19/assets/minecraft/textures/gui/title/background/panorama_{NUM}.png",
+      "https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.18/assets/minecraft/textures/gui/title/background/panorama_{NUM}.png",
+      "https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.17/assets/minecraft/textures/gui/title/background/panorama_{NUM}.png",
+      "https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.16/assets/minecraft/textures/gui/title/background/panorama_{NUM}.png",
+      "https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.15/assets/minecraft/textures/gui/title/background/panorama_{NUM}.png",
+      "https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.14/assets/minecraft/textures/gui/title/background/panorama_{NUM}.png",
+      "https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.13/assets/minecraft/textures/gui/title/background/panorama_{NUM}.png",
+      "https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.12/assets/minecraft/textures/gui/title/background/panorama_{NUM}.png"
+    ]
+    function nextPanorama(){
+      loadPanorama(panoramas[Math.floor(Math.random()*panoramas.length)])
+    }
+    nextPanorama()
+    function setFOV(fov){
+      document.body.style.setProperty("--perspective",
+        Math.pow( innerWidth/2*innerWidth/2 + innerHeight/2*innerHeight/2, 0.5 ) / Math.tan( fov/2 * Math.PI / 180 )
+        +"px"
+      )
+    }
+    setFOV(90)
+    addEventListener("resize", () => setFOV(90))
+    const smoothstep = (a, b, t) => {
+      t = t * t * (3.0 - 2.0 * t)
+      return a + t * (b - a)
+    }
+    function lerp(t, a, b) {
+			return a + t * (b - a);
+		}
+    let camera = document.getElementById("camera"), container = document.getElementById("container")
+    let rx = 0, ry = 0, rz = 0
+    let prevRotYTarget = 0, prevRotXTarget, rotYTarget = 0, rotXTarget = 0, targetStart = 0, isSudden, currentRotateTime, currentWaitTime = 0
+    let lastChangePanorama = Date.now(), changePanoramaStart = null, panoramaChanged = false, panoramaLoading = false
+    function renderLoop(){
+      let now = Date.now()
+      if(now-lastChangePanorama > 30000){
+        changePanoramaStart = lastChangePanorama = now
+        panoramaChanged = panoramaLoading = false
+      }else if(changePanoramaStart){//changing
+        if(panoramaChanged){
+          if(now-changePanoramaStart>2000){
+            container.style.opacity = ""
+            changePanoramaStart = null
+          }else{//brighter
+            container.style.opacity = (now-changePanoramaStart-1000)/1000
+          }
+        }else if(now-changePanoramaStart > 1000){
+          if(!panoramaLoading){
+            nextPanorama()
+            panoramaLoading = true
+            prevRotYTarget = rotYTarget = ry
+            prevRotXTarget = rotXTarget = rx
+            targetStart = currentWaitTime = 0
+          }
+          if(allImgsLoaded()) panoramaChanged = true
+        }else{//darker
+          container.style.opacity = 1-(now-changePanoramaStart)/1000
+        }
+      }else if(now >= targetStart+currentWaitTime){
+        targetStart = now
+        prevRotYTarget = ry
+        prevRotXTarget = rx
+        isSudden = Math.random() > 0.9
+        if(isSudden) rotYTarget = ry+(Math.random()*2-1)*0.5
+        else rotYTarget = ry+(Math.random()*2-1)*0.25
+        rotXTarget = (Math.random()*2-1)*0.25
+        currentRotateTime = isSudden ? 500 : 5000
+        currentWaitTime = isSudden ? 2000 : 5000
+      }
+      let amount = Math.min((now-targetStart)/currentRotateTime,1)
+      ry = smoothstep(prevRotYTarget,rotYTarget, amount)
+      rx = smoothstep(prevRotXTarget,rotXTarget, amount)
+
+      camera.style.transform = `rotateZ(${rz}turn) rotateX(${rx}turn) rotateY(${ry}turn)`
+      requestAnimationFrame(renderLoop)
+    }
+    renderLoop()
+  </script>
+</html>

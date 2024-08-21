@@ -1,0 +1,87 @@
+{"url":"console.txt","name":"console","type":"html"}
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>console</title>
+    <style>
+      body, html{
+        width:100%;
+        height:100%;
+        margin:0;
+        padding:0;
+      }
+      #console{
+        box-sizing:border-box;
+        width:100%;
+        height:100%;
+        background:#222;
+        padding:20px;
+        overflow:scroll;
+      }
+      #console .cmd{
+        color:white;
+        border-bottom:1px solid white;
+        padding-bottom:20px;
+        margin-bottom:20px;
+      }
+      #input-holder{
+        cursor:text;
+      }
+      #console-input-prefix{
+        color:white;
+        margin-right:10px;
+      }
+      #console-input{
+        color:white;
+        outline:none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="console">
+      <div id="console-output">
+        
+      </div>
+      <div id="input-holder">
+        <span id="console-input-prefix">&gt;</span>
+        <span id="console-input" contenteditable="true" spellcheck="false"></span>
+      </div>
+    </div>
+    
+    <script>
+      var inputHolder = document.getElementById("input-holder")
+      var consoleInput = document.getElementById("console-input")
+      var consoleOutput = document.getElementById("console-output")
+      inputHolder.onclick=function(){
+        consoleInput.focus()
+      }
+      consoleInput.oninput = function(e){
+        if(!e)e = window.event;
+        if(consoleInput.indexOf("<br>") > -1){
+          consoleInput.innerHTML = "d"//consoleInput.innerHTML.replace("<br>","")
+        }
+      }
+      consoleInput.onkeypress=function(e){
+        if(e.key === "Enter"){
+          var cmd = document.createElement("div")
+          cmd.setAttribute("class","cmd")
+          cmd.innerHTML += "&gt;&nbsp;&nbsp;" + consoleInput.innerHTML;
+          cmd.innerHTML += "<br>"
+          cmd.innerHTML += "&lt;&nbsp;&nbsp;" + runCommand(consoleInput.innerHTML)
+          consoleOutput.appendChild(cmd)
+          
+          consoleInput.innerHTML=""
+        }
+      }
+      
+      function runCommand(cmd){
+        if(cmd.indexOf("echo ") === 0){
+          return cmd.substring(5);
+        }
+        
+        return "Command not found"
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,135 @@
+{"url":"catchthebutton.txt","name":"Catch the button","type":"html"}
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Catch the button</title>
+        <style>
+            #subtitle{
+                animation-name:bluered;
+                animation-duration:10s;
+                animation-iteration-count: infinite;
+            }
+            @keyframes bluered{
+                0%{color:red;}
+                50%{color:blue;}
+                100%{color:red;}
+            }
+            #title{
+                background-color:#ddd;
+                width:280px;
+                transition-duration:1s;
+            }
+            #title:hover{
+                transform:scaleY(2);
+            }
+            #title:active{
+                transform:scale(2,2);
+            }
+            #popup{
+                display:none;
+                position:absolute;
+                top:70px;
+                border:solid black;
+                background:white;
+                width:500px;
+                height:300px;
+                overflow:scroll;
+            }
+            .card{
+                border:solid;
+                width:100px;
+                height:100px;
+                background:#fe9;
+                display:inline-block;
+            }
+            #catch{
+                border:1px solid;
+                width:80px;
+                height:20px;
+                background:#ddd;
+                overflow:hidden;
+                cursor:pointer;
+                user-select: none;
+            }
+            #close{
+                float:right;
+                padding-top:10px;
+                padding-right:10px;
+                position:sticky;
+                top:0px;
+            }
+        </style>
+    </head>
+    <body>
+        <h1 id="title">Catch the button</h1>
+        <span id="subtitle">A game where you catch that button!</span>
+        <br>
+        <div id="catch"onclick="ipressed()">Catch me!</div>
+        <br>
+        <b id="message">score: 0</b>
+        <br>
+        <button onclick="shop()">Open shop</button>
+        
+        <div id="popup">
+            <svg width="10"height="10"onclick="closeshop()" id="close">
+                <line x1="0" y1="0" x2="10" y2="10" style="stroke:rgb(255,0,0);stroke-width:2" />
+                <line x1="0" y1="10" x2="10" y2="0" style="stroke:rgb(255,0,0);stroke-width:2" />
+            </svg>
+            
+            <h1>Shop</h1><br>
+            Click an item to buy it.<br>
+            <h4>Cards:</h4><br>
+            
+            <div class="card"onclick="buy('slow');closeshop()"><b>Card:</b><br>Slower button<br><br>Cost: 20</div>
+            <div class="card"onclick="buy('biger');closeshop()"><b>Card:</b><br>Bigger button<br><br>Cost: 50</div>
+            
+            <h4>Machines:</h4><br>
+        </div>
+        
+        <script>
+            var size=1;
+            var x=0;
+            var speed=5;
+            var velocity = speed;
+            var score=0;
+            var interval = setInterval(move,10);
+            function move(){
+                x+=velocity;
+                if(x>400){
+                    velocity=-speed;
+                }
+                if(x<0){
+                    velocity=speed;
+                }
+                document.getElementById("catch").style.transform= "translateX("+x+"px)";
+            }
+            function ipressed(){
+                score++;
+                document.getElementById("message").innerHTML="You clicked it! score: "+score;
+                
+                
+            }
+            function shop(){
+                document.getElementById("popup").style.display="block";
+                
+            }
+            function closeshop(){
+                document.getElementById("popup").style.display="none";
+            }
+            function buy(what){
+                if(what="slow"&&score>19&&speed>1){
+                    score-=20;
+                    speed--;
+                    return(what);
+                }else if(what="biger"&&score>49&&size<3){
+                    score-=50;
+                    size+=0.5;
+                    document.getElementById("catch").style.scale=size+","+size;
+                }
+                document.getElementById("message").innerHTML="You clicked it! score: "+score;
+            }
+        </script>
+
+    </body>
+</html>

@@ -1,0 +1,241 @@
+<!doctype html><style>body{white-space:pre;font-family:monospace;tab-size:16px;}</style>
+<h1>leafbuild</h1>
+saving
+settings changing
+formats
+	array
+		render
+		send
+		flatten & other methods of octree
+	conversion
+		automatically convert when needed
+		150 ms chunk gen + convert
+	automatically delete unused attributes from attrFormat
+lod depending on distance
+	unload if out of view or blocked by others
+	Least Recently Used (LRU) Cache
+	very far chunks not simulated or editable, only render (also don't store in memory of server)
+moving stuff
+	use optimized move when in same leaf node or array
+	when collide with other, check other's version to determine if already moved
+multi thread
+	each thread assigned some chunks
+		cluster chunks to reduce surface area and amount of sending
+flatten use more compact format (no pointers)
+	use byte array, not uint32array
+iterable attributes
+	replace 'active' with a integer packed with all iterable attributes
+Creative building tools
+Crafting and resource management
+Quests and objectives
+--- when remove player from chunk, remove their updates
+
+
+<h1>things to do with minekhan:</h1>
+<h2>minekhan discotinued</h2>
+signs
+	glow text
+villages
+add weather
+	sound
+	leaves white
+	thunder
+	water freeze
+armor
+redstone:
+	repeater signal locking
+slim skins
+ddecay leaves
+summon cmd: https://pastebin.com/1uLdHq6J
+pumpkin and melon plant
+	rotatable melon and pumpkin
+compas
+jukebox play disc
+clouds
+water affect sponge
+buble colum
+offhand
+mangrove propagul
+mob
+	base
+		breed, baby
+		spectate
+	all
+		shape
+		animation
+		behavior
+		sound
+		drop
+		hitbox
+		posEnt
+		spawn
+	enderman
+		behavior
+			teleport
+			hold blocks
+	drowned
+	husk
+	stray
+	horse
+	villager
+	ghast
+	slime
+	magma cube
+	fish
+	fox
+	ender dragon
+		shape
+		animation
+		behavior
+		sound
+		drop
+		hitbox
+		posEnt
+	cache mob parts vao
+		store as public property on class
+		updates on texture update
+iron bar
+ore veins (the big ones) (part of carvecaves)
+enchantments
+redstone bug: https://thingmaker.us.eu.org/post/?id=1680696971557463773
+things stored in chunks
+	timeouts
+		store as object
+		keys are position
+item frame & button place on top and bottom of block
+hanging sign
+better terrain
+	biome population
+		badlands
+			have spruce trees
+			grass when flat
+		mangrove swamp
+		ice spikes
+		stone shore flat parts use grass
+	better nether
+		more biomes
+		ores
+	rock layers https://img2.9minecraft.net/minecraft/img/Mineralogy-Mod-1.jpg https://static.planetminecraft.com/files/image/minecraft/project/2021/403/14009183_xl.webp
+	rivers
+		dryer places have less
+		optimize by reusing data
+	tree
+		each tree have own temperature & humidity
+		have beenest
+		new branches (1 if alternate, 2 if opposite) at end of branch
+saplings and mushrooms grow
+	4 saplings grow big tree
+external servers
+	option for multi dimension
+	clickable stuff can have custom functions
+	uneditable
+		build command don't work in uneditable
+player permisions
+make kelp, seagrass always waterlogged
+	uncomment kelp and seagrass in populate
+	use layers, layer 2 is liquid
+respawn anchor
+structures
+cache item vaos, block particle vaos, arrows,signs,projectiles
+minecart
+	controls
+	sound
+smoke on campfire
+interpolateShadows on stairs
+when chunk load, smoothly show it (interpolate from sky color to normal)
+	only load sections in range on client side
+button only clicks after mousedown and mouseup
+shader
+	realistic water
+	better auto adjust brightness (exposure)
+	colored light
+	reflections
+		make grass and stones have normals for texture
+		also for rough surfaces
+	use linear rgb
+server
+	only allow placing & breaking blocks within range & unblocked on server side
+	spectator
+		when on hardcore spectator,prevent more stuff
+new chunk dimension storage: chunks:{"nether":[...]}
+use webgl2
+liquid height https://github.com/PrismarineJS/prismarine-viewer/blob/master/viewer/lib/models.js
+make mob parts all one mesh
+server only send exposed blocks
+make crack shape match block shape
+	make white part brighter
+new auth for less centralize (multiplayer work on other domains)
+	client send sid & spwd to external server and external server validates by sending to main server
+		spwd should be hashed with external server address
+		main server stop checking if external server are real (stop fetching id)
+	offline download
+	make only hosts connect websocket and other players join without
+when changing only 1 tag, send only 1, not all
+more correct lightlevel of day night cycle
+explosions create entities that delete blocks
+
+seed for testing: 1288600422, shattered:420013037
+
+<h1>what to do to website</h1>
+make last active, bg, pfp, bio, votes change without reloading (live)
+username tags like: [tag] username
+better database
+	map ids stored on account, not searched for every time
+	cloud saves stored as individual objects and have 1 object as list of cloud saves
+	limit thumbnail to 64x64
+colorful dark theme
+
+
+<h2>bad words:</h2>
+Red_Valley (suggested name for server): F*** YOU
+javalover21 (something about this): 2-people is shit
+bentleypotts99: B*ch sh*t up 2-people
+sup6666: #saveminecraft f*** 2-people
+371533: you bitch
+(on https://sites.google.com/view/falconcraft2/home) You Allow All These B***hes Do It (Dec 9 2023)
+
+
+<h2>banned by on (willard.fun):</h2>
+FryingPan114
+obeudhjfbncedjhngvberuhdjfbcewujd
+Anthony.leach (world called "hq") (because not joining "icefox")
+im_a_fox (probably because attempted rickroll)
+SuperSmash said: ban him (host is LeoBiWolf15)
+im_a_fox on Mar 27 2023 (probably because building a x-ray device)
+
+<h2>attempted bans since apr 24 2023:</h2>
+Hiiiiiiiiiiii (said "stop or else") (reason unknown)
+mogfvbhjbvcfdc (probably because building small beacon)
+Zack138 (Jun 1 2023) (maybe because using creative mode in (smp with cheats))
+Encrypted (Jun 1 2023) (was in same server as Zack138)
+12bucklemyshoe (Jun 8 2023)
+Unknowns (Jun 8 2023) (world called DO NOT ENTER !!!!! 3)
+Balaramchandra (Jun 12 2023)
+mrdream (Jul 15 2023) (world called hardcore)
+Flame-Frame (Sep 15 2023) (probably beacuse in spectator mode)
+praying_mantis (Sep 26 2023)
+Mega-Shark (Oct 15 2023) (probably because not doing parkour) (related to Flame-Frame)
+Ryanbread (Nov 4 2023) (2 times) (world called "city f2")
+GrapeSHot (Nov 20 2023) (threatened "if you be invisible, i will ban you" and used kill command) (ban reason "YOU ARE ALL THE TIME BEING INVISIBLE") (closes server whenever joining) (ban 2 times)
+Ryanbread (Jan 21 2024) (3 times) (3rd ban reason: "test")
+Ryanbread (Feb 1 2024)
+
+locations on q13x public server
+1751, 6, -2195: base at bedrock (has chests with stuff) (has big mine with many ores)
+990, 72, -1000: base
+300, -220: nether fortess
+2050, -1250: village (already found)
+1200, -1250: trading post suspeneded
+1300, -2300: player made village
+-3180, 63, 4671: coords of <Nojoint>
+-12300, 43000: cords said by <Large_Guy>
+919182, 69, 1238281: coords said by <RNG_BLADE>
+430, 220, 1700: base in sky (with very good things) (unraided before find)
+-400, 195, 1540: thingmaker's first base
+950, 250, 1800: base in sky ("poopy")
+-469, 11, -1400: -469x 11y highway
+-1270, 5, 560: ender chest (in base)
+-1718, 64, -1885: base with rules (raided)
+-500, 100, -1550: ender chest (exposed on hill)
+-430, 12, -1270: base with 2 end portals
+

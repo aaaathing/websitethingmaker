@@ -1,0 +1,158 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>online</title>
+  	<link rel="shortcut icon" href="/favicon.ico">
+    <link rel="stylesheet" href="/assets/common.css">
+
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-VRNT3CCCGH"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-VRNT3CCCGH');
+</script>
+  </head>
+  <body>
+    <h1>Live list of people online</h1>
+    <b>There are <span id="onlineCount"></span> users in the last 24 hours.</b>
+    <div id="online"></div>
+    <br><br>
+    <div id="userEvents" style="display: flex;flex-direction: column-reverse;"></div>
+
+    <script>
+      var online = document.querySelector("#online"), onlineCount = document.querySelector("#onlineCount")
+
+      function timeString2(millis) {
+        if (millis > 300000000000 || !millis) {
+          return "never"
+        }
+        const SECOND = 1000
+        const MINUTE = SECOND * 60
+        const HOUR = MINUTE * 60
+        const DAY = HOUR * 24
+        const YEAR = DAY * 365
+
+        let years = Math.floor(millis / YEAR)
+        millis -= years * YEAR
+
+        let days = Math.floor(millis / DAY)
+        millis -= days * DAY
+
+        let hours = Math.floor(millis / HOUR)
+        millis -= hours * HOUR
+
+        let minutes = Math.floor(millis / MINUTE)
+        millis -= minutes * MINUTE
+        
+        let seconds = Math.floor(millis / SECOND)
+
+        if (years) {
+          return `${years} year${years > 1 ? "s" : ""} and ${days} day${days !== 1 ? "s" : ""} ago`
+        }
+        if (days) {
+          return `${days} day${days > 1 ? "s" : ""} and ${hours} hour${hours !== 1 ? "s" : ""} ago`
+        }
+        if (hours) {
+          return `${hours} hour${hours > 1 ? "s" : ""} and ${minutes} minute${minutes !== 1 ? "s" : ""} ago`
+        }
+        if(minutes) {
+          return `${minutes} minute${minutes > 1 ? "s" : ""} ago`
+        }
+        return `${seconds} second${seconds > 1 ? "s" : ""} ago`
+      }
+      function timeString3(time){
+        return(new Date(time).toLocaleDateString(undefined, {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+          hour: "numeric",
+          minute: "2-digit"
+        }))
+      }
+
+      function updateList(){
+        let now = Date.now()
+        let html = ""
+        let minTime = Infinity, minTimeStr = ""
+        let count = 0
+        for(let i=userArray.length-1; i>=0; i--){
+          let u = userArray[i]
+          if(now - users[u].time > 86400000){//24 hours
+            delete users[u]
+            userArray.splice(i,1)
+            continue
+          }
+          let str = timeString2(now - users[u].time)
+          html += u+" | "+users[u].path+" | "+str+"<br>"
+          if(now - users[u].time < minTime && u !== username) minTimeStr = str, minTime = now - users[u].time
+          count++
+        }
+        if(onlineCount.innerHTML !== count+"") onlineCount.innerHTML = count+""
+        if(online.innerHTML !== html) online.innerHTML = html
+        document.title = "online " + minTimeStr
+      }
+      
+      var ws, users = {}, username, userArray = [], timeOffset
+      function ondata(data){
+        if(data.type === "all"){
+          timeOffset = Date.now() - data.now
+          userArray.length = 0
+          for(let user in data.data){
+            users[user] = {path:data.data[user].path ,time:data.data[user].time+timeOffset}
+            userArray.push(user)
+            userEvent(user)
+          }
+          userArray.sort((a,b) => users[a].time - users[b].time)
+        }else{
+          let now = data.time+timeOffset
+          if(!users[data.user]) users[data.user] = {path:data.path}
+          users[data.user].time = now
+          users[data.user].path = data.path
+          if(userArray.includes(data.user)) userArray.splice(userArray.indexOf(data.user),1)
+          userArray.push(data.user)
+          userEvent(data.user)
+        }
+      }
+      const theu = location.hash.replace("#",""), userEventsEl = document.querySelector("#userEvents")
+      function userEvent(u){
+        if(u === theu){
+          let el = document.createElement("span")
+          el.textContent = u+" | "+users[u].path+" | "+timeString3(users[u].time)
+          userEventsEl.appendChild(el)
+        }
+      }
+      function initWs(){
+        ws = new WebSocket("wss://"+location.host+"/online")
+        ws.onmessage = msg => ondata(JSON.parse(msg.data))
+        ws.onerror = () => ws.close()
+        ws.onclose = function(){
+          initWs()
+        }
+      }
+      initWs()
+
+      setInterval(updateList, 1000)
+
+      fetch("/server/getuser").then(r => r.text()).then(r => {
+        username = r
+        updateList()
+      })
+
+      function notifyMe() {
+        if (!window.Notification) {
+          console.log('Browser does not support notifications.');
+        } else {
+          if (Notification.permission !== 'granted') {
+            Notification.requestPermission()
+          }
+        }
+      }
+      addEventListener("load",notifyMe)
+    </script>
+    <script src="/assets/common.js"></script> <!--This has swal in it-->
+  </body>
+</html>

@@ -1,0 +1,89 @@
+{"url":"syntaxhiliter.txt","name":"Syntax highliter","type":"html"}
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>syntax highlighter</title>
+        <style>
+            *{
+                box-sizing:border-box;
+            }
+            body,html{
+                margin:0;
+                padding:0;
+            }
+            #navbar{
+                padding:10px;
+                background:#ffb;
+                margin-bottom:20px;
+                border-bottom:1px solid gray;
+            }
+            #navbar *{
+                padding-right:40px;
+                display:inline-block;
+            }
+            #navbar #name{
+                font-size:20px;
+                margin:0;
+                cursor:pointer;
+            }
+            #input{
+                resize:none;
+                width:90%;
+                height:200px;
+                margin:0px 5%;
+            }
+            h3{
+                margin:0px 5%;
+                margin-top:20px;
+            }
+            #Hilited{
+                background:#eee;
+                margin:0px 5%;
+                padding:4px;
+                border:1px solid gray;
+                font-family:"Courier New";
+                min-height:40px;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="navbar">
+            <h1 id="name">Syntax highlighter</h1>
+            <p>It hilights your syntax!</p>
+        </div>
+        
+        <textarea id="input"></textarea>
+        <br>
+        <h3>Result goes here:</h3>
+        <div id="Hilited"></div>
+        
+        <script>
+            var input = document.getElementById("input")
+            var result = document.getElementById("Hilited")
+            input.oninput = function(){
+                result.innerHTML = HiliteSyntax(HtmlEscape(this.value));
+            }
+            
+            function HtmlEscape(html){
+                html = html.replace(/&/g, "&amp;")
+                html = html.replace(/</g, "&lt;")
+                html = html.replace(/>/g, "&gt;")
+                return html;
+            }
+            function HiliteSyntax(text){
+                var strReg1 = /"(.*?)"/g;
+                var strReg2 = /'(.*?)'/g;
+                var htmlTagReg = /(&lt;[^\&]*&gt;)/g;
+                var htmlAttrNameReg = /( [\w-]+(?=[^&lt;]*&gt;))/g;
+                
+                text = text.replace(strReg1, '<span style="color:blue;">"$1"</span>')
+                text = text.replace(strReg2, "<span style='color:blue;'>'$1'</span>")
+                text = text.replace(htmlTagReg, '<span style="color:purple;">$1</span>')
+                text = text.replace(htmlAttrNameReg, '<span style="color:orange;">$1</span>')
+                
+                return text;
+            }
+        </script>
+    </body>
+</html>

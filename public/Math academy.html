@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html>
+<head>
+	
+	<title>Math Academy</title>
+	
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<link id ="icon"rel="shortcut icon" href="file:///home/chronos/u-99df7cdf98d8d7c88eddaf64da4876e23e35a834/MyFiles/icons/book.ico" type="image/x-icon" />
+	
+	<!--Type "x-icon" for icons-->
+	
+<style>
+
+.btn-group .button {
+  background-color: #4CAF50; /* Green */
+  border: 1px solid green;
+  color: white;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  cursor: pointer;
+  float: left;
+}
+
+.btn-group .button:not(:last-child) {
+  border-right: none; /* Prevent double borders */
+}
+
+.btn-group .button:hover {
+  background-color: #3e8e41;
+}
+	#math{
+		clear:both;
+		border:10px solid green;
+		width:window.innerWidth;
+		height:300px;
+	}
+	body{
+	background:#ccc;
+		-webkit-filter:invert(0%);
+	}
+	.normalbtn{
+		background:#4CAF50;
+		color:white;
+		border:1px solid green;
+		height:30px;
+	}
+	.normalbtn:hover{
+		background:#3e8e41;
+		cursor:pointer;
+	}
+	#calculator{
+	display:none;
+		clear:both;
+		border:10px solid #0f0;
+		width:window.innerWidth;
+		height:200px;
+	}
+	#toppart{
+	height:100px;
+	background:#99ff99;
+	
+	}
+	body, html{
+	margin:0;
+	padding:0;
+	}
+	html{
+	scroll-behavior: smooth;
+	}
+	#bottompart{
+		background:#77ff77;
+		clear:both;
+	}
+	th, td, table{
+  padding: 10px;
+}
+	table{
+	margin-left:auto;
+	margin-right:auto;
+	}
+</style>
+
+</head>
+<body id="body">
+	
+	<audio id="music">
+	<source src="6302502474481664.wav">
+	</audio>
+	
+<!--#toppart here-->
+	<div id="toppart">
+
+		
+		<h1 style="display:inline">Math Academy</h1>
+		<br>
+		<span>A place to learn math virtually</span>
+		
+		</div>
+		
+	
+<!--Top button group here-->
+
+<div class="btn-group">
+  <button class="button"onclick="thetitle()">Math academy</button>
+  <button class="button"onclick="document.getElementById('calculator').style.display='block'">Calculator</button>
+  <button class="button"onclick="document.getElementById('calculator').style.display='none'">Hide calculator</button>
+  <button class="button">Please Note: The check buttons don't do anything.</button>
+	<a href="#bottompart"><button class="button">More links</button></a>
+	<button class="button"onclick="pmusic()">Music</button>
+</div>
+	
+	<!--Calculator-->
+	<div id="calculator">
+		<br><br>
+		<h1>Calculator</h1>
+		<input id="cl1">
+		<select id="cltype"class="normalbtn"style="width:100px;">
+			<option value="*">* (multiply)</option>
+			<option value="/">/ (divide)</option>
+		</select>
+		<input id="cl2">
+		<button class="normalbtn"onclick="clclt()">calculate</button>
+		<p id="cltval"></p>
+		<script>
+		function clclt(){
+			var cl11=document.getElementById("cl1").value;
+			var cl22=document.getElementById("cl2").value;
+			var cltpe=document.getElementById("cltype").value;
+			var clans;
+			if(cltpe==="*"){
+				clans=cl11*cl22;
+			}else if(cltype==="/"){
+				clans=cl11/cl22;
+			}
+			document.getElementById("cltval").innerHTML=clans;
+		}
+		</script>
+	</div>
+	
+	<!--Math questions-->
+	<div id="math">
+		<h1>Question 1</h1>
+		<p>Evaluate 1+1</p>
+		<input id="ans1"placeholder="Answer to 1+1 here">
+		<button class="normalbtn">Check</button>
+		<p id="rst1"></p>
+	</div>
+	<div id="math">
+		<h1>Question 2</h1>
+		<p>Evaluate 10/2</p>
+		<input id="ans2"placeholder="Answer to 10/2 here">
+		<button class="normalbtn">Check</button>
+		<p id="rst2"></p>
+	</div>
+		<div id="math">
+		<h1>Question 3</h1>
+		<p>Evaluate 20x3</p>
+		<input id="ans3"placeholder="Answer to 20x3 here">
+		<button class="normalbtn">Check</button>
+		<p id="rst3"></p>
+	</div>
+	<div id="math">
+		<h1>Question 4</h1>
+		1
+		<select id="ans4"class="normalbtn"style="width:100px;">
+			<option value="+">+ (plus)</option>
+			<option value="-">- (minus)</option>
+			<option value="*">* (multiply)</option>
+			<option value="/">/ (divide)</option>
+		</select>
+		1=1
+		<button class="normalbtn">Check</button>
+		<p id="rst4"></p>
+	</div>
+	
+	<!--Bottom button group-->
+	<div class="btn-group">
+		<a href="#toppart"><button class="button">Back to top</button></a>
+	<button class="button"onclick="checkall()">Check all answers</button>
+	</div>
+	
+	<span id="correct"></span>
+	<script>
+		var amusic=document.getElementById("music");
+		function pmusic(){
+			amusic.play();
+		}
+		
+		function checkall(){
+			var allgood=0;
+			if(document.getElementById("ans1").value==="2"){
+			document.getElementById("rst1").innerHTML="Correct";
+				allgood++;
+			}else{
+			document.getElementById("rst1").innerHTML="Incorrect";
+			}
+			if(document.getElementById("ans2").value==="5"){
+			document.getElementById("rst2").innerHTML="Correct";
+				allgood++;
+			}else{
+			document.getElementById("rst2").innerHTML="Incorrect";
+			}
+			if(document.getElementById("ans3").value==="60"){
+			document.getElementById("rst3").innerHTML="Correct";
+				allgood++;
+			}else{
+			document.getElementById("rst3").innerHTML="Incorrect";
+			}
+			if(document.getElementById("ans4").value==="*"){
+			document.getElementById("rst4").innerHTML="Correct";
+				allgood++;
+			}else{
+			document.getElementById("rst4").innerHTML="Incorrect";
+			}
+			document.getElementById("correct").innerHTML=allgood+" questions answered correctly.";
+			
+			if(allgood===4){
+				var favicon=document.getElementById("icon");
+				
+				if(confirm("You answered all questions correctly. Wanna see the awesome stuff?")){
+
+					var windowsrc=document.getElementById("window").innerHTML;
+					window.open("","","width=1500,height=700").document.write(windowsrc);
+				}
+				
+			}
+	
+		}
+		function thetitle(){
+		document.title='Wow! you changed the title'
+			var favicon=document.getElementById("icon");
+			favicon.href="file:///home/chronos/u-99df7cdf98d8d7c88eddaf64da4876e23e35a834/MyFiles/icons/guy.ico";
+		}
+		
+	</script>
+	
+<!--#bottompart-->
+	<div id="bottompart">
+		
+		<table>
+			<caption><h1>More links:</h1></caption>
+  			<tr>
+	  			<td>Mordritch's website: </td>
+	  			<td><a href="https://mordritch.com">mordritch.com</a></td>
+  			</tr>
+  			<tr>
+    			<td>Khan's website: </td>
+	  			<td><a href="https://khanacademy.org">khanacademy.org</a></td>
+  			</tr>
+			<tr>
+				<td>Scratch, a coding website: </td>
+				<td><a href="https://scratch.mit.edu">scratch.mit.edu</a></td>
+			</tr>
+</table>	
+	</div>
+	
+	<!--html for window-->
+	<template id="window">
+		<title>Awesome stuff</title>
+		Check <a href="file:///home/chronos/u-99df7cdf98d8d7c88eddaf64da4876e23e35a834/MyFiles/Downloads/Untitled%201.html">this</a> out!
+		<h1>Minecraft seeds:</h1><br>
+		<b>desert temple, desert village, desert ravine: </b>unavailable
+		
+	</template>
+
+</body>
+	
+	
+</html>

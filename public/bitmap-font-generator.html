@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<head>
+	<meta charset="utf-8">
+	<title>bitmap font generator</title>
+</head>
+<script>
+function generateFont(glyphs,segments,glyphOffsets){
+	//spec: https://learn.microsoft.com/en-us/typography/opentype/spec/ebdt
+	const unitsPerEm = 64, pixelsPerEm = 8
+
+	const segmentCodes = segments.map(a => [getCode(a[0]),getCode(a[1])])
+	segmentCodes.sort((a,b) => a[1]-b[1])//sorted in order of increasing endCode values
+	const glyphOrder = [], glyphIds = new Map(), glyphOrderChars = [], realGlyphs = []
+	let gId = 0
+	for(let s of segmentCodes){
+		for(let i=s[0]; i<=s[1]; i++){
+			glyphOrder[gId] = i
+			glyphIds.set(i,gId)
+			const char = String.fromCharCode(i)
+			glyphIds.set(char,gId)
+			glyphOrderChars[gId] = char
+			gId++
+		}
+	}
+	let minX = 0, minY = 0, maxX = 0, maxY = 0
+	for(let g in glyphOffsets){
+		if(-glyphOffsets[g]<minY) minY = -glyphOffsets[g]
+	}
+	const glyphWidths = new Map()
+	for(let i=0; i<glyphOrder.length; i++){//goes in sorted order
+		const c = glyphOrderChars[i]
+		realGlyphs.push(glyphOrder[i])
+		const w = glyphs[c].includes("\n") ? glyphs[c].indexOf("\n") : glyphs[c].length
+		const h = glyphs[c].split("\n").length
+		glyphWidths.set(c,w)
+		const g = glyphOrder[i]
+		glyphWidths.set(g,w)
+		const s = w+","+(glyphOffsets[c]||0)
+		glyphWidths.set(s,w)
+		if(w>maxX) maxX = w
+		if(h>maxY) maxY = h
+	}
+  class Stuff{
+    constructor(){
+      this.arr = []
+    }
+		validate(x, mask=255){
+			if(+x !== x) throw new Error("Incorrect type "+x)
+			if(x>mask || (x|0) !== (x&mask)) throw new Error("Incorrect value "+x)
+		}
+    str(chars){
+      for(let c of chars) this.arr.push(c.charCodeAt(0))
+    }
+    uint8(x, cur = this.cur){
+			this.validate(x)
+      this.arr[cur] = x|0
+    }
+    uint16(x, cur = this.cur){
+			this.validate(x,0xffff)
+      this.arr[cur] = x>>>8
+			this.arr[cur+1] = x&255
+    }
+    uint32(x, cur = this.cur){
+			this.validate(x,0xffffffff)
+      this.arr[cur] = x>>>24
+			this.arr[cur+1] = (x>>>16)&255
+      this.arr[cur+2] = (x>>>8)&255
+			this.arr[cur+3] = x&255
+    }
+		int8(x, cur = this.cur){
+			if(x & 0x80000000) this.validate(~x,0x8000007f)//negative
+			else this.validate(x,0x8000007f)
+			this.arr[cur] = x&255//first bit determines negative
+		}
+		int16(x, cur = this.cur){
+			if(x & 0x80000000) this.validate(~x,0x80007fff)//negative
+			else this.validate(x,0x80007fff)
+			this.arr[cur] = (x>>>8)&255//first bit determines negative
+			this.arr[cur+1] = x&255
+		}
+		bits8(a,b,c,d,e,f,g,h, cur = this.cur){
+			this.arr[cur] = h<<7|g<<6|f<<5|e<<4|d<<3|c<<2|b<<1|a
+		}
+		bits16(a,b,c,d,e,f,g,h, i,j,k,l,m,n,o,p, cur = this.cur){
+			this.arr[cur] = p<<7|o<<6|n<<5|m<<4|l<<3|k<<2|j<<1|i
+			this.arr[cur+1] = h<<7|g<<6|f<<5|e<<4|d<<3|c<<2|b<<1|a
+		}
+		fixed(x, cur = this.cur){
+			this.validate(x*256,0xffffffff)
+			this.arr[cur] = x&255
+			this.arr[cur+1] = x>>>8
+			this.arr[cur+2] = (x*256)&255
+			this.arr[cur+3] = ((x*256)>>>8)&255
+		}
+		addarr(a){
+			this.arr.push(...a.arr)
+		}
+		get cur(){
+			return this.arr.length
+		}
+		checksum(){
+			let sum = 0
+			for(let i=0; i<this.arr.length; i+=4){
+				sum += this.arr[i]<<24|this.arr[i+1]<<16|this.arr[i+2]<<8|this.arr[i+3]
+			}
+			return sum
+		}
+  }
+	let mainarr = new Stuff()
+	let glyfOffsets = {}, maxStuff = {points:0,contours:0}
+	const tableDatas = {
+		head:generateHead(),
+		cmap:generateCmap(),
+		hhea:generateHhea(),
+		hmtx:generateHmtx(),
+		name:generateName(),
+		"OS/2":generateOS2(),
+		post:generatePost(),
+		glyf:generateGlyf(),
+		loca:generateLoca(),
+		maxp:generateMaxp(),
+		//EBDT:generateEmbeddedBitmap(),
+		//EBLC:generateEmbeddedBitmapLocations(),
+		//EBSC:generateEbsc()
+	}, tableKeysSorted = Object.keys(tableDatas).sort()
+	const numTables = tableKeysSorted.length
+	let tableRecordOffsets = {}
+	mainarr.uint32(0x00010000)//sfntversion
+	mainarr.uint16(numTables)//numtables
+	const searchRange = (2**Math.floor(Math.log2(numTables))) * 16
+	mainarr.uint16(searchRange)//searchrange
+	mainarr.uint16(Math.floor(Math.log2(numTables)))//entryselector
+	mainarr.uint16((numTables * 16) - searchRange)//rangeshift
+	for(let t of tableKeysSorted){//tablerecord
+		tableRecordOffsets[t] = mainarr.cur
+		if(t.length !== 4) throw new Error("tag must be length 4")
+		mainarr.str(t)//tag
+		mainarr.uint32(tableDatas[t].checksum()&0xffffffff)//checksum
+		mainarr.uint32(0)//offset, set later
+		mainarr.uint32(tableDatas[t].cur)//length
+	}
+	let headTableOffset
+	for(let t in tableDatas){
+		while(mainarr.cur%4) mainarr.uint8(0)//padding to maintain 4 byte boundary
+		if(t === "head") headTableOffset = mainarr.cur
+		mainarr.uint32(mainarr.cur, tableRecordOffsets[t]+8)//set offset
+		mainarr.addarr(tableDatas[t])
+	}
+	mainarr.uint32((0xB1B0AFBA - mainarr.checksum())&0xffffffff, headTableOffset+8)//set checksumAdjustment
+
+	function getCode(str){//from https://github.com/Pomax/Minimal-font-generator/blob/master/fontgenerator.js#L238
+		let code = str.charCodeAt(0)
+    if (0xD800 <= code && code <= 0xDBFF) { // High surrogate
+      let hi = code
+      if (str.length === 1) return code
+      let low = str.charCodeAt(1)
+      return ((hi - 0xD800) * 0x400) + (low - 0xDC00) + 0x10000; }
+    if (0xDC00 <= code && code <= 0xDFFF) return code // Low surrogate
+    return code
+	}
+	function generateHead(){
+		let arr = new Stuff()
+		const scale = unitsPerEm/pixelsPerEm
+		arr.uint16(1)//major
+		arr.uint16(0)//minor
+		arr.fixed(0)//revision
+		arr.uint32(0)//checksumAdjustment, set later
+		arr.uint32(0x5F0F3CF5)//magic number?
+		arr.bits16(1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0)//flags https://learn.microsoft.com/en-us/typography/opentype/spec/head
+		arr.uint16(unitsPerEm)//units per em
+		arr.uint32(0), arr.uint32(0)//created
+		arr.uint32(0), arr.uint32(0)//modified
+		arr.int16(minX*scale)
+		arr.int16(minY*scale)
+		arr.int16(maxX*scale)
+		arr.int16(maxX*scale)
+		arr.bits16(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)//macStyle
+		arr.uint16(8)//lowestRecPPEM (Smallest readable size)
+		arr.int16(2)//fontDirectionHint
+		arr.int16(1)//indexToLocFormat
+		arr.int16(0)//glyphDataFormat
+		return arr
+	}
+	function generateCmap(){
+		let arr = new Stuff()
+		arr.uint16(0)//version (cmap table format)
+		arr.uint16(1)//numtables
+
+		//EncodingRecord's
+		arr.uint16(0)//platform id (unicode)
+		arr.uint16(3)//encoding id (Unicode 2.0 and onwards semantics, Unicode BMP only)
+		const unicodeOffsetOffset = arr.cur
+		arr.uint32(0)//offset to subtable, set later
+
+		arr.uint16(3)//platform id (windows)
+		arr.uint16(1)//encoding id (Unicode BMP)
+		const windowsOffsetOffset = arr.cur
+		arr.uint32(0)//offset to subtable, set later
+
+		const subtableStart = arr.cur
+		arr.uint32(arr.cur, unicodeOffsetOffset)//set subtable offset
+		arr.uint32(arr.cur, windowsOffsetOffset)//set subtable offset
+		arr.uint16(4)//format
+		arr.uint16(0)//length, set later
+		arr.uint16(0)//language
+		const segCount = segmentCodes.length+1
+		arr.uint16(segCount*2)//segCountX2, 1 is added because there is also 0xFFFF character
+		const searchRange = (2**Math.floor(Math.log2(segCount))) * 2
+		arr.uint16(searchRange)//searchrange
+		arr.uint16(Math.floor(Math.log2(segCount)))//entryselector
+		arr.uint16((segCount * 2) - searchRange)//rangeshift
+		for(let s of segmentCodes) arr.uint16(s[1])//endcode
+		arr.uint16(0xFFFF)//endcode for 0xFFFF
+		arr.uint16(0)//reservedpad
+		for(let s of segmentCodes) arr.uint16(s[0])//startcode
+		arr.uint16(0xFFFF)//startcode for 0xFFFF
+		for(let s of segmentCodes) arr.int16(-s[0] + glyphIds.get(s[0]))//idDelta, <character code> + <delta> = <glyph id>
+		arr.int16(1)//idDelta for 0xFFFF
+		for(let s of segmentCodes) arr.uint16(0)//idRangeOffset
+		arr.uint16(0)//idRangeOffset for 0xFFFF
+		//no values in glyphIdArray
+
+		arr.uint16(arr.cur-subtableStart, subtableStart+2)//set length
+		return arr
+	}
+	function generateHhea(){
+		let arr = new Stuff()
+		const scale = unitsPerEm/pixelsPerEm
+		arr.uint16(1)//major
+		arr.uint16(0)//minor
+		arr.int16(maxY*scale)//ascender
+		arr.int16(minY*scale)//descender
+		arr.int16(0)//linegap
+		arr.uint16((maxX-minX)*scale)//advanceWidthMax
+		arr.int16(minX*scale)//minLeftSideBearing
+		arr.int16(0)//minRightSideBearing
+		arr.int16((maxX-minX)*scale)//xMaxExtent
+		arr.int16(1)//caretSlopeRise
+		arr.int16(0)//caretSlopeRun
+		arr.int16(0)//caretOffset
+		arr.int16(0)
+		arr.int16(0)
+		arr.int16(0)
+		arr.int16(0)
+		arr.int16(0)//metricDataFormat
+		arr.uint16(realGlyphs.length)//numberOfHMetrics
+		return arr
+	}
+	function generateHmtx(){
+		let arr = new Stuff()
+		const scale = unitsPerEm/pixelsPerEm
+		for(let g of realGlyphs){
+			arr.uint16(glyphWidths.get(g)*scale)//advanceWidth
+			arr.int16(0)//left side bearing
+		}
+		return arr
+	}
+	function generateMaxp(){
+		let arr = new Stuff()
+		arr.uint32(0x00010000)//version: 0.5
+		arr.uint16(realGlyphs.length)//numGlyphs
+		arr.uint16(maxStuff.points)//maxPoints
+		arr.uint16(maxStuff.contours)//maxContours
+		arr.uint16(0)//maxCompositePoints
+		arr.uint16(0)//maxCompositeContours
+		arr.uint16(0)//maxZones
+		arr.uint16(0)//maxTwilightPoints
+		arr.uint16(0)//maxStorage
+		arr.uint16(0)//maxFunctionDefs
+		arr.uint16(0)//maxInstructionDefs
+		arr.uint16(0)//maxStackElements
+		arr.uint16(0)//maxSizeOfInstructions
+		arr.uint16(0)//maxComponentElements
+		arr.uint16(1)//maxComponentDepth
+		return arr
+	}
+	function generateName(){
+		const fullName = "pixelated font thingy"
+		let arr = new Stuff()
+		arr.uint16(0)//version
+		arr.uint16(1)//count
+		const storageOffsetOffset = arr.cur
+		arr.uint16(0)//storageOffset, set later
+		arr.uint16(0)//platform id (unicode)
+		arr.uint16(3)//encoding id (Unicode 2.0 and onwards semantics, Unicode BMP only)
+		arr.uint16(0)//language id
+		arr.uint16(1)//name id (full name)
+		arr.uint16(fullName.length)//length
+		const fullNameOffsetOffset = arr.cur
+		arr.uint16(0)//stringOffset, set later
+		
+		const storageStart = arr.cur
+		arr.uint16(storageStart, storageOffsetOffset)
+		arr.uint16(arr.cur-storageStart, fullNameOffsetOffset)
+		arr.str(fullName)
+		return arr
+	}
+	function generateOS2(){
+		let arr = new Stuff()
+		arr.uint16(5)//version
+		arr.uint16(0)//xAvgCharWidth
+		arr.uint16(400)//usWeightClass: normal
+		arr.uint16(5)//usWidthClass: medium
+		arr.bits16(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)
+		arr.int16(0)//who cares about subscript, superscript, and strikeout???
+		arr.int16(0)
+		arr.int16(0)
+		arr.int16(0)
+		arr.int16(0)
+		arr.int16(0)
+		arr.int16(0)
+		arr.int16(0)
+		arr.int16(0)
+		arr.int16(0)
+		arr.int16(0)//s family class
+		arr.uint8(0), arr.uint8(0), arr.uint8(0), arr.uint8(0), arr.uint8(0), arr.uint8(0), arr.uint8(0), arr.uint8(0), arr.uint8(0), arr.uint8(0)//panose
+		arr.uint32(0), arr.uint32(0), arr.uint32(0), arr.uint32(0)//ulUnicodeRange
+		arr.str("\0\0\0\0")//achVendID
+		arr.bits16(0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0)//fsSelection (Font selection flag)
+		arr.uint16(glyphOrder[0])//usFirstCharIndex
+		arr.uint16(glyphOrder[glyphOrder.length-1])//usLastCharIndex
+		arr.int16(maxY)//sTypoAscender
+		arr.int16(minY)//sTypoDescender
+		arr.int16(0)//sTypoLineGap
+		arr.uint16(maxY)//usWinAscent
+		arr.uint16(0)//usWinDescent
+		arr.uint32(0), arr.uint32(0)//ulCodePageRange
+		arr.int16(0)//sxHeight
+		arr.int16(0)//sCapHeight
+		arr.uint16(0)//usDefaultChar
+		arr.uint16(0)//usBreakChar
+		arr.uint16(0)//usMaxContext, change if add ligature
+		arr.uint16(0)//usLowerOpticalPointSize
+		arr.uint16(0xFFFF)//usUpperOpticalPointSize
+		return arr
+	}
+	function generatePost(){
+		let arr = new Stuff()
+		arr.uint32(0x00030000)//version: 3
+		arr.fixed(0)//italicAngle
+		arr.int16(0)//underlinePosition
+		arr.int16(0)//underlineThickness
+		arr.uint32(0)//isFixedPitch
+		arr.uint32(0)//minMemType42
+		arr.uint32(0)//maxMemType42
+		arr.uint32(0)//minMemType1
+		arr.uint32(0)//maxMemType1
+		return arr
+	}
+	//useful images: https://i.stack.imgur.com/xywkL.png https://i.stack.imgur.com/LwZJF.png
+	function generateGlyf(){
+		let arr = new Stuff()
+		const scale = unitsPerEm/pixelsPerEm
+		for(let g of glyphOrderChars){
+			const yOffset = glyphOffsets[g] || 0
+			let filledPixels = []
+			let rows = glyphs[g].split("\n")
+			const width = rows[0].length, height = rows.length
+			let pixelsLeft = new Array(width*height)
+			for(let r=0; r<rows.length; r++){
+				for(let c=0; c<rows[r].length; c++){
+					if(rows[r][c] === "#" && !pixelsLeft[r*width+c]){
+						let h = 1, fr = r+1//find height of piece
+						while(true){
+							if(!rows[fr] || rows[fr][c] !== "#" || pixelsLeft[fr*width+c]) break
+							fr++, h++
+						}
+						let w = 1, fc = c+1//find width of piece
+						wloop:while(true){
+							fr = r
+							while(fr-r < h){
+								if(!rows[fr] || rows[fr][fc] !== "#" || pixelsLeft[fr*width+fc]) break wloop
+								fr++
+							}
+							fc++, w++
+						}
+						for(fr=r; fr<r+h; fr++) for(fc=c; fc<c+w; fc++){
+							pixelsLeft[fr*width+fc] = true
+						}
+						filledPixels.push(c,pixelsPerEm-r-yOffset, w,h)
+					}
+				}
+			}
+			glyfOffsets[g] = arr.cur
+			maxStuff.points = Math.max(maxStuff.points, filledPixels.length)
+			maxStuff.contours = Math.max(maxStuff.contours, filledPixels.length*0.25)
+			//Glyph Header
+			arr.int16(filledPixels.length*0.25)//numberOfContours
+			arr.int16(0)//xMin
+			arr.int16(((pixelsPerEm-rows.length)-yOffset)*scale)//yMin
+			arr.int16((rows[0].length)*scale)//xMax
+			arr.int16((pixelsPerEm-yOffset)*scale)//yMax
+
+			//Simple Glyph Table
+			for(let p=0; p<filledPixels.length; p+=4) arr.uint16(p+3)//endPtsOfContours
+			arr.uint16(0)//instructionLength
+			//no instructions
+			let prevX = 0, prevY = 0
+			for(let p=0; p<filledPixels.length; p+=4){
+				let xPositive = filledPixels[p]-prevX >= 0, yPositive = filledPixels[p+1]-prevY >= 0
+				arr.bits8(1,1,1,0,xPositive,yPositive,0,0)//flags
+				arr.bits8(1,1,1,0,1,1,0,0)//flags
+				arr.bits8(1,1,1,0,1,0,0,0)//flags, y is negative
+				arr.bits8(1,1,1,0,0,1,0,0)//flags, x is negative
+				prevX = filledPixels[p], prevY = filledPixels[p+1]-filledPixels[p+3]
+			}
+			prevX = 0
+			for(let p=0; p<filledPixels.length; p+=4){
+				arr.uint8(Math.abs(filledPixels[p]-prevX)*scale)//xCoordinates
+				arr.uint8(filledPixels[p+2]*scale)
+				arr.uint8(0)
+				arr.uint8(filledPixels[p+2]*scale)//negative
+				prevX = filledPixels[p]
+			}
+			prevY = 0
+			for(let p=0; p<filledPixels.length; p+=4){
+				arr.uint8(Math.abs(filledPixels[p+1]-prevY)*scale)//yCoordinates
+				arr.uint8(0)
+				arr.uint8(filledPixels[p+3]*scale)//negative
+				arr.uint8(0)
+				prevY = filledPixels[p+1]-filledPixels[p+3]
+			}
+		}
+		glyfOffsets.length = arr.cur
+		return arr
+	}
+	function generateLoca(){
+		let arr = new Stuff()
+		for(let g of glyphOrderChars){
+			arr.uint32(glyfOffsets[g])
+		}
+		arr.uint32(glyfOffsets.length)
+		return arr
+	}
+
+  /*function generateEmbeddedBitmap(){
+    let arr = new Stuff()
+    arr.uint16(2)//major
+    arr.uint16(0)//minor
+		for(let g in glyphs){
+			bitmapOffsets[glyphIds.get(g)] = arr.cur
+			let rows = glyphs[g].split("\n")
+			//using format 5, metrics in EBLC
+			let combined = rows.join("")
+			bitmapSizes[glyphIds.get(g)] = combined.length
+			for(let i=0; i<combined.length; i+=8){//if it goes out of row, it will be 0 and also padding
+				arr.bits8(combined[i]==="#",combined[i+1]==="#",combined[i+2]==="#",combined[i+3]==="#",combined[i+4]==="#",combined[i+5]==="#",combined[i+6]==="#",combined[i+7]==="#")
+			}
+		}
+		return arr
+  }
+	function generateEmbeddedBitmapLocations(){
+    let arr = new Stuff()
+    arr.uint16(2)//major
+    arr.uint16(0)//minor
+		arr.uint32(Object.keys(glyphSameSections).length)//numsizes
+		let sizeRecordOffsets = {}
+		for(let s in glyphSameSections){//BitmapSize Record
+			sizeRecordOffsets[s] = arr.cur
+			arr.uint32(0)//indexSubTableArrayOffset, set later
+			arr.uint32(0)//indexTablesSize, set later
+			arr.uint32(glyphSameSections[s].length)//numberOfIndexSubTables
+			arr.uint32(0)//colorRef
+			{//hori
+				arr.int8(maxY)//ascender
+				arr.int8(minY)//descender
+				arr.uint8(maxY-minY)//widthmax
+				arr.int8(1)//caretSlopeNumerator
+				arr.int8(0)//caretSlopeDenominator
+				arr.int8(0)//caretOffset
+				arr.int8(0)//minOriginSB
+				arr.int8(0)//minAdvanceSB
+				arr.int8(0)//maxBeforeBL
+				arr.int8(0)//minAfterBL
+				arr.int8(0)//pad1
+				arr.int8(0)//pad2
+			}
+			{//vert
+				arr.int8(0)//ascender
+				arr.int8(0)//descender
+				arr.uint8(0)//widthmax
+				arr.int8(1)//caretSlopeNumerator
+				arr.int8(0)//caretSlopeDenominator
+				arr.int8(0)//caretOffset
+				arr.int8(0)//minOriginSB
+				arr.int8(0)//minAdvanceSB
+				arr.int8(0)//maxBeforeBL
+				arr.int8(0)//minAfterBL
+				arr.int8(0)//pad1
+				arr.int8(0)//pad2
+			}
+			arr.uint16(glyphIds.get(glyphSameSections[s][0][0]))//startGlyphIndex
+			arr.uint16(glyphIds.get(glyphSameSections[s][glyphSameSections[s].length-1][1]))//endGlyphIndex
+			arr.uint8(16)//ppemX
+			arr.uint8(16)//ppemY
+			arr.uint8(1)//bitdepth: black and white
+			arr.int8(0x01)//flags
+		}
+		for(let s in glyphSameSections){//IndexSubTableArray
+			const subtableThingsStart = arr.cur
+			arr.uint32(subtableThingsStart,sizeRecordOffsets[s])//set indexSubTableArrayOffset
+			for(let s2 in glyphSameSections[s]){
+				let range = glyphSameSections[s][s2]
+				arr.uint16(range[0])//firstGlyphIndex
+				arr.uint16(range[1])//lastGlyphIndex
+				arr.uint32((arr.cur+4)-subtableThingsStart)//additionalOffsetToIndexSubtable
+
+				//IndexSubTable2
+				arr.uint16(2)//indexFormat
+				arr.uint16(5)//imageFormat
+				const startId = glyphIds.get(glyphSameSections[s][0][0])
+				arr.uint32(bitmapOffsets[startId])//imageDataOffset
+				let rows = glyphs[glyphOrderChars[startId]].split("\n")
+				{//bigMetrics
+					arr.uint8(rows.length)//height
+					arr.uint8(rows[0].length)//width
+					arr.int8(0)//horiBearingX
+					arr.int8(0)//horiBearingY
+					arr.uint8(rows[0].length)//horiAdvance
+					arr.int8(0)//vertBearingX
+					arr.int8(0)//vertBearingY
+					arr.uint8(rows.length)//vertAdvance
+				}
+			}
+		}
+		return arr
+	}*/
+	/*function generateEbsc(){
+    let arr = new Stuff()
+    arr.uint16(2)//major
+    arr.uint16(0)//minor
+		arr.uint32(0)//numSizes
+		return arr
+	}*/
+	for(let i of mainarr.arr){
+		if((i&255) !== i) throw new Error("Incorrect value")
+	}
+	return new Uint8Array(mainarr.arr)
+}
+function doIt(){
+	let fontData = generateFont({
+"\0":
+`###
+#-#
+#-#
+###`,
+a:
+`--#--
+-#-#-
+-###-
+-#-#-`,
+b:
+`###--
+--##-
+##---
+#----
+#----
+#----
+#----
+#----`,
+c:
+`##-##
+##-##
+##-##
+--#--
+--#--
+#-#-#
+-###-
+--#--`,
+d:
+`#####
+--###
+#--##`,
+e:
+`-----
+-##-#
+##---
+#####`,
+  }, [//contains array, each array contains start and end
+		["\0","\0"],
+		["a","e"]
+	],
+	{c:2})
+	window.fontData = fontData
+	let font = new FontFace("testfont", fontData)
+	font.load().then(() => document.fonts.add(font)).catch(e => document.body.insertAdjacentText("beforeend",e))
+	document.body.insertAdjacentHTML('beforeend',"here is font: <textarea style='font-family:testfont;'>a b c d e f g h i j k l m n o p q r s t u v w x y z</textarea><br>")
+	document.body.querySelector("#fontoptions").style.display = ""
+}
+</script>
+<body>
+	<p>it seems that embedded bitmap doesn't work</p>
+	<button onclick="doIt()">Generate</button>
+	<div id="fontoptions" style="display:none">
+		<button onclick="window.open(window.URL.createObjectURL(new Blob([fontData],{type:'font/otf'})),'_blank')">download font</button>
+		<button onclick="document.body.insertAdjacentText('beforeend',String.fromCharCode(...fontData))">view raw</button>
+	</div>
+</body>

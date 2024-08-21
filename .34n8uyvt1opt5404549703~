@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>My Programs</title>
+    <meta charset="UTF-8">
+    <script src="talk throughs/talkThrough.js"></script>
+    <link rel='stylesheet' href='/assets/common.css'></link>
+    <style>
+      /* {
+        box-sizing: border-box;
+      }
+      body, html{
+        scroll-behavior:smooth;
+        height:100%;
+      }
+      /* Style the body * /
+      body {
+        font-family: Arial, Helvetica, sans-serif;
+        margin: 0;
+      }
+      .navbar{
+        overflow:hidden;
+        background:#333;
+        height:47px;
+      }
+      .navbar a{
+        float: left;
+        display: block;
+        color: white;
+        text-align: center;
+        padding: 14px 20px;
+        text-decoration: none;
+        cursor:pointer;
+      }
+      /* Right-aligned link * /
+      .navbar .right {
+        float: right;
+      }
+      .navbar .logo{
+        background:#1abc9c;
+      }
+      .navbar input{
+        padding: 6px 10px;
+        margin:8px 20px;
+        float:left;
+      }
+      /* Change color on hover * /
+      .navbar a:hover {
+        background-color: #ddd;
+        color: black;
+      }
+      
+      #contentBG{
+        background:#eee;
+        padding:0px 10%;
+        height:calc(100% - 47px);
+      }
+      #content{
+        background:white;
+        padding:10px 20px;
+        height:100%;
+      }*/
+      h1{
+        font-size:50px;
+        margin:0px;
+        text-align:center;
+      }
+      a{
+        display:block;
+      }
+      #programs, #PJSPrograms, #talkThroughs{
+        margin-top:50px;
+      }
+      h3{
+        margin:0px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="contentBG">
+      <div id="content">
+        <h1>My Programs</h1>
+        
+        <a href="program.html?type=html">New Webpage</a>
+        <a href="program.html?type=pjs">New Program</a>
+
+        <div id="talkThroughs">
+          <h3>Videos</h3>
+        </div>
+
+        <div id="programs">
+          <h3>Programs & Webpages</h3>
+        </div>
+      </div>
+    </div>
+    <script src="/assets/common.js"></script>
+    <script>
+      window.onload = async function(){
+        //talkThroughs
+        var programContainer=document.getElementById("talkThroughs");
+        for(var i=0; i<talkThroughs.length; i++){
+          var a = document.createElement("a");
+          a.href="talkThrough.html?wich=" + i;
+          a.innerHTML=talkThroughs[i].name;
+          programContainer.appendChild(a);
+        }
+
+        var programContainer=document.getElementById("programs");
+        var programs = localStorage.getItem("Programs");
+        if(programs){
+          programs = JSON.parse(programs);
+          for(var i=0; i<programs.length; i++){
+            var a = document.createElement("a");
+            a.href="program.html?program=" + programs[i].id;
+            a.innerHTML="Program " + programs[i].id;
+            programContainer.appendChild(a);
+          }
+        }
+
+        let data = await fetch('programs/list.txt').then(r => r.text()).catch(() => "")
+        if(data){
+          async function fetchAndShow(url){
+            let data = await fetch("programs/"+url).then(r => r.text()).catch(console.error)
+            if(!data) return
+            data = data.split("\n")
+            let i = JSON.parse(data.shift())
+            var a = document.createElement("a");
+            a.href="program.html?program=" + i.url;
+            a.innerHTML=i.name;
+            programContainer.appendChild(a);
+          }
+          
+          data = data.split("\n")
+          programContainer.append("The programs below were made by thingMaker.")
+          for(let i of data){
+            fetchAndShow(i)
+          }
+        }
+      }
+    </script>
+  </body>
+</html>

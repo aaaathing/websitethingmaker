@@ -1,0 +1,271 @@
+{"url":"jsconsole.txt","name":"JS console","type":"html"}
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>js console</title>
+        <style>
+          *{
+            box-sizing:border-box;
+          }
+          body,html{
+            height:100%;
+            margin:0;
+            padding:0;
+          }
+          body{
+            font-family:monospace;
+          }
+          #console{
+            height:100%;
+          }
+          #console #options{
+            height:40px;
+            padding-left:10px;
+            background:#eee;
+            border-bottom:2px solid;
+            display: flex;
+            align-items: center;
+          }
+          #console #options span{
+            cursor:pointer;
+          }
+          #console #content{
+            height:calc(100% - 60px - 40px);
+            overflow:scroll;
+            font-size:15px;
+          }
+          #console .section{
+            padding:2px 10px;
+            border-bottom:1px solid gray;
+            line-height:18px;
+            font-size:15px;
+          }
+          #console .section svg{
+            width:15px;
+          }
+          #console .section.error{
+            background:#f44;
+            color:white;
+          }
+          #console .section.warn{
+            background:#ff9;
+          }
+          #console .section hr{
+            margin:4px 0px;
+            border:none;
+            border-bottom:1px solid lightgray;
+          }
+          #console .section lt::before{
+            content:">";
+            color:#777;
+          }
+          #console .section gt::before{
+            content:"\22d6";
+            color:#aaa;
+          }
+          #console #writeBox{
+            padding:2px;
+            border-top:3px solid gray;
+            outline:/*yesy x ∞ more then what ever YOU say*/none;
+            height:60px;/*The border takes up space*/
+            overflow:scroll;
+            font-size:14px;
+          }
+        </style>
+    </head>
+    <body>
+      <script>
+        //create enviorment for running js
+        var iframe = document.createElement("iframe")
+        iframe.setAttribute("frameborder", 0)
+        iframe.style.display="none"
+        document.body.appendChild(iframe)
+        var Enviorment = iframe.contentWindow
+      </script>
+      
+      
+      <div id="console">
+        <div id="options">
+          <span onclick="console.clear()">Clear all</span>
+        </div>
+        <div id="content"></div>
+        <div id="writeBox" contenteditable spellcheck="false"></div>
+      </div>
+      
+      <script>
+        function getTextNodeAtPosition(root, index){
+            const NODE_TYPE = NodeFilter.SHOW_TEXT;
+            var treeWalker = document.createTreeWalker(root, NODE_TYPE, function next(elem) {
+                if(index > elem.textContent.length){
+                    index -= elem.textContent.length;
+                    return NodeFilter.FILTER_REJECT
+                }
+                return NodeFilter.FILTER_ACCEPT;
+            });
+            var c = treeWalker.nextNode();
+            return {
+                node: c? c: root,
+                position: index
+            };
+        }
+        
+        var images = {
+          error:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><defs><linearGradient xlink:href="#a" gradientUnits="userSpaceOnUse" gradientTransform="scale(1.57482) rotate(-90 18 6)" x2="24" id="b"/><linearGradient id="a"><stop offset="0" stop-color="#d7687d"/><stop offset="1" stop-color="#b21402"/></linearGradient></defs><path d="M18.898 0C8.466 0 0 8.466 0 18.898c0 10.431 8.466 18.897 18.898 18.897 10.431 0 18.897-8.466 18.897-18.897C37.795 8.466 29.33 0 18.898 0" fill="url(#b)" transform="scale(.26458)"/><path d="M.36 5C.36 7.56 2.44 9.64 5 9.64c2.56 0 4.64-2.08 4.64-4.64C9.64 2.44 7.56.36 5 .36 2.44.36.36 2.44.36 5" fill="#eb3941"/><path d="M3 3l4 4M7 3L3 7" stroke="#fff" stroke-width="1.0001124"/></svg>',
+          warning:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><path d="M1 9l4-8 4 8z" stroke="#c19600" stroke-width="2.00002" stroke-linejoin="round"/><path d="M1 9l4-8 4 8z" fill="#f4bd00" stroke="#f5bd00" stroke-width="1.500015" stroke-linejoin="round"/><path d="M3.75 2.75h2.5v2.5L5.75 7h-1.5l-.5-1.75v-2.5m0 5.25h2.5v1.25h-2.5" fill="#ad8601"/><path d="M4 3h2v2.25L5.5 7h-1L4 5.25V3m0 5h2v1H4" fill="#fff"/></svg>'
+        }
+        
+        var console = {
+          element:document.querySelector("#console"),
+          output:document.querySelector("#console #content"),
+          input:document.querySelector("#console #writeBox"),
+          
+          clear:function(){
+            this.output.innerHTML = ""
+          },
+          print:function(data){
+            data = String(data)
+            this.output.innerHTML += data
+          },
+          printSection:function(inp, outp){
+            var str = "<div class=\"section\"> <lt></lt> "+inp+" <br> <gt></gt> "+outp+" </div>"
+            this.print(str)
+          },
+          printOutput:function(data){
+            var str = "<div class=\"section\"> <gt></gt> "+data+" </div>"
+            this.print(str)
+          },
+          printInput:function(data){
+            var str = "<div class=\"section\"> <lt></lt> "+data+" </div>"
+            this.print(str)
+          },
+          log:function(data){
+            var str = "<div class=\"section\"> "+data+" </div>"
+            this.print(str)
+          },
+          error:function(data){
+            var str = "<div class=\"section error\"> "+images.error +" "+ data+" </div>"
+            this.print(str)
+          },
+          warn:function(data){
+            var str = "<div class=\"section warn\"> "+images.warning+" "+data+" </div>"
+            this.print(str)
+          },
+          HiliteSyntax:function(code){
+            var colors = [
+              {
+                style:"color:purple;",
+                syntaxs:["function","var","let","const","true","false"]
+              },
+              {
+                style:"color:blue;",
+                syntaxs:["if","else","for","while","new","1","2","3","4","5","6","7","8","9","0"]
+              },
+              {
+                style:"color:#0aa;",
+                syntaxs:["this", "window", "document", "Number", "String", "Bollean"]
+              }
+            ]
+            
+            if(typeof code !== "string"){
+              code = String(code)
+            }
+            
+            code = code.split("\"")
+            var quot
+            for(quot = 0; quot < code.length; quot++){
+              if( (quot % 2) === 0){
+                code[quot] += "<span style=\"color:green;\">"
+              }else if(code[quot+1] || code[quot+1]===0){
+                code[quot+1] = "</span>" + code[quot+1]
+              }
+            }
+            code = code.join("\"")
+            if(quot % 2 === 1){
+              code += "</span>"
+            }
+            
+            
+            for(var coln = 0; coln < colors.length; coln++){
+              var color = colors[coln];
+              var syntaxs = color.syntaxs;
+              for(var stxn = 0; stxn < syntaxs.length; stxn++){
+                var regexp = new RegExp(syntaxs[stxn], "g")
+                code = code.replace(regexp, "<span style='"+color.style+"'>"+syntaxs[stxn]+"</span>")
+              }
+            }
+            
+            
+            
+            return code
+          },
+          htmlEscape:function(val){
+            val = String(val);
+            val = val.replace(/&/g, "&amp;");
+            val = val.replace(/</g, "&lt;");
+            val = val.replace(/>/g, "&gt;");
+            val = val.replace(/\n/g, "<br>");
+            return val;
+          },
+          encodeValue:function(val){
+            if(val === null || val === undefined){
+              return val;
+            }
+            if(typeof val === "string"){
+              return "\""+val+"\"";
+            }
+            if(typeof val === "function" || typeof val === "number" || typeof val === "boolean"){
+              return String(val);
+            }
+            if(Array.isArray(val)){
+              var res = "Array:\n";
+              for(var i=0; i<val.length; i++){
+                res += i+": "+val[i]+"\n"
+              }
+              return res;
+            }
+            if(typeof val === "object"){
+              var res = "Object:\n";
+              for(var i in val){
+                res += i+": "+val[i]+"\n";
+              }
+              return res;
+            }
+          }
+        }
+        console.input.oninput = function(){
+          var selection = window.getSelection();
+          var range = selection.getRangeAt(0);
+          range.setStart(this, 0);
+          var len = range.toString().length;
+          
+          
+          this.innerHTML = console.HiliteSyntax(console.htmlEscape(this.textContent));
+          
+          var pos = getTextNodeAtPosition(this, len);
+          selection.removeAllRanges();
+          var range = new Range();
+          range.setStart(pos.node ,pos.position);
+          selection.addRange(range);
+        }
+        console.input.onkeypress = function(e){
+          if(e.key === "Enter"){
+            var txt = this.textContent;
+            this.textContent = ""
+            var coloredTxt = console.HiliteSyntax(txt)
+            try{
+              console.printSection(coloredTxt, console.HiliteSyntax(console.htmlEscape(console.encodeValue(Enviorment.eval(txt)))) )
+            }catch(e){
+              console.printInput(coloredTxt,"")
+              console.error(e)
+            }
+          }
+        }
+        
+        
+        console.log("Hello, this is a javascript console. <br> Start by inputing something in the input box below.")
+        console.warn("There can still be some bugs")
+        console.log("<div style='margin-left:10px; padding:10px;background:lightblue; display:inline-block;'><div style='background:blue; color:white;'>But</div></div><div style='margin:10px 0px; margin-left:-10px; display:inline-block; background:pink;padding:4px;'>Enjoy!</div>")
+      </script>
+    </body>
+</html>

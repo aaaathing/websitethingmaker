@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<title>My Text Editor</title>
+	<meta charset="UTF-8">
+	<style>
+		.editor{
+			border:solid 1px #ccc;
+			padding: 20px;
+			min-height:200px;
+        }
+        .sample-toolbar{
+			border:solid 1px #ddd;
+			background:#f4f4f4;
+			padding: 5px;
+			border-radius:3px;
+        }
+        .sample-toolbar > span{
+			cursor:pointer;
+		}
+        .sample-toolbar > span:hover{
+			text-decoration:underline;
+		}
+		#container{min-width:1000px;}
+		
+		.button-group{padding-top:10px;}
+		
+		.button-group button{
+			padding-left:20px;
+			padding-right:20px;
+			padding-top:10px;
+			padding-bottom:10px;
+			border:1px solid black;
+			transition:0.5s;
+			cursor:pointer;
+		}
+		.button-group button:hover{color:white;}
+		
+		.button-group .post{background:#9bf;}
+		.button-group .post:hover{background:#00f;}
+		.button-group .clear{background:#ddd;}
+		.button-group .clear:hover{background:#aaa;}
+		
+    .fa{
+      margin-left:10px;
+    }
+    /*
+    h1{
+      font-size:40px;
+    }
+    h2{
+      font-size:35px;
+    }
+    h3{
+      font-size:30px;
+    }
+    h4{
+      font-size:25px;
+    }
+    h5{
+      font-size:20px;
+    }
+    h6{
+      font-size:15px;
+    }
+    */
+	</style>
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+</head>
+
+<body>
+	<h1>Text Editor</h1>
+
+	<button onclick="document.getElementById('puretxt').value=document.getElementById('sampleeditor').innerHTML">Text go to textarea</button>
+  
+  <button onclick="document.getElementById('sampleeditor').innerHTML=document.getElementById('puretxt').value">Text go to editor</button>
+	
+	<textarea id="puretxt"></textarea>
+	
+<div id="container">
+	<div class="sample-toolbar">
+		<a href="javascript:void(0)" title="Preview" onclick="preview()"><span class="fa fa-check"></span></a>
+    
+    <select onchange="textType(this.value)">
+      <option>h1</option>
+      <option>h2</option>
+      <option>h3</option>
+      <option>h4</option>
+      <option>h5</option>
+      <option>h6</option>
+      <option>p</option>
+    </select>
+    
+		<a href="javascript:void(0)" title="Bold" onclick="format('bold')"><span class="fa fa-bold fa-fw"></span></a>
+		<a href="javascript:void(0)" title="Italic" onclick="format('italic')"><span class="fa fa-italic fa-fw"></span></a>
+		<a href="javascript:void(0)" title="List" onclick="format('insertunorderedlist')" ><span class="fa fa-list fa-fw"></span></a>
+		<a href="javascript:void(0)" title="Link" onclick="setUrl()"><span class="fa fa-link fa-fw"></span></a>
+		<span><input id="txtFormatUrl" placeholder="url" class="form-control"></span>
+    
+    <a href="javascript:void(0)" title="Color" onclick="setColor()"><span class="fa fa-square fa-fw"></span></a>
+		<span><input id="txtFormatColor" placeholder="color" class="form-control"></span>
+    
+    <a href="javascript:void(0)" title="Background color" onclick="setBGColor()"><span class="fa fa-square-o fa-fw"></span></a>
+		<span><input id="txtFormatBGColor" placeholder="background color" class="form-control"></span>
+    
+    <a href="javascript:void(0)" title="Font size" onclick="setFontSize()"><span class="fa fa-square-o fa-fw"></span></a>
+		<span><input id="txtFormatFontSize" placeholder="font size" class="form-control"></span>
+
+	</div>
+	<div class="editor" id="sampleeditor"></div>
+	
+	<div class="sample-toolbar" style="display:none;" id="preInfo">
+		Preview
+		<a href="javascript:prehide()">Hide</a>
+	</div>
+	<div class="editor" id="preview" style="display:none;overflow:scroll;"></div>
+	
+	<div class="button-group">
+		<button class="post" >Post</button>
+		<button class="clear" onclick="clearEditor()">Clear</button>
+	</div>
+</div>
+
+	<script>
+		window.addEventListener('load', function(){
+			document.getElementById('sampleeditor').setAttribute('contenteditable', 'true');
+      document.execCommand("styleWithCSS", 0, true);
+    });
+
+		function format(command, value) {
+			document.execCommand(command, false, value);
+		}
+
+    function textType(type){
+			var sText = document.getSelection();
+			document.execCommand('insertHTML', false, '<'+type+'>'+sText+'</'+type+'>');
+    }
+    
+		function setUrl() {
+			var url = document.getElementById('txtFormatUrl').value;
+			var sText = document.getSelection();
+			document.execCommand('insertHTML', false, '<a href="' + url + '" target="_blank">' + sText + '</a>');
+			document.getElementById('txtFormatUrl').value = '';
+		}
+    function setColor() {
+			var col = document.getElementById('txtFormatColor').value;
+			document.execCommand('ForeColor', false, col);
+			document.getElementById('txtFormatColor').value = '';
+		}
+    
+    function setBGColor() {
+			var col = document.getElementById('txtFormatBGColor').value;
+			document.execCommand('HiliteColor', false, col);
+			document.getElementById('txtFormatBGColor').value = '';
+		}
+    
+    function setFontSize() {
+			var sz = document.getElementById('txtFormatFontSize').value;
+			document.execCommand('fontSize', false, sz);
+			document.getElementById('txtFormatFontSize').value = '';
+		}
+		
+		function clearEditor(){
+			document.getElementById("sampleeditor").innerHTML="";
+		}
+		function preview(){
+			var txt = document.getElementById("sampleeditor").innerHTML;
+			var prev = document.getElementById("preview");
+			elmnt("#preInfo").style.display="block";
+			prev.style.display="block";
+			prev.innerHTML=txt;
+		}
+		function prehide(){
+			elmnt("#preview").style.display="none";
+			elmnt("#preInfo").style.display="none";
+		}
+		function elmnt(what){
+			return document.querySelector(what);
+		}
+	</script>
+</body>
+</html>

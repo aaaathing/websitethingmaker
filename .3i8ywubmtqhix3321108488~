@@ -1,0 +1,83 @@
+<!doctype html>
+<html>
+<head>
+<title>Quiz Whizz</title>
+<style>
+body{
+  background:black;
+  color:white;
+  
+}
+</style>
+</head>
+<body>
+  <h1>Quiz Whizz</h1>
+  <h3>Question asker</h3>
+  
+  <p id="quest"></p>
+  <input id="ans"><button id="check" onclick="check()">Check</button>
+  <p id="correct"></p>
+  <script>
+    var a=0;
+    var b=0;
+    window.onload=function(){
+      ask();
+    };
+    function ask(){
+      a = Math.ceil(Math.random()*8);
+      b = Math.ceil(Math.random()*8);
+      var out=document.getElementById("quest");
+      
+      out.innerHTML=(
+        "This is Quiz Whizz. Answer the question correctly to pass. <br>"+
+        "Here is a question: <br>"+
+        "What is "+ a +" &times; "+ b
+      );
+    }
+    function check(){
+      var out=document.getElementById("correct");
+      var ans=document.getElementById("ans");
+      var btn=document.getElementById("check");
+      if(ans.value==a*b){
+        out.innerHTML="Correct!";
+        window.setTimeout(redirect,1000);
+      }else{
+        out.innerHTML="Wrong";
+        ans.disabled=true;
+        btn.disabled=true;
+
+        window.setTimeout(function(){
+          ask();
+          out.innerHTML="";
+          ans.disabled=false;
+          ans.value="";
+          btn.disabled=false;
+        },1000);
+      }
+    }
+    function redirect(){
+      var x = getParameterByName("x");
+      var y = getParameterByName("y");
+      var lev=getParameterByName("level");
+
+      x=x*1;
+      x+= 80;
+
+      if(getParameterByName("from")==="plat"){
+        var returnVal="x="+ x +"&y="+ y +"&level=" + lev;
+        window.location.replace("/platformer/?from=quiz&"+returnVal);
+      }
+      
+    }
+
+function getParameterByName(name, url = window.location.href) {
+    name = name.replace(/[\[\]]/g, '\\$&');
+    var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+        results = regex.exec(url);
+    if (!results) return null;
+    if (!results[2]) return '';
+    return decodeURIComponent(results[2].replace(/\+/g, ' '));
+}
+  </script>
+</body>
+</html>

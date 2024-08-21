@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Parse</title>
+    <meta charset="utf-8">
+  </head>
+  <body>
+    <input type="file" id="upload">
+    <div id="result"></div>
+    
+    <script>
+      var reader = new FileReader();
+      
+      var res = document.getElementById("result");
+      var upload = document.getElementById("upload");
+      
+      var reference = {
+        event_whenflagclicked:"whenGFClicked",
+        motion_turnright:"turnR",
+        motion_turnleft:"turnL",
+        motion_gotoxy:"goto",
+        motion_glideto:"glideTo",
+        motion_glideto_menu:" ",
+        looks_sayforsecs:"sayFor",
+        looks_say:"say",
+        control_wait:"wait",
+        control_forever:"while(true)",
+        control_if:"if",
+        control_wait_until:"waitUntil",
+        sensing_mousedown:"mouseDown",
+      }
+      
+      upload.onchange = function(){
+        var file = this.files[0];
+        
+        reader.onload = function(){
+          try{
+            parse(reader.result)
+          }catch(e){
+            alert(e)
+          }
+        }
+        reader.readAsText(file)
+      }
+      
+      function parse(data){
+        res.innerHTML = "";
+        
+        data = JSON.parse(data);
+        var sprites = data.targets;
+        var globVars = sprites[0].variables;
+        
+        for(var i=0; i<sprites.length; i++){
+          var sprite = sprites[i];
+          var scripts = sprite.blocks;
+          var vars = sprites[i].variables;
+          var stacks = [];
+          var stackNames = [];
+          var js = [];
+          
+          //get hats
+          for(var b in scripts){
+            var block = scripts[b];
+            if(block.topLevel){
+              block.opcode = reference[block.opcode] || block.opcode
+              stacks.push([block]);
+              stackNames.push([block.opcode])
+              js.push([block.opcode+"{"])
+            }
+          }
+          
+          //parse values
+          function scratchValue(inp, isField){
+            var v = inp;
+            if(isField){
+              v = v[0];
+              if(String(parseFloat(v)) === v){
+                //number
+                return v;
+              }else{
+                //string
+                return "\""+v+"\"";
+              }
+              return v;
+            }else{
+              v = v[1];
+              if(Array.isArray(v)){
+                var isVar = v[2];
+                v = v[1];
+                if(isVar){
+                  var varName = vars[isVar] || globVars[isVar];
+                  varName = varName[0];
+                  if(vars[isVar]){
+                    return "stage[\""+varName+"\"]";
+                  }else{
+                    return "vars[\""+varName+"\"]";
+                  }
+                }else{
+                  if(String(parseFloat(v)) === v){
+                    //number
+                    return v;
+                  }else{
+                    //string
+                    return "\""+v+"\"";
+                  }
+                }
+              }else{
+                //its a block
+                var block = scripts[v];
+                block.opcode = reference[block.opcode] || block.opcode;
+                var val = {};
+                var isF;
+                /*if(JSON.stringify(block.inputs) !== "{}"){
+                  val = block.inputs;
+                }else{
+                  val = block.fields;
+                  isF = true;
+                }*/
+                var resVal = [];
+                for(var a in block.inputs){
+                  resVal.push(scratchValue(block.inputs[a]));
+                }
+                for(var a in block.fields){
+                  resVal.push(scratchValue(block.fields[a], true));
+                }
+                var opStr = block.opcode +"("+ (resVal.join(",")) + ")"
+                
+                return opStr;
+              }
+            }
+          }
+          
+          //get other part of stacks
+          function Stack(next, s){
+              next = next || stacks[s][0].next;
+              while(next){
+                var block = scripts[next];
+                block.opcode = reference[block.opcode] || block.opcode;
+                stacks[s].push(block);
+                stackNames[s].push(block.opcode);
+                if(block.inputs.SUBSTACK){
+                  var loopCode = "";
+                  if(block.inputs.CONDITION){
+                    loopCode += "(";
+                    loopCode += scratchValue(block.inputs.CONDITION);
+                    loopCode += ")";
+                  }
+                  js[s].push(block.opcode+loopCode+"{");
+                }else{
+                  //assingment
+                  var ass = block.opcode;
+                  ass += "(";
+                  var firIter = true;
+                  for(var v in block.inputs){
+                    var inp = block.inputs[v];
+                    if(firIter){
+                      firIter = false;
+                    }else{
+                      ass += ",";
+                    }
+                    ass += scratchValue(inp);
+                  }
+                  for(var v in block.fields){
+                    var inp = block.fields[v];
+                    if(firIter){
+                      firIter = false;
+                    }else{
+                      ass += ",";
+                    }
+                    ass += scratchValue(inp, true);
+                  }
+                  
+                  ass += ")";
+                  js[s].push(ass+";");
+                }
+                var stackNum = stacks.length-1;
+                next = block.next;
+
+                if(block.inputs.SUBSTACK){
+                  //its a loop block
+                  
+                  var substack = block.inputs.SUBSTACK;
+                  var substackL = substack[0];
+                  var ssNext = substack[1];
+                  Stack(ssNext, s);
+                }
+
+              }
+              js[s].push("}");
+            
+          }
+          
+          
+          for(var s=0; s<stacks.length; s++){
+            Stack(null, s)
+          }
+          
+          //js array to js strig
+          for(var j=0; j<js.length; j++){
+            js[j] = js[j].join("<br>")
+          }
+          js = js.join("<br>")
+          
+          res.innerHTML += sprite.name+"<br>";
+          res.innerHTML += js
+          res.innerHTML += "<br>"
+        }
+      }
+    </script>
+  </body>
+</html>

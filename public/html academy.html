@@ -1,0 +1,145 @@
+<!DOCTYPE html> 
+<html lang="en"> 
+  
+<head> 
+    <meta charset="UTF-8"> 
+    <title>Code Academy</title> 
+    <link rel="shortcut icon" href="file:///home/chronos/u-99df7cdf98d8d7c88eddaf64da4876e23e35a834/MyFiles/icons/guy.ico" width=32px> 
+	<style>
+		textarea{
+			width:500px;
+			height:500px;
+			resize:none;
+		}
+		textarea:focus{
+			border:1px solid #5a5;
+		}
+		iframe{
+			width:500px;
+			height:500px;
+			border:1px solid #aaa;
+			overflow:scroll;
+			background:white;
+		}
+		iframe:hover{
+			border:solid #5a5;
+		}
+		button,select{
+			padding-left:30px;
+			padding-right:30px;
+			padding-top:10px;
+			padding-bottom:10px;
+			border:1px solid black;
+			background:green;
+			color:white;
+		}
+		button:hover,select:hover{
+			color:black;
+			background:lightgreen;
+			cursor:pointer;
+		}
+		#toppart{
+			background:#9f9;
+			height:100px;
+		}
+		body{
+			padding:0;
+			margin:0;
+		}
+		#all{
+			margin:10px;
+		}
+		#documentation{
+			background:#9f9;
+		}
+		body{
+		 	background:#ddd;
+		}
+	</style>
+</head>
+	
+	<body title="Code Academy">
+		
+		<div id="toppart">
+			
+			<h1 style="display:inline;">Code Academy</h1>
+			<br>
+			A place to learn coding virtually
+		</div>
+		
+		
+		<div id="all">
+			<button onclick="run()"id="run">Run program</button>
+			
+			<label for="lan">Coding language: </label>
+			<select id="lan">
+				
+				<option value="html">HTML</option>
+				<option value="javascript">Javascript</option>
+			</select>
+			
+			<button onclick="window.open().document.write(document.getElementById('in').value);">Open in another tab</button>
+			
+			<input id="slide" type="range" min="150" max="850" onmousemove = "changew()"onchange = "changew()" value="500">
+
+			<br>
+		
+			<textarea id="in"autofocus placeholder="<!doctype html>"spellcheck="false">&lt;!doctype html&gt;
+  &lt;html&gt;
+    &lt;head&gt;
+      &lt;meta charset="UTF-8"&gt;
+    &lt;/head&gt;
+    &lt;body&gt;
+      
+      
+    &lt;/body&gt;
+  &lt;/html&gt;</textarea>
+		
+			<iframe id="out">Error</iframe>
+		
+			<script>
+				var code = "data:text/html,you%20did%20not%20run%20the%20program"
+				function run(){
+					var text = document.getElementById("in").value;
+					var type = document.getElementById("lan").value;
+					
+					if(type==="html"){
+						code = 'data:text/html,' + encodeURIComponent(text);
+						}else if(type="javascript"){
+							code = 'data:text/html,<script>' + encodeURIComponent(text)+"<"+"/script>";
+						}
+					
+					document.getElementById("out").src = code;
+				}
+				function changew(){
+					var slider = document.getElementById("slide").value;
+					document.getElementById("in").style.width = slider+"px";
+					document.getElementById("out").style.width = (1000-slider) +"px";
+				}
+			</script>
+			
+		</div>
+		<div id="documentation">
+			<h1>Documentation</h1><p></p>
+			<h2>Html Documentation: </h2><p></p>
+			
+			<b>Each html tag needs to be closed. The closing tag is the same as the opening tag, except you insert a slash after the less then sign. Example: <span style= "color:#66f;" > &lt;p>&lt;/p></span> </b><br><br>
+			
+			<span style="color:#888;">&lt;!DOCTYPE html></span>
+			This is not a html tag. It is just for telling the browser the document is written in html.<br>
+			<span style="color:#66f;">&lt;html></span>  Container for head and body elements.<br>
+			<span style="color:#66f;">&lt;head></span>  Container for metadata (data about data). Tags include: meta, style, link, title, etc; tags. Head element cannot be shown on page.<br>
+		<span style="color:#66f;">&lt;body></span> This is where all the html goes. Can be styled with css.<br>	
+			<span style="color:#66f;">&lt;h1><span style="color:black;"> --- </span>&lt;h6></span> These are headings. From heading 1 to heading 6.<br>
+			<span style="color:#66f;">&lt;p></span> This is a paragraph. <br>
+			<span style="color:#66f;">&lt;section></span> This is a section. <br>
+			
+			<span style="color:#66f;">&lt;a></span> This is a link. It needs 1 attribute which is "href". Example: 
+			<span style="color:#66f;">&lt;a <span style= "color:#f00;">href = <span style="color:#595;">"https://www.website.com"</span></span>> <span style="color:#000;">text for link</span> &lt;/a></span><br>
+			<span style="color:#66f;">&lt;title></span> This is where the title of the page goes. <br>
+			
+			
+		</div>
+	</body> 
+  
+</html>

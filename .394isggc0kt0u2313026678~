@@ -1,0 +1,261 @@
+<!doctype html>
+<html>
+<head>
+<title>(WIP) bloons td</title>
+<meta charset="UTF-8">
+<link rel="shortcut icon" href="file:///C:/users/dongwei/desktop/Minecraft_files/Images/earth.svg">
+<style>
+  body,html{
+    background:gray;
+    padding:0px;
+    margin:0px;
+  }
+  canvas{
+    background:white;
+    display:block;
+  }
+  .hide{
+    display:none;
+  }
+</style>
+</head>
+<body>
+
+<img class="hide" id="redBloon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACwAAABQCAYAAABiZJe7AAACP0lEQVRoQ+2bu07DMBSGGyTUqiwURspEmWBh7IL6KAxIDKwMXCSQWGBADEgMzAwMSDxDt74AbGWiW0U7UcjSIgyuiBvHt2PHR3GmRLGdL19/27k1KgEt7/XGRKap5V43kinHK2NU+X+j3gPLAvJM6ZrWNuw9sCmgKLeyxqUNowG2DcqaF5kWGi4M8Hxrm8hbuDhPSPy8viHb8eNTaqxzM+wc2DQKi502MThXX0mYnMQx2R4dnWqZ5mYYDbApKNVZ2d8jq9XDg9SsUtPDxmbmEM1mesZwYYFlTY8ur0jRr9s7qVHDmmG0wBS8enZCViu7O6mjhmyWrRu2BgzV2bh3CuUy2VXrPqcWGayuS40WU8MBmOOLGo7+jNNi3hmmYOiA2Rkwvn8g5/Jx/HttwVvojOcsw7xx2XvgTI0+Gi4MMD1R5xnWNTwFtj1hmAKy9aMADK2UaS8Ytiy4FAwHw6HT2c5AMOzaMD2e71N0bnccuj9IANY1J1sPjWHu82FfO10Als2gbjlnrwx0AWk93vs6Z8+HVU8gAKsaUy2PxrDyu+a8x2Nl4Lyu3kSgM8/W2Iy5Nm0M7Np0cYFtm5Y1K8ywq0xbA4Y2rQqqbBgtsCm4rlltw2iBVcFNzRobRgssAocyC2YYLTBvovHWMFrgYbOV+LdBrdMWfvKrcvsE2tjPgdEAD7eaxOy4308Io9/2LL2+gMgBaYSYxQY8WNsghulXq2wuoUyDGUYHTDvb+K2X2elNx2Uww+iAXU3RYIZdAX8DetuSyFhgr0IAAAAASUVORK5CYII=">
+<img class="hide" id="dart" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA%0D%0AAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO%0D%0A9TXL0Y4OHwAAAABJRU5ErkJggg==">
+<img class="hide" id="tower" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAqUlEQVRIS+2WyxGAIAwFpQ27sQ/Lsw+7sQ0dGMPEfIRI5IRXYRdenMQw2Z7zXh5qt5UWArDEUznaCxF87GsSzcumCRlPEmQ4AEvHJ8IHkwrMcJBrEiz4DH+TMEFtLFps6CaJDYJ0+la4cJMwBGIpcB1iRK750zp0EUSp6y1oREPAviQpIreYtFaRBS0tQ+qoXds1ZGlu25aBwyS4gl4jEzN/G/raPDH/tlxgsFQX1nLTpgAAAABJRU5ErkJggg==">
+
+<canvas id="cnv"></canvas>
+<script>
+var canvas=document.getElementById("cnv");
+var ctx=canvas.getContext("2d");
+var images={
+  redBloon:document.getElementById("redBloon"),
+  dart:document.getElementById("dart"),
+  tower:document.getElementById("tower")
+}
+var entities=[
+{x:450, y:100, type:"dartMonkey"},
+{x:450, y:100, type:"dartMonkey"},
+{x:450, y:100, type:"dartMonkey"},
+{x:450, y:100, type:"dartMonkey"},
+{x:450, y:100, type:"dartMonkey"},
+{x:450, y:100, type:"dartMonkey"},
+{x:450, y:100, type:"dartMonkey"},
+{x:550, y:300, type:"dartMonkey"},
+{x:100, y:350, type:"dartMonkey"},
+];
+
+var entitieInfo={
+  redBloon:{speed:0.01, image:images.redBloon, type:"bloon",ofX:10, ofY:30},
+  dart:{speed:12.5, image:images.dart, type:"throwed", ofX:0, ofY:0},
+  dartMonkey:{shotSpeed:60, shoots:"dart", image:images.tower, type:"tower", ofX:12, ofY:12}
+}
+
+var YourMoney = 20;
+
+
+var path=[
+[0  ,100],
+[100,100],
+[200,100],
+[300,100],
+[400,100],
+[400,200],
+[300,200],
+[200,200],
+[100,200],
+[100,300],
+[200,300],
+[300,300],
+[400,300],
+[500,300],
+[500,200],
+[500,100],
+[600,100],
+[600,200],
+[600,300],
+[600,400],
+[700,400],
+[700,500],
+[600,500],
+[500,500],
+[500,400],
+[400,400],
+[300,400],
+[200,400],
+[100,400],
+[0  ,400]
+];
+var initDone=false;
+
+function init(){
+  canvas.width=window.innerWidth;
+  canvas.height=window.innerHeight;
+
+  initDone=true;
+}
+
+
+
+//gameLoop
+function gameloop(){
+  var i;
+
+  //update entites
+  for(i=0; i<entities.length;i++){
+    var e=entities[i];
+    if(!e){break;}
+
+    if(entitieInfo[e.type].type==="bloon"){    
+      e.percent += entitieInfo[e.type].speed;
+      if(e.percent>1){
+        e.percent = 0;
+        e.pathN++;
+      }
+      
+      var pt1 = path[e.pathN];
+      var pt2 = path[e.pathN + 1];
+      
+      if((!pt1)||(!pt2)){
+        //if that part of path doesn't exsit
+        entities.splice(i, 1);
+        i--;
+      }else{
+        //otherwise if it does exist
+        var newPos=posBetween(pt1[0], pt1[1], pt2[0], pt2[1], e.percent);
+        
+        e.x = newPos[0];
+        e.y = newPos[1];
+      }
+    }else if(entitieInfo[e.type].type==="throwed"){
+      e.x+=Math.sin(e.direction)*entitieInfo[e.type].speed;
+      e.y+=Math.cos(e.direction)*entitieInfo[e.type].speed;
+
+      if((e.x>canvas.width)||(e.x<0)||(e.y>canvas.height)||(e.y<0)){
+        entities.splice(i, 1);
+        i--;
+      }
+      //see if touching bloons
+      var i2;
+      for(i2=0; i2<entities.length; i2++){
+        var e2=entities[i2];
+        if((e2.x>(e.x-10))&&(e2.x<(e.x+10))&&(e2.y>(e.y-30))&&(e2.y<(e.y+30)) ){
+          if(entitieInfo[e2.type].type==="bloon"){
+            if(i<i2){
+              entities.splice(i2, 1);
+              i2--;
+
+              //remove dart
+              entities.splice(i,1);
+              i--;
+            }else{
+              entities.splice(i2, 1);
+              i2--,i--;
+
+              //remove dart
+              entities.splice(i-1, 1);
+              i--;
+            }
+            break;
+          }//end if it is bloon
+        }//end if collided
+      }//end for loop
+    }else if(entitieInfo[e.type].type==="tower"){
+      if(e.coolDown !== undefined){
+        e.coolDown--;
+        if(e.coolDown<1){
+          e.coolDown=entitieInfo[e.type].shotSpeed;
+
+          //find first bloon
+          var dir = false;
+          for(var i2=0; i2<entities.length; i2++){
+            var e2=entities[i2];
+            if(entitieInfo[e2.type].type==="bloon"){
+              dir = Math.atan2(e.x - e2.x, e.y - e2.y)+3.1;
+              break;
+            }
+          }
+
+          if(dir)entities.push({ 
+            x:e.x, 
+            y:e.y, 
+            type:entitieInfo[e.type].shoots,
+            direction:dir
+          });
+        }
+      }else{
+        e.coolDown=0;
+      }
+
+    }
+  }
+
+  //clear canvas 
+  ctx.fillStyle="#0a0"; 
+  ctx.fillRect(0,0,canvas.width, canvas.height);
+  
+  //render path
+  ctx.lineWidth=40;
+  ctx.strokeStyle="#eb3";
+  ctx.beginPath();
+  ctx.moveTo(path[0][0], path[0][1]);
+  for(var i=0; i<path.length; i++){
+    var pos = path[i];
+    ctx.lineTo(pos[0], pos[1]);
+  }
+  ctx.stroke();
+
+  //render entities
+  for(i=0; i<entities.length;i++){
+    var e=entities[i];
+    if(!e){break;}
+    
+    ctx.fillStyle = entitieInfo[e.type].color;
+    ctx.drawImage(entitieInfo[e.type].image, e.x - entitieInfo[e.type].ofX, e.y - entitieInfo[e.type].ofY);
+    ctx.lineWidth="1";ctx.strokeStyle="black";
+    ctx.strokeRect(e.x - 15, e.y - 15, 30, 30);
+  }
+
+  //reander UI
+  ctx.fillStyle="chocolate";
+  ctx.fillRect(canvas.width-300, 0, 300, canvas.height);
+}
+
+//math
+function posBetween(x1, y1, x2, y2, dec){
+  //dec needs to be from 0 to 1.
+  var xdist = x2-x1;
+  var ydist = y2-y1;
+  var xPos = x1+(xdist*dec);
+  var yPos = y1+(ydist*dec);
+  return [xPos, yPos];
+}
+
+//animate
+function game(){
+gameloop();
+requestAnimationFrame(game);
+}
+
+
+canvas.onclick=function(){
+  entities.push({
+    pathN:0, 
+    percent:0, 
+    x:0, 
+    y:0, 
+    type:"redBloon"
+  });
+};
+
+init();
+window.onresize=function(){
+  canvas.width=window.innerWidth;
+  canvas.height=window.innerHeight-10;
+}
+game();
+
+</script>
+</body>
+</html>

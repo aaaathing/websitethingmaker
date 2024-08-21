@@ -1,0 +1,1199 @@
+<!doctype html>
+<html>
+<head>
+<title>Platformer - By me</title>
+
+<link id="icon" rel="icon" href="Icons/platformer.png">
+
+<audio id="die">
+<source src="sound%20effects/Oops.wav">
+</audio>
+
+<audio id="portal">
+<source src="sound%20effects/tp-enderman.mp3">
+</audio>
+
+<audio id="grass">
+<source src="sound%20effects/grass.wav">
+</audio>
+
+<audio id="woodland">
+<source src="/minekhan/assets/wood%20lands.wav">
+</audio>
+  
+<style>
+#cnv{
+background:white;
+margin:0px;
+padding:0px;
+}
+body{
+background:gray;
+margin:0px;
+padding:0px;
+}
+.hide{
+display:none;
+}
+canvas{
+  display:block;
+  image-rendering:pixelated;
+}
+</style>
+</head>
+
+<body lang="en">
+<img class="hide" id="platImg" src="Icons/platformer.png">
+<img class="hide" id="setting" src="Icons/settings.png">
+<img class="hide" id="back" src="Icons/back.png">
+<img class="hide" id="sound" src="Icons/sound.png">
+<img class="hide" id="xsound" src="Icons/soundless.png">
+<img class="hide" id="music" src="Icons/music.png">
+<img class="hide" id="xmusic" src="Icons/musicless.png">
+
+
+<canvas id="cnv"></canvas>
+
+<script>
+//get the cat 'cause its funny
+var thatCatPet;
+window.onclick=function(){
+  if(thatCatPet){
+    thatCatPet=false;
+  }else{
+    thatCatPet=document.getElementById("catpetcat1");
+  }
+}
+
+
+var fps={
+  counter:0,
+  pdate:0,
+  fps:0
+};
+
+var music=[
+  document.getElementById("woodland")
+];
+
+var sounds={
+die:document.getElementById("die"),
+portal:document.getElementById("portal"),
+grass:document.getElementById("grass")
+};
+
+var images={
+plat:document.getElementById("platImg"),
+setting:document.getElementById("setting"),
+back:document.getElementById("back"),
+sound:document.getElementById("sound"),
+music:document.getElementById("music"),
+
+grass:makeImage("textures/grass.png"),
+dirt:makeImage("textures/dirt.png"),
+lava:makeImage("textures/lava.png"),
+portal:makeImage("textures/portal.jpg")
+};
+
+var cuMusic=-1;
+for(var i=0;i<music.length;i++){
+  music[i].addEventListener("ended",function(){
+    musicend();
+  });
+}
+function musicend(){
+cuMusic++;
+if(!music[cuMusic]){cuMusic=0;}
+music[cuMusic].play();
+}
+
+var canvas=document.getElementById("cnv");
+var play=false;
+
+var mousedn=false;
+
+canvas.onclick=function(){
+  if(play)mousedn=true;
+  if(!play){
+    musicend();
+    play=true;
+    gameLoop();
+  }
+};
+
+canvas.width=window.innerWidth;
+canvas.height=window.innerHeight;
+
+window.onresize=function(){
+canvas.width=window.innerWidth;
+canvas.height=window.innerHeight;
+
+if(!play){
+  startMsg();
+}
+}
+
+var mouseX=0, mouseY=0;
+canvas.addEventListener("mousemove", function(e){
+mouseX=e.clientX;
+mouseY=e.clientY;
+});
+
+var ctx=canvas.getContext("2d");
+
+function makeImage(src){
+  var img = new Image();
+  img.src = src;
+  return img;
+}
+
+
+
+/*
+-=sky       g=green    d=lava     b=white
+w=brown     n=black    p=portal   q=quiz
+G=fakeGrass D=fakeLava c=fakeCoin
+*/
+var level=[
+[
+"-----------------------ggdggg----nnnn",
+"ggggggggggggggggg-----g------g---nppn",
+"-----------------ggggg--------gg-nppn",
+"--------------------------------gnppn",
+"---------------------------------gggggg"
+],[
+"g---bb--bb-d-gggg-------d-------",
+"wg-bbgg---G--w-dwg------d----ggg---nnnn",
+"wwdg----gdd---g---ggg------ggwdwg--nppn",
+"-ww-D--d-ggd-gg-----bbb--ggw-ddwwg-nppn",
+"-----g---w---w--bbb----ggw-w-dgw-wgnppn",
+"gg--g-gg-w--g-g-----gggw---w---w--wggggg",
+"--g----w---gwgwgg-----bbbccwgggw",
+"-gwggg---ggwd---ngggg---gggw",
+"-------------------nngggw"
+],[
+"---g---qqqqqq",
+"dd--gggwd",
+"pd-g----d",
+"dd----g-d-",
+"dd----d-d",
+"ggggggg-d",
+"--------d",
+"-----ggggg",
+"g-gggdd---",
+"d-dddddd",
+"d-------",
+"gggggggg",
+"--------",
+"pggggggggg"
+],[
+"g-------g---bbb-",
+"g------g-------b",
+"-g-----g----bbn-",
+"--gg-ggww------n",
+"---d-g--ww--nnn-",
+"------gg-wwwwdddddd",
+"----ggg---------",
+"--------ggggggg",
+"d------gw-w---d-d",
+"dgg---gw--w--dd-d",
+"---ddg----w-----g",
+"------------ggggg",
+"----------D-d",
+"g-ggggggggggg",
+"g-ggggggggggg",
+"g---ddddddddd",
+"-g",
+"--g",
+"---g",
+"----g",
+"-----gddggddggddggddgddgddgddp"
+],[
+"dddd--gddgddpG",
+"-----g",
+"----g",
+"---g",
+"--g",
+"-g",
+"qqqqqqqqqq-p",
+"gggggggggggggg"
+],[
+"gggggg---gggggdddddddd",
+"ddnb--d-d",
+"--------d",
+"---------",
+"-------d-",
+"---------",
+"ggggGg---gg",
+"bbbbbbbbbbbbb",
+"dddddddbddd",
+"ppppddd-ddd",
+"dddd-------",
+"----dddgggg----------------------------------dddd",
+"ggggggggggggggdggdggdggddggddggddggddgddgddgpppppp"
+],[
+"-dddw----",
+"-dggwgggg---Dgggd",
+"-d-wwwww----d-w-d",
+"-d---w-d----D---D",
+"-d-----dggg-D-ggg--GgG-dDD----DD",
+"-d-----d-w--d--w----w--www----DD--gGgGpqqqqqqqqqqqqqqqqq",
+"-d--p-ddd-----------DDwwwwww--dD----w-",
+"-d--g-dgd-G--g--g--gDwwwwwwwwgggggg"
+],[
+"ddd--gg--ddd",
+"---g----g",
+"----d--d",
+"",
+"---d-gggg",
+"----d",
+"---------gg",
+"-----d-g----g",
+"------d-d--d",
+"",
+"---g---gggg",
+"-----g",
+"---ddddddddddddddddddd",
+"-------",
+"--gggggg",
+"dd",
+"--------g--g",
+"------------g",
+"gg-----------G",
+"--gg--g---qdqg",
+"--------pgg"
+],[
+"d--gg--ddddd-d",
+"-g----gnnnnD-d",
+"--D--d-nppnD-d",
+"-------nppnD-d",
+"---gGGGdppnD-d",
+"----gGGddddD-d",
+"-----g-------d",
+"------Gg-----d",
+"--------GgggGgggg",
+"-------DDDDDDD",
+"ddd----DDDDDdD",
+"d-d------GDG",
+"d-d-----gdDdg",
+"Ddd---ddddDdddd---------ggggg-d",
+"dd----qqqqDqqqq---------g---g-d",
+"dd---------d------------g---g-d",
+"dd--Dd-----d------------g---g-d",
+"dd--dd-----d------------g---g-d",
+"dd--dd-----d----------Ggg---g-d",
+"dd--dd-----d----------Gg------d",
+"dd--dd-----d----------GgDDDdDDd",
+"dd--dd-dDdddgGgdd-----GgdDdDDdD",
+"dd--ggGgDDDDDGDDg-----GgdddDDDdd",
+"dd---gDDDDDDDDDg------GgDDDDDdDD",
+"ddd---gDDDDDDDg-------ggdDDDdddD",
+"d-d----ggDDDgg--------ggdDdDDDdd",
+"d-d------gg-----------ggDdDDDddd",
+"d-d--------gggggggggggggDdDDddDd",
+"ddDdddqqqqqqqqqqqqqqqqggDdDdddDD",
+"ddddddddddddddddddddddddpppppppp"
+],[
+"---------dpppd",
+"----gG---dpppd",
+"---dDdGg-dpppd",
+"--g--DDg--ddd",
+"------g",
+"gg-gDqqq",
+"---wDddggg",
+"-GGwDDDDd-dg",
+"-dDngGgDd---dg-ddddd",
+"---d-wdDd-G",
+"---dDddd---gggggdddd",
+"----d----------------gggggggg",
+"-d------ggggdddd-----Dddddddg",
+"Gd-----gg------------DDdddddg",
+"cgd--ggGg-----gg--gggDDDDdddg",
+"g-------------gdd-ddgdDDDDddg",
+"-----------gggg----dgdDDDdddg",
+"--------gggg-----g-dgddDDDddg",
+"gdDdDdDgddd----gggcddddDDDddg",
+"gdDdDdDG-dddddddddcggpppppppg",
+"ggggggggqqq--DDDDDcgggggggggg",
+"--------ggggggggggg----------"
+],[
+"dddddgGGGGGGGGGGGGGGGGGGGGGG",
+"------ggggdggggdggggdgggg----dddddd",
+"",
+"",
+"",
+"-gggdgggdgggdgggdgggdggdggdddd",
+"",
+"",
+"",
+"ggdggdggdggdggdggdgg----ddddddd",
+"",
+"",
+"",
+"-gdgdgdgdgdgdgdgdgdgdgdgddd",
+"",
+"",
+"",
+"gddgddgddgddgddgddg----dddddddd",
+"",
+"",
+"",
+"-gqqgqqgqqgqqgqqgqqgqqgdddd",
+"pppppppppppppppppppp"
+],[
+"---------ggggggggg",
+"---GGDgg--wwwwddd",
+"--gdddddg--wwwwwd",
+"---ggdgg----www-D",
+"--gwwdww-gGGddw-D",
+"-gdwwdw--wDDdw--DD",
+"-wdwwdwg-wgDDwgggD",
+"-wddwdwdD-wDD--w-D",
+"--gdwd-gD-gDDDdd-D",
+"---d-d--DDDDgggd-d",
+"gg-d-d--GggD-w-d-d",
+"wdDd-d---w-d-w-DDddD",
+"wgDd-d---w-d---Dgggd",
+"wwDd-d----dd---D-w-d",
+"w-Dd-d----dggg-d-w-d",
+"--DdddDDD-d-w--d---d",
+"--dgggggD-d----d---d",
+"--d-www-d-d--DDdDD-d--q",
+"--d--w--d-d--DgggD-d",
+"--d--w--d-d--d-w-D-d",
+"--d-----d-d--d-ddDDDDDDDDD",
+"-dddddddd-d--d-dgggggggggD",
+"-dgggggdd-D--D-d-wwwwwww-D",
+"-d-www-dd-D--Dpd--wwdww--D",
+"DDDDw-ggDDDggD-d--dddw---D",
+"ggDDw--wwDwwDDDddddwww---D",
+"-wgDD---www-Dggggggww----D",
+"--dDD----w--D-wwwww-w----D",
+"ddddDDDp-w--d--www-------D",
+"dgggggDggwggd---w--------D",
+"d-www-D-www-d---w--------D",
+"d--w--D--w--d------------D"
+],[
+"",
+"----gGG-g---d-gDDDDg",
+"--g-w---w---d-wDDDDw",
+"--w-wdddw---d-wdDDDw",
+"--w-wddgw---d-wDDdDw",
+"-----gg-----d-wDDDDw",
+"--dddd------d-wDDDDw",
+"-g----------d-wDdDDw",
+"-w--gggggDDdggwDDDDw",
+"-r-g----wDDDdDwDDdDw",
+"-hgw----wDDDdDwDDDdw",
+"-w---gggwdDDdDwDDDDw",
+"-------wwDDDdDwDdDDw",
+"gggggDDwwDDDdDwDDDDw",
+"-wwwwDdwwDDddDwDDdDw",
+"--wwwDDwwDDDdDwdDDDw",
+"--w-wDDwwDDDdDwDDDDw",
+"----wdDwwDdDdDwDDDDw",
+"----wDDwwDDDDDwDDDDw",
+"----wDDwwDDDdDwDDdDw",
+"----wDdwwDDDdDwDDDDw",
+"----wDDwwdDDdDwdDDDw",
+"----wDDDDDDDDDwDDDdw",
+"----wDdDDDDDDDwDdDD-",
+"----wDDDDDDDDDwpppp-",
+"----wgggdggdggwggggw"
+],[
+"-gfff",
+"-gffgggddddddddd",
+"-g-dg-----------------ddd",
+"-gffg-----------------dpd",
+"-gff---------------q--dpd",
+"-gd-gfffffffffffffff--dpd",
+"-ggggddddddddddddddd--dpd",
+"--------d-------------dpd",
+"--------d-------------dpd",
+"--------d-------------dpd",
+"--------d-q---f-f-f-f-dpdppppppp",
+"--------d-gggfdfdfdfdgdddggggggg",
+"--------dfd--d-d-d-d-d--d-f-f-f",
+"--------dfd-------------d",
+"--------d------------q--d-f-f-f",
+"--------dfffffffffffff--d----q",
+"--------gddddddddddddd--d-f-f-f",
+"---------f--------------d",
+"---------f--------------d-f-f",
+"---------f--------------d--q",
+"---------fffffffffffffffd-f-f",
+"---------dddddddddddddddd",
+"--------------------------f",
+"",
+"---------q----------------f",
+"--------ggggfffffffffffffggggggg",
+"------------ddddddddddddd"
+],[
+"----d",
+"----d",
+"----dffg",
+"----ddd-------------f--f--f",
+"--ddd----g---d---------------f",
+"-------------fDg-------g--g---f-d",
+"-----d----d",
+"-------f---------d-ffffff-----fd",
+"------g--------df-G---------G",
+"----g-d---d-----D--D--d",
+"---------------------dg--------g",
+"---fdp-----d---------d-f-d----f",
+"-g-f-f---gf--gd--d--f",
+"f-gdffdf-d--f--f----ddd---g---f",
+""
+],[
+"--------------------",
+"------------------q-",
+"fffffffdffdffdffdff-ddddddddddddddddd",
+"dddddddddddddddddd",
+"--------------------",
+"--------------------",
+"--------------------",
+"-fdfdfdfdfdfdfdfdfdfddddddddddddddddddd",
+"-ddddddddddddddddddddd",
+"--------------------",
+"q-------------------",
+"------------------q-",
+"fddfddfddfddfddfddf-dddddddddddddddddddddddddd",
+"ddddddddddddddddddd",
+"--------------------",
+"--------------------",
+"--------------------",
+"-fqqfqqfqqfqqfqqfqqfdddddddddddddddddddddddddddddd",
+"p-------------------"
+],[
+"ddddgff--d----------",
+"----gggg-d----------",
+"---------d----------",
+"---------d----------",
+"--------dd--------dd",
+"--dddd--dd--------dd",
+"--dddd------------dd",
+"--dddd------------dd",
+"--ddddddggdgdGdgdgdd",
+"--------------------",
+"--------------------",
+"DDDDDDDDGGGGGGGGGGGG",
+"DdDdDdDdGgGgGgGgGgGg",
+"Ggggggggdddddddddddd",
+"GGGGGGGGGGGGGGGGGGGG",
+"gggggggggggggggggggG",
+"GGGGGGGGGGGGGGGGGGGG",
+"GgggggggggGggggggggg",
+"Gddddddddddddddddddd",
+"GGGGGGGGGGGGGGGGGGGG",
+"gggggggggggggggggggG",
+"p-------------------",
+"------------------gg",
+"f-----g-----g-------",
+"--------------g---g-",
+"f---g--g---g--------",
+"---------------g-g--",
+"g-g-----g-g---------"
+],[
+"-----ffGgggf-f------",
+"-----ddddddddddf--f-",
+"--------ddddddddddd-",
+"-----------dddddddd-",
+"--------------------",
+"-------------------f",
+"-------------------d",
+"dDgG-f--f--f--ff--fd",
+"gDdddddddddddddddddd",
+"wDdddddddddddddddddd",
+"wDdddddddddddddddddd",
+"wDdddddddddddddddddd",
+"wDdddddddddddddddddd",
+"dDDDDDdDDDdDDDdDDDdp",
+"dDDDdDDDdDDDdDdDdDdD",
+"dDDDdDdddddddDDDdDDD",
+"ddDdddd--n--dddddddd",
+"--------nDnD--------",
+"--G-----DDbDD-------",
+"---ggDDDDDDDDggg----",
+"----wwwddDdwwww-----",
+"-----wwddDdww-------",
+"------wwDDww--------",
+"-------wdDww--------",
+"-------wwDw---------",
+"--------wpw---------",
+"--------ww----------",
+"---------w----------",
+"---------w----------"
+],[
+"-------------------g",
+"ggggggggggggggggg--g",
+"g------------------g",
+"g--ggggggggggggggggg",
+"g------------------g",
+"ggggggggggggggggg--g",
+"g------------------g",
+"g--gggggggggGggggggg",
+"g------------------g",
+"ggggggggggggggggg--g",
+"g------------------g",
+"g--ggggggggggggggggg",
+"g----d---d---d---d-g",
+"g---dpd-dpd-dpd-dpdg",
+"g----D---D---D---d-g",
+"gggggggggggggggggggg"
+],[
+"fffffffffffffffff",
+"fffffffffffffffff",
+"fffffffffffffffff",
+"fffffffffffffffff",
+"fffffffffffffffff",
+"fffffffffffffffff",
+"fffffffffffffffff"
+]
+];
+var messages=[
+  [
+    ["Hello, and welcome", 200, -200],["to my platformer", 200,-150],["To move, use WASD or arrow keys", 100, -100],
+    ["As you can see,", 850,-100],["the levels aren't flat.", 850,-50],
+    ["To be safe, don't", 1300,-100],["touch the lava.", 1300, -50],
+    ["To go to the next level,", 1700,-100],["go in the portal.", 1700,-50]
+  ],[
+    ["Have fun & good luck!" ,150,-100]
+  ],[],[],[
+    ["Math time!",200,-100],
+    ["The yellow blocks lead you to", 300,100],["a multiplication problem.", 300,150],
+    ["Once you finish it you will move forward", 300,200],["to the next yellow block.", 300,250]
+  ],[
+    ["Wow, look at it!", 300,-100]
+  ],[
+    ["This is so easy, let's make it HARDER!", 0,-100]
+  ],[],[
+    ["Very hard, very unfair...",50,-100],["Nearly Impossible", 100, -50]
+  ],[],[
+    ["Preston parkour! So easy!!!", 400, -100],["Maybe not so easy...", 500,550]
+  ],[],[],[
+    ["what dose gray do?", 100, -100]
+    ],[],[],[
+    ["Whats this, no more gray?", 200, -100]
+  ],[],[
+    ["What are those red things?", 200, 100]
+  ],[
+    ["You did it!", 300, -100]
+  ]
+];
+var entities=[
+  [],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[
+    //level 19
+    {type:"enemy", x:250, y:0}
+  ]
+];
+
+var grassp=0;
+var player={
+x:300,
+y:10,
+scrollx:0,
+scrolly:-250,
+xvel:0,
+yvel:0,
+onlevel:false,
+level:0,
+dietime:0,
+endTime:0
+};
+
+var flashBlockTimeout=0;
+
+var settings={
+sound:true,
+music:true,
+textures:false
+}
+var sandbox=false;
+
+var currentScene="game";
+var scenes={
+game:updt,
+settings:setting,
+endscreen:gameEndScreen
+};
+function gameLoop(){
+  canvas.style.cursor="auto";
+
+  scenes[currentScene]();
+  mousedn=false;
+
+  //fps
+  fps.counter++;
+  var d = Date.now();
+  var seconds = floor(d/1000);
+  if(fps.pdate !== seconds){
+    fps.pdate = seconds;
+    fps.fps=fps.counter;
+    fps.counter=0;
+  }
+  requestAnimationFrame(gameLoop);
+}
+
+function gameEndScreen(){
+  ctx.fillStyle="black";
+  ctx.fillRect(0,0, canvas.width, canvas.height);
+
+  ctx.textAlign="center";
+  ctx.fillStyle="white";
+  ctx.font="50px Arial";
+  ctx.fillText("The End", canvas.width/2, canvas.height/2 - 80);
+  ctx.fillText("Thanks for playing", canvas.width/2, canvas.height/2);
+}
+
+var keys=[];
+
+
+    window.addEventListener('keydown', function (e) {
+      keys = (keys || []);
+      keys[e.keyCode] = true;
+    })
+    window.addEventListener('keyup', function (e) {
+      keys[e.keyCode] = false;
+    })
+
+
+//url.com/blah?PARAMETER=VALUE
+//getParmeterByName('PARAMETER')  Returns 'VALUE'
+function getParameterByName(name, url = window.location.href) {
+    name = name.replace(/[\[\]]/g, '\\$&');
+    var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+        results = regex.exec(url);
+    if (!results) return null;
+    if (!results[2]) return '';
+    return decodeURIComponent(results[2].replace(/\+/g, ' '));
+}
+
+//Sets some variables
+console.log("If you want a welcome message, add this to the url: \n%c?welcome=yes","background:black;color:white;")
+console.log("To fly, type this in the console: sandbox=true")
+var welcome=0;
+if(getParameterByName("welcome")==="yes"){
+  welcome=50;
+}
+
+if(getParameterByName("from")==="quiz"){
+  settings.music=false;
+  images.music=document.getElementById("xmusic");
+  
+  var x = getParameterByName("x");
+  var y = getParameterByName("y");
+  var lev=getParameterByName("level");
+
+  if(x){
+    player.x=parseInt(x,10);
+  }
+  if(y){
+    player.y=parseInt(y,10);
+  }
+  if(lev){
+    player.level=parseInt(lev,10);
+  }
+  canvas.click();
+}
+
+startMsg();
+function startMsg(){
+  ctx.textAlign="center";
+  ctx.font="50px Arial";
+  ctx.fillStyle="black";
+  ctx.fillText("Click to continue.", canvas.width/2, 100);
+  
+  ctx.drawImage(images.plat,0,0);
+}
+
+//Update
+function updt(){
+ctx.textAlign="left";
+
+//Clear canvas
+ctx.fillStyle="#79f";
+ctx.fillRect(0,0,canvas.width,canvas.height);
+
+//The void, where you die if you fall out of the world
+ctx.fillStyle="black";
+ctx.fillRect(0,2000-player.scrolly,canvas.width,canvas.height/2);
+
+//caculate player
+flashBlockTimeout++;
+if(flashBlockTimeout > 60)flashBlockTimeout=0;
+calcplayer();
+
+//render level
+render(level[player.level]);
+
+//render messages in the level
+rendermsgs(messages[player.level]);
+
+//render player
+ctx.fillStyle="#fbb";
+ctx.fillRect((player.x-10)-player.scrollx,(player.y-10)-player.scrolly,20,20);
+
+//calculate and render entities
+Entities();
+
+//render other text
+if(player.dietime>0){
+player.dietime--;
+ctx.fillStyle="black"
+ctx.font = "60px Arial";
+ctx.fillText("You died",canvas.width/2-100,canvas.height/2);
+}
+if(welcome>0){
+welcome--;
+ctx.fillStyle="black"
+ctx.font = "60px Arial";
+ctx.fillText("Welcome back",canvas.width/2-150,canvas.height/2-30);
+}
+
+ctx.fillStyle="black";
+ctx.font="30px Arial";
+var message="Level: "+(player.level+1);
+ctx.fillText(message,10,50);
+
+message="fps: "+fps.fps;
+ctx.fillText(message,10,100);
+
+//transition if its the end
+if(!level[player.level + 1]){
+  player.endTime+=0.2;
+  if(player.endTime > 100)player.endTime=100;
+  
+  var dark="rgb(0,0,0," + player.endTime + "%)";
+  ctx.fillStyle=dark;
+  ctx.fillRect(0,0, canvas.width, canvas.height);
+}
+if(player.endTime===100){
+  currentScene="endscreen"
+}
+
+//buttons
+if(button(canvas.width/2, 30, 70, 70, images.setting)){
+currentScene="settings";
+}
+
+//cat pet stuff...
+if(thatCatPet){
+  ctx.fillStyle="black";
+  ctx.textAlign="center";
+  ctx.fillText("YOUR CONTROLLING THE CAT!!!",canvas.width/2,100);
+  ctx.textAlign="left";
+
+  thatCatPet.style.left = (player.x - player.scrollx - 75) + "px";
+  thatCatPet.style.top = (player.y - player.scrolly - 110) + "px";
+}
+
+
+}
+
+function setting(){
+ctx.clearRect(0,0,canvas.width,canvas.height);
+ctx.textAlign="center";
+ctx.fillStyle="black";
+ctx.font="50px Arial"
+ctx.fillText("Settings", canvas.width/2, 80);
+
+if(button(80, 110, 60, 60, images.sound)){
+  settings.sound=!settings.sound;
+  if(settings.sound){
+    images.sound=document.getElementById("sound");
+  }else{
+    images.sound=document.getElementById("xsound");
+  }
+}
+
+if(button(180, 110, 60, 60, images.music)){
+  settings.music=!settings.music;
+  if(settings.music){
+    images.music=document.getElementById("music");
+    musicend();
+  }else{
+    images.music=document.getElementById("xmusic");
+    
+    var sound=music[cuMusic];
+    sound.pause();
+    sound.currentTime = 0;
+  }
+}
+
+if(button(80, 50, 150, 50, images.back)){
+currentScene="game";
+}
+}
+
+function button(x,y,w,h,img){
+//button will be centered
+
+var bx=x-(w/2);
+var by=y-(h/2);
+var btnclick=false;
+
+//collide with mouse pointer
+if((mouseX > bx)&&(mouseX < bx+w)&&(mouseY > by)&&(mouseY < by+h)){
+ctx.fillStyle="#eee";
+canvas.style.cursor="pointer";
+
+if(mousedn){
+ctx.fillStyle="#aaa";
+btnclick = true;
+}
+
+}else{
+ctx.fillStyle="white";
+}
+
+//render button
+ctx.fillRect(bx, by, w, h);
+
+if(img)ctx.drawImage(img, bx, by);
+
+//return if button clicked
+return btnclick;
+}
+
+function render(what){
+  for(var i=0;i<what.length;i++){
+    var row=what[i];
+    for(var i2=0;i2<row.length;i2++){
+      //textures
+      var tex=getTex(row[i2]);
+      if(tex && settings.textures){
+        ctx.drawImage(tex, (i2*50)-player.scrollx,(i*50)-player.scrolly, 50,50);
+      }else{
+        getcolor(row[i2]);
+        ctx.fillRect((i2*50)-player.scrollx,(i*50)-player.scrolly,51,51);
+
+        if((row[i2]==="g")||(row[i2]==="G")){
+          getcolor("w");
+          ctx.fillRect((i2*50)-player.scrollx,(i*50)+15-player.scrolly,51,36);
+        }
+        if(row[i2]==="c"){
+          getcolor("q");
+          ctx.fillRect(i2*50+15 - player.scrollx, i*50+15 - player.scrolly, 20,20);
+        }
+        if(row[i2]==="f"){
+          if(!(flashBlockTimeout > 30)){
+            getcolor("-");
+            ctx.fillRect((i2*50)-player.scrollx,(i*50)-player.scrolly,51,51);
+          }
+        }
+      }
+    }//end loop 2
+  }//end loop 1
+}
+
+String.prototype.replaceTheCharAt=function(index,chr){
+    var list=this.split("");
+    list[index]=chr;
+    return list.join("");
+};
+
+function collide(what){
+player.onlevel=false;
+for(var i=0;i<what.length;i++){
+var row=what[i];
+for(var i2=0;i2<row.length;i2++){
+
+if((player.x+10>i2*50)&&(player.x-10<i2*50+51)&&(player.y+10>i*50)&&(player.y-10<i*50+51)){
+if((row[i2]==="g")||(row[i2]==="w")){player.onlevel=true;}
+if(row[i2]==="d"){player.onlevel="die";}
+if(row[i2]==="p"){player.onlevel="portal";}
+if(row[i2]==="q"){player.onlevel="quiz";}
+if((row[i2]==="f")&&(flashBlockTimeout>30)){player.onlevel=true;}
+}
+
+}
+}
+
+}
+
+function entCollide(what, e){
+var onlevel=false;
+for(var i=0;i<what.length;i++){
+var row=what[i];
+for(var i2=0;i2<row.length;i2++){
+
+if((e.x+10>i2*50)&&(e.x-10<i2*50+51)&&(e.y+10>i*50)&&(e.y-10<i*50+51)){
+if((row[i2]==="g")||(row[i2]==="w")){onlevel=true;}
+if((row[i2]==="f")&&(flashBlockTimeout>30)){onlevel=true;}
+}
+
+}
+}
+return onlevel;
+}
+function getcolor(col){
+if(col==="g"){
+ctx.fillStyle="#0a0";
+}
+if((col==="-")||(col==="c")){
+ctx.fillStyle="#79f";
+}
+if(col==="d"){
+ctx.fillStyle="red";
+}
+if(col==="n"){
+ctx.fillStyle="black";
+}
+if(col==="w"){
+ctx.fillStyle="#840";
+}
+if(col==="b"){
+ctx.fillStyle="white";
+}
+if(col==="p"){
+ctx.fillStyle="magenta";
+}
+if(col==="q"){
+ctx.fillStyle="yellow";
+}
+if(col==="G"){
+ctx.fillStyle="#090";
+}
+if(col==="D"){
+ctx.fillStyle="#e00";
+}
+if(col==="f"){
+ctx.fillStyle="gray";
+}
+}
+
+function getTex(char){
+if((char==="g")||(char==="G")){
+  return images.grass;
+}
+if(char==="w"){
+  return images.dirt;
+}
+if((char==="d")||(char==="D")){
+  return images.lava;
+}
+if(char==="p"){
+  return images.portal;
+}
+}
+
+
+function rendermsgs(msgs){
+  ctx.font="30px Arial";
+  var i;
+  if(msgs){
+    for(i=0; i<msgs.length; i++){
+      var msg = msgs[i];
+      drawStroked(msg[0], msg[1] - player.scrollx, msg[2] - player.scrolly);
+    }
+  }
+}
+
+function drawStroked(text, x, y) {
+    ctx.strokeStyle = 'black';
+    ctx.lineWidth = 8;
+    ctx.strokeText(text, x, y);
+    ctx.fillStyle = 'white';
+    ctx.fillText(text, x, y);
+}
+
+function calcplayer(){
+  if (keys && (keys[37] || keys[65]) ) {player.xvel += -1; }
+  if (keys && (keys[39] || keys[68]) ) {player.xvel += 1;  }
+  
+  if((player.xvel < 0.1)&&(player.xvel > -0.1)){player.xvel=0;}
+
+  if(sandbox){
+    if(keys && (keys[38] || keys[87])){player.yvel+=-1;}
+    if(keys && (keys[40] || keys[83])){player.yvel+=1;}
+  }
+
+
+  player.xvel = player.xvel*0.8;
+  player.x += player.xvel; 
+  if(player.x < 10){player.x = 10;}
+
+  if(!sandbox){
+    player.y+=player.yvel; 
+    player.yvel+=0.5;
+    if(player.yvel>7){player.yvel=7;}
+  }else{
+    player.yvel = player.yvel * 0.8;
+    if((player.yvel < 0.1)&&(player.yvel > -0.1)){player.yvel=0;}
+    player.y+=player.yvel;
+  }
+
+  collide(level[player.level]);
+
+  //grass sound
+  var keypress=keys&&(keys[37]||keys[39]);
+  if(player.onlevel&&keypress){
+    grassp += abs(round(player.xvel));
+    if(grassp>80){
+      grassp=0;
+      if(settings.sound)sounds.grass.play();
+    }
+  }
+
+  //wall colisions
+  if(player.onlevel===true){
+    var iterations=0;
+    while(player.onlevel){
+      iterations ++;
+      player.y-=0.5;
+      collide(level[player.level]);
+
+      if(iterations>10){break;}
+    }
+    if(iterations>10){
+      /*
+      var xgo;
+      if(player.xvel<0){xgo=1}else{xgo=-1}
+
+      player.x=round(player.x);
+      while(player.onlevel){
+        player.x+=xgo;
+        collide(level[player.level]);
+      } 
+      player.y+=5;
+      player.xvel=0;
+      */
+      player.x-=player.xvel;
+      player.xvel=0;
+    }
+    player.yvel=0;
+    player.y+=0.5;
+  }
+  collide(level[player.level]);
+
+  if (keys && (keys[38] || keys[87])&&player.onlevel&&(!sandbox)) {player.yvel = -10;}
+
+  //scroll
+  player.scrollx+=canvas.width/2;
+  var scrolside=player.x - player.scrollx;
+  if(!isNaN(scrolside/20) )player.scrollx += scrolside / 20;
+  player.scrollx-=canvas.width/2;
+  
+  if(player.scrollx < 0){player.scrollx = 0;}
+
+  player.scrolly+=canvas.height/2;
+  var scrolup=player.y - player.scrolly;
+  if(!isNaN(scrolup/20) )player.scrolly += scrolup / 20;
+  player.scrolly-=canvas.height/2;
+  
+  //other stuff
+  if( ((player.onlevel==="die")&&(!sandbox))||(keys && keys[82])||(player.y>2000)){
+    if(settings.sound)sounds.die.play();
+    player={
+    x:300,
+    y:10,
+    scrollx:0,
+    scrolly:0,
+    xvel:0,
+    yvel:0,
+    onlevel:false,
+    level:player.level,
+    dietime:20,
+    endTime:player.endTime
+    };
+  }
+    //shift and r keys
+    if(keys && keys[82] && keys[16]){
+    if(settings.sound)sounds.die.play();
+    player={
+    x:300,
+    y:10,
+    scrollx:0,
+    scrolly:0,
+    xvel:0,
+    yvel:0,
+    onlevel:false,
+    level:0,
+    dietime:20,
+    endTime:player.endTime
+    };
+    }
+    if(player.onlevel==="portal"){
+    if(settings.sound)sounds.portal.play();
+    player={
+    x:300,
+    y:10,
+    scrollx:0,
+    scrolly:0,
+    xvel:0,
+    yvel:0,
+    onlevel:false,
+    level:player.level+1,
+    dietime:0,
+    endTime:player.endTime
+  };
+  }
+  if((player.onlevel==="quiz")&&(!sandbox)){
+    window.location.replace("quizWhizz.html?from=plat&x="+round(player.x)+"&y="+round(player.y)+"&level="+player.level);
+  }
+
+}//line 1111!!!!
+function calcEntitie(e){
+  if(e.moving && (e.yvel !== undefined)){
+    e.x += e.moving;
+
+    e.yvel+=0.5;
+    if(e.yvel>7)e.yvel=7;
+    e.y += e.yvel;
+    
+    if(entCollide(level[player.level], e) ){
+      var iters=0;
+      while(entCollide(level[player.level], e) ){
+        e.y--;
+        iters++;
+        if(iters>10)break;
+      }
+      if(iters>10){
+        e.y+=10;
+        e.moving=-e.moving;
+      }
+      e.yvel=0;
+    }
+    
+    //you touch it, you die
+    if( ((player.x+20) > e.x)&&((player.x-20) < e.x)&&((player.y+20) > e.y)&&((player.y-20) < e.y)){
+      if(settings.sound)sounds.die.play();
+      player={
+      x:300,
+      y:10,
+      scrollx:0,
+      scrolly:0,
+      xvel:0,
+      yvel:0,
+      onlevel:false,
+      level:player.level,
+      dietime:20,
+      endTime:player.endTime
+      };
+    }
+  }else{
+    e.moving=2;
+    e.yvel=0;
+  }
+}
+function Entities(){
+  var entGroup=entities[player.level];
+  var i;
+  if(entGroup){
+    for(i=0; i<entGroup.length; i++){
+      var e=entGroup[i];
+      if(e.type==="enemy"){
+        calcEntitie(e);
+        ctx.fillStyle="red";
+        ctx.fillRect(e.x-10 - player.scrollx, e.y-10 - player.scrolly, 20, 20);
+      }
+    }
+  }
+}
+//Math stuff
+function round(n){return Math.round(n);}
+function abs(n)  {return Math.abs(n);}
+function floor(n){return Math.floor(n);}
+</script>
+</body>
+</html>

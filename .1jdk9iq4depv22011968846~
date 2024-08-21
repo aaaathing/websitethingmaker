@@ -1,0 +1,194 @@
+{"url":"website.txt","name":"Webpage layout","type":"html"}
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>webpage layout</title>
+        <style>
+            body,html{
+                margin:0;
+                padding:0;
+            }
+            /* width */
+            ::-webkit-scrollbar {
+                width:10px;
+            }
+            /* Track */
+            ::-webkit-scrollbar-track {
+                background: #f1f1f1;
+                border:1px solid black;
+            }
+            /* Handle */
+            ::-webkit-scrollbar-thumb {
+                background: gray;
+                border-radius:10px;
+            }
+            /* Handle on hover */
+            ::-webkit-scrollbar-thumb:hover {
+                background: #555;
+            }
+            #title{
+                border:solid orange 5px;
+                background:#fd9;
+                padding:20px;
+                position: sticky;
+                top:-50px;
+            }
+            #title h1{
+                text-align:center;
+                margin:0px;
+            }
+            #title #links{
+                float:left;
+            }
+            #title #links a{
+                color:blue;
+                padding:10px;
+                cursor:pointer;
+                transition:0.3s;
+            }
+            #title #links a:hover{
+                color:black;
+                background:orange;
+                text-decoration:underline;
+            }
+            #title #search_container{
+                float:right;
+            }
+            #title #search_container button{
+                float:right;
+                background:#0a0;
+                color:white;
+                border:2px solid black;
+            }
+            #title #search_container input{
+                float:left;
+            }
+            .content{
+                border:solid green 5px;
+                background:#9f9;
+                padding:20px;
+            }
+            .imgright{
+                float:right;
+            }
+            #bottom{
+                border:solid 5px #307;
+                background:#50a;
+                padding:20px;
+            }
+            #bottom td{
+                padding:5px;
+                padding-right:30px;
+                color:white;
+                cursor:pointer;
+            }
+            #bottom td:hover{
+                text-decoration:underline;
+            }
+            #bottom th{
+                color:#a0f;
+            }
+            #bottom p{
+                color:#bbb;
+                float:left;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="container">
+            <div id="title">
+                <div id="links">
+                    <a onclick="chpage('home');">Home</a>
+                    <a onclick="chpage('games');">Games</a>
+                    <script>
+                        function chpage(page){
+                            document.getElementById(page).style.display="block";
+                            if(page==="home"){
+                                document.getElementById("games").style.display="none";
+                            }
+                            if(page==="games"){
+                                document.getElementById("home").style.display="none";
+                            }
+                        }
+                    </script>
+                </div>
+                <div id="search_container">
+                        <input type="search"placeholder="Search this site...">
+                        <button>Go</button>
+                </div>
+                <br><br>
+                
+                <h1>My website</h1>
+                
+            </div>
+            <div id="home"class="content">
+                <h3>Hello! here is where you do stuff</h3>
+                <p>So this is an example for webpage layouts. You can change the styling to match your website. ( : </p>
+                <p>So, use this example however you want! Now here is some text to enable scrolling.</p>
+                <p>Once there was three little pigs. They built houses, one for each pig. The first pig's house was made of straw. The second pig made a stick house. The third pig was making a very big house. It wasn't finished yet. Sometimes, the other two pigs would visit and watch the third pig build. He was using bricks in his house. One day a big hungry wolf came. He blew down the straw house. He pushed the stick house down. The two pigs ran to the third pigs house. The wolf blew and pushed the brick house. But the wolf couldn't. He gave up and went away. The End.</p>
+                <p>
+                    We need to scroll more!!! Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus imperdiet, nulla et dictum interdum, nisi lorem egestas odio, vitae scelerisque enim ligula venenatis dolor. Maecenas nisl est, ultrices nec congue eget, auctor vitae massa. Fusce luctus vestibulum augue ut aliquet. Mauris ante ligula, facilisis sed ornare eu, lobortis in odio. Praesent convallis urna a lacus interdum ut hendrerit risus congue. Nunc sagittis dictum nisi, sed ullamcorper ipsum dignissim ac. In at libero sed nunc venenatis imperdiet sed ornare turpis. Donec vitae dui eget tellus gravida venenatis. Integer fringilla congue eros non fermentum. Sed dapibus pulvinar nibh tempor porta. Cras ac leo purus. Mauris quis diam velit. 
+                </p>
+                <img src="https://www.kasandbox.org/programming-images/creatures/OhNoes.png"class="imgright">
+                <p>
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus imperdiet, nulla et dictum interdum, nisi lorem egestas odio, vitae scelerisque enim ligula venenatis dolor. Maecenas nisl est, ultrices nec congue eget, auctor vitae massa. Fusce luctus vestibulum augue ut aliquet. Mauris ante ligula, facilisis sed ornare eu, lobortis in odio. Praesent convallis urna a lacus interdum ut hendrerit risus congue... <span style="color:red;">What are you doing here, Oh Noes??? Why are you frowning??? </span>  Nunc sagittis dictum nisi, sed ullamcorper ipsum dignissim ac. In at libero sed nunc venenatis imperdiet sed ornare turpis. Donec vitae dui eget tellus gravida venenatis. Integer fringilla congue eros non fermentum. Sed dapibus pulvinar nibh tempor porta. Cras ac leo purus. Mauris quis diam velit. 
+                </p>
+                <p>
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus imperdiet, nulla et dictum interdum, nisi lorem egestas odio, vitae scelerisque enim ligula venenatis dolor. Maecenas nisl est, ultrices nec congue eget, auctor vitae massa. Fusce luctus vestibulum augue ut aliquet. Mauris ante ligula, facilisis sed ornare eu, lobortis in odio. Praesent convallis urna a lacus interdum ut hendrerit risus congue. Nunc sagittis dictum nisi, sed ullamcorper ipsum dignissim ac. In at libero sed nunc venenatis imperdiet sed ornare turpis. Donec vitae dui eget tellus gravida venenatis. Integer fringilla congue eros non fermentum. Sed dapibus pulvinar nibh tempor porta. Cras ac leo purus. Mauris quis diam velit. 
+                </p>
+                <p>
+                    Phew! 
+                </p>
+            </div>
+            <!--Game stuff-->
+            <div id="games"class="content" style="display:none;">
+                <h1>Games</h1>
+                <p>I really don't have games for you. But you could play with local storage.</p>
+                
+                <h3>Local Storage example</h3>
+                <input id="inp" onchange="localStorage.setItem('val',this.value);printstrg();">
+                <span id="rst"></span>
+                <script>
+                    printstrg();
+                    function printstrg(){
+                        document.getElementById('rst').innerHTML=localStorage.getItem('val');
+                    }
+                </script>
+            </div>
+            
+            <div id="bottom">
+                <p>
+                    This is my example <br>
+                    of a website.<br>
+                    Use this template to<br>
+                    make your own<br>
+                    website.
+                </p>
+                <table>
+                    <tr>
+                        <th>About</th>
+                        <th>Contact</th>
+                    </tr>
+                    <tr>
+                        <td>News</td>
+                        <td>Help center</td>
+                    </tr>
+                    <tr>
+                        <td>Our team</td>
+                        <td>Support Community</td>
+                    </tr>
+                    <tr>
+                        <td>Our partners</td>
+                        <th>Apps</th>
+                    </tr>
+                    <tr>
+                        <td>FAQ</td>
+                        <td>iPad app</td>
+                    </tr>
+                </table>
+            </div>
+            <!--Insert more?-->
+        </div>
+    </body>
+</html>

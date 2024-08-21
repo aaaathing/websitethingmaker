@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Program browser</title>
+        <style>
+          /*Navigation bar*/
+      .navbar, .navbar * {
+        box-sizing: border-box;
+      }
+      .navbar{
+        margin:-8px;
+      }
+      body,html{
+        scroll-behavior:smooth;
+      }
+      /* Style the body */
+      body {
+        font-family: Arial, Helvetica, sans-serif;
+        margin:8px;
+        padding:0px;
+      }
+      .navbar{
+        overflow:hidden;
+        background:#333;
+        height:47px;
+      }
+      .navbar a{
+        float: left;
+        display: block;
+        color: white;
+        text-align: center;
+        padding: 14px 20px;
+        text-decoration: none;
+        cursor:pointer;
+      }
+      /* Right-aligned link */
+      .navbar .right {
+        float: right;
+      }
+      .navbar .logo{
+        background:#1abc9c;
+      }
+      .navbar input{
+        padding: 6px 10px;
+        margin:8px 20px;
+        float:left;
+      }
+      /* Change color on hover */
+      .navbar a:hover {
+        background-color: #ddd;
+        color: black;
+      }
+          
+          /*Other*/
+          .categoryLink{
+              margin-right:20px;
+              text-decoration:none;
+          }
+          .categoryLink:hover{
+              text-decoration:underline;
+          }
+          #search{
+            margin:10px 0px;
+            padding:10px 20px;
+            width:calc(100% - 45px);
+          }
+          .program{
+            display:inline-block;
+            margin-right:10px;
+            margin-bottom:10px;
+          }
+          .program .link{
+            text-decoration:none;/*Its a link*/
+          }
+          .program .link img{
+            width:200px;
+            height:200px;
+            border:1px solid lightgray;
+          }
+          .program .link b{
+            display:block;
+            color:blue;
+          }
+          
+          .program a.author{
+            display:block;
+            color:blue;
+            margin-top:5px;
+            text-decoration:none;
+          }
+          
+          .program .link b:hover, 
+          .program a.author:hover{
+            text-decoration:underline;
+          }
+          
+          .program .ProjectInfo{
+            display:none;
+            position:absolute;
+            background:#eee;
+            border:2px solid black;
+            
+          }
+          .program:hover .ProjectInfo{
+            display:block;
+          }
+          #loadMore{
+            background:#99f;
+            border:1px solid black;
+            padding:10px 20px;
+            width:100%;
+            cursor:pointer;
+          }
+          #loadMore:hover{
+            background:#55f;
+            color:white;
+          }
+        </style>
+    </head>
+    <body>
+      <div class="navbar">
+        <a class="logo" href="website.html">My website</a>
+        <input placeholder="search">
+        
+        <a href="website.html">Home</a>
+        <a>Link</a>
+        <a>Link</a>
+        <a class="right">Link</a>
+      </div>
+
+      <h1>Program browser</h1>
+      <b>April 24 2023: This no longer works.</b>
+      <p>
+        Projects in the hot list. It is <em>actually</em> showing the Current Projects <b>In The HOTLIST!!!!</b><br>
+        This is not live, Click Reload to update
+      </p>
+      
+      <div id="categoryLinks"></div>
+      
+      <input id="search" placeholder="Search">
+      
+      <div id="programs"></div>
+      
+      <button id="loadMore">Load more</button>
+      
+      <div id="popup" style="display:none">
+        <style>
+            #popup{
+                position:fixed;
+                top:0;
+                left:0;
+                width:100%;
+                height:100%;
+                background:rgba(0,0,0,50%);
+                z-index:10;
+            }
+            #popupContent{
+                background:white;
+                position:absolute;
+                box-sizing:border-box;
+                top:10%;
+                left:10%;
+                width:80%;
+                height:80%;
+                overflow:scroll;
+                padding:8px;
+            }
+        </style>
+        <div id="popupContent">
+            jjkkj
+        </div>
+      </div>
+      
+      <script>
+        var programs=[
+          
+        ];
+        
+        var categorys={
+            'Hot':'https://www.khanacademy.org/api/internal/scratchpads/top?sort=3&limit=30&callback=setProjects',
+            
+            'Recent':'https://www.khanacademy.org/api/internal/scratchpads/top?casing=camel&sort=2&page=0&limit=30&subject=all&topic_id=xffde7c31&lang=en&callback=setProjects',
+            
+            'Contests':'https://www.khanacademy.org/api/internal/scratchpads/top?casing=camel&sort=4&page=0&limit=30&subject=all&topic_id=xffde7c31&lang=en&callback=setProjects',
+            
+            'Votes':'https://www.khanacademy.org/api/internal/scratchpads/top?casing=camel&sort=5&page=0&limit=30&subject=all&topic_id=xffde7c31&lang=en&callback=setProjects'
+        }
+        
+        var categoryLinks = document.getElementById("categoryLinks");
+        function putUpCategoryLinks(){
+            for(var category in categorys){
+                var a = document.createElement("a");
+                a.href="javascript:goToCategory('"+category+"')";
+                a.innerHTML = category;
+                a.setAttribute("class","categoryLink")
+                categoryLinks.appendChild(a);
+            }
+        }
+        function goToCategory(category){
+            var src = categorys[category];
+            var programsGetter = document.getElementById("programsGetter");
+            
+            
+            programsGetter.remove();
+            
+            var newScript = document.createElement("script")
+            newScript.id="programsGetter"
+            newScript.src=src
+            document.body.appendChild(newScript)
+        }
+        putUpCategoryLinks();
+        
+        
+        var container = document.getElementById("programs");
+        
+        function setProjects(p){
+          programs = p.scratchpads;
+          putUpPrograms();
+        }
+        
+        function putUpPrograms(){
+          container.innerHTML=""
+          
+          for(var i=0; i<programs.length; i++){
+            var p = programs[i];
+            
+            var div=document.createElement("div");
+            div.setAttribute("class","program")
+            
+            var a = document.createElement("a");
+            a.href = p.url;
+            a.setAttribute("class","link");
+            
+            var img = document.createElement("img");
+            img.src = "https://www.khanacademy.org" + p.thumb;
+            a.appendChild(img);
+            
+            var b = document.createElement("b");
+            b.innerHTML = p.title;
+            a.appendChild(b);
+            
+            div.appendChild(a);
+            
+            var pa = document.createElement("a");
+            pa.innerHTML = p.authorNickname;
+            pa.href = "https://www.khanacademy.org/profile/" + p.authorKaid;
+            pa.setAttribute("class","author")
+            div.appendChild(pa)
+            
+            var info = document.createElement("div")
+            info.innerHTML += "<b>Created:</b> " + p.created + "<br>";
+            info.innerHTML += "<b>SumVotesIncremented:</b> " + p.sumVotesIncremented + "<br>";
+            info.innerHTML += "<b>spinoffCount:</b> " + p.spinoffCount + "<br>";
+            info.innerHTML += "<b>flagged:</b> " + p.flaggedByUser + "<br>";
+            var projectNumberCode = p.url.split("/").pop()
+            info.innerHTML += "<button onclick=\"previewProgram('"+projectNumberCode+"')\">Preview</button>"+"<br>";
+            info.setAttribute("class","ProjectInfo")
+            div.appendChild(info);
+            
+            
+            container.appendChild(div);
+          }
+        }
+        
+        function replaceScript(script,url){
+            var id = script.id;
+            script.remove();
+            
+            var newScript = document.createElement("script")
+            newScript.id = id;
+            newScript.src = url;
+            document.body.appendChild(newScript)
+        }
+        
+        function previewProgram(num){
+            var programInfoGetter = document.getElementById("programInfoGetter")
+            
+            replaceScript(programInfoGetter,"https://www.khanacademy.org/api/labs/scratchpads/"+num+"?callback=putProjectInfo")
+        }
+        
+        function putProjectInfo(info){
+            var popup = document.getElementById("popup")
+            var popupContent = document.getElementById("popupContent");
+            
+            popupContent.innerHTML="<iframe id=\"projectPreview\" style=\"width:100%;height:100%;position:absolute;top:0;left:0;\" frameborder=\"0\"></iframe>"
+            +"<span style=\"cursor:pointer;position:absolute;top:0;right:0;\" onclick=\"document.getElementById('popup').style.display='none'\">&times;</span>";
+            var idoc = document.getElementById("projectPreview").contentWindow.document;
+            idoc.open();
+            idoc.write(info.revision.code/*.replace(/\n/g,"<br>")*/)
+            idoc.close()
+            
+            popup.style.display="block"
+        }
+        
+        
+        var loadMoreBtn = document.getElementById("loadMore");
+        loadMoreBtn.onclick=function(){
+            var amount = programs.length;
+            var programsGetter = document.getElementById("programsGetter")
+            replaceScript(programsGetter , programsGetter.src.replace("limit="+amount, "limit="+(amount+30)) )
+        }
+        
+        var searchBox = document.getElementById("search");
+        searchBox.onkeyup = function(){
+          var progs = document.getElementsByClassName("program");
+          for(var i=0; i<programs.length; i++){
+            var prog = progs[i];
+            var program = programs[i];
+            
+            if((program.title.toLowerCase().indexOf(searchBox.value.toLowerCase()) > -1 )||(program.authorNickname.toLowerCase().indexOf(searchBox.value) > -1)){
+              prog.style.display="";
+            }else{
+              prog.style.display="none";
+            }
+          }
+        };
+        
+      </script>
+      <script id="programsGetter" src="https://www.khanacademy.org/api/internal/scratchpads/top?sort=3&limit=30&callback=setProjects"></script>
+      <script id="programInfoGetter"></script>
+    </body>
+</html>

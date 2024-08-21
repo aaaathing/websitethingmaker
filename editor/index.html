@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>code editor</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body,html{
+      height:100%;
+    }
+    body{
+      margin: 0;
+      display: flex;
+      flex-direction:column;
+    }
+    #top{
+      text-align:center;
+      border-bottom:1px solid lightgray;
+    }
+    #top button{
+      padding:10px;
+      background:green;
+      border:1px solid gray;
+      cursor:pointer;
+      color:white;
+      transition: 0.5s ease;
+      border-radius:5px;
+    }
+    #top button:hover{
+      background: darkgreen;
+    }
+    #top button:disabled{
+      background:#555;
+    }
+    #content{
+      display: flex;
+      flex-direction:row;
+      height:100%;
+      width:100vw;
+      overflow:hidden;
+    }
+    .codeEditorContainer{
+      height:100%!important;
+      flex-grow: 1;
+      min-height:0;
+    }
+    .fileEditorContainer{
+      height:100%!important;
+      min-height:0;
+      width:20%;
+      border-right:1px solid lightgray;
+    }
+    #users{
+      float:right;
+    }
+    #users > div{
+      border-radius:100%;
+      margin:0 8px;
+      padding:8px;
+      font-family:sans-serif;
+    }
+    h1 {
+      font-family:sans-serif;
+    }
+  </style>
+</head>
+
+<body>
+  <script>var require = { paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.43.0/min/vs' } }</script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.43.0/min/vs/loader.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.43.0/min/vs/editor/editor.main.nls.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.43.0/min/vs/editor/editor.main.min.js"></script>
+  <script src="files.js"></script>
+  <div id="top">
+    <h1></h1>
+    <button onclick="save()">Save</button>
+    <span id="saveProg"></span>
+    <button id="restartBtn" onclick="restart()">Restart server</button>
+    <button onclick="window.open('/editor/zip','_blank')">Download</button>
+    <div id="users"></div>
+  </div>
+  <div id='content'>
+    <script>
+      let parent = document.querySelector("#content")
+      let currentPath, prevText, lastFileType, lastChanged
+      let fileTypes = {
+        js: 'javascript',
+        md: 'markdown',
+        mjs: 'javascript',
+        ts: 'typescript'
+      }
+      let files = createFileEditor({
+        parent,
+        onload:function(content){
+          editor.dOnTSeNd = true
+          editor.setValue(content)
+          monaco.editor.setModelLanguage(editor.getModel(), fileTypes[lastFileType] || lastFileType);
+          editor.dOnTSeNd = false
+          saveProg.innerHTML = lastChanged ? "Unsaved." : ""
+        },
+        load:async function(path){
+          if(!path) path = "/"
+          let r = await fetch("/editor/get/"+encodeURIComponent(path)).then(r => r.text())
+          let j
+          try{
+            j = JSON.parse(r)
+          }catch{
+            return alert(r), '{"folder":true,"files":["'+r+'"],"folders":[]}'
+          }
+          if(!j.folder){
+            currentPath = path, prevText = j.content
+            lastFileType = path.includes('.') ? path.split(".").pop() : ""
+            lastChanged = j.changed
+          }
+          return r
+        },
+        onchange: () => onresize(),
+        newFile: async function(folder,name){
+          let path = folder+"/"+name
+          let r = await fetch("/editor/newFile/"+encodeURIComponent(path),{credentials:'include'}).then(r => r.text())
+          if(r !== "success"){
+            alert(r)
+            throw r
+          }
+        },
+        newFolder: async function(folder,name){
+          let path = folder+"/"+name
+          let r = await fetch("/editor/newFolder/"+encodeURIComponent(path),{credentials:'include'}).then(r => r.text())
+          if(r !== "success"){
+            alert(r)
+            throw r
+          }
+        },
+        delete: async function(path){
+          let r = await fetch("/editor/delete/"+encodeURIComponent(path),{credentials:'include'}).then(r => r.text())
+          if(r !== "success"){
+            alert(r)
+            throw r
+          }
+        },
+        getIcon:function(type){
+          return "/editor/icon/"+encodeURIComponent(type)
+        },
+        save:async function(path,data){
+          let r = await fetch("/editor/save/"+encodeURIComponent(path), {
+            method:"POST",
+            body:data,
+            credentials:'include'
+          }).then(r => r.text()).catch(e => e.toString())
+          if(r !== "success") return alert(r)
+        }
+      })
+  
+
+      let c = document.createElement('div')
+      c.className = "codeEditorContainer"
+      parent.appendChild(c)
+      let editor, model
+      onload = () => {
+        editor = monaco.editor.create(c, {
+          value: `function x() {
+  console.log("Hello world!");
+}`,
+          language: 'javascript'
+        });
+        editor.onDidChangeModelContent(() => {
+          saveProg.innerHTML = "Unsaved."
+        })
+        model = editor.getModel()
+        model.onDidChangeContent(function(e){
+          if(editor.dOnTSeNd) return
+          changes.push(...e.changes)
+        })
+        files.openPath("")
+      }
+      onresize = () => {
+        editor.layout({ width: 0, height: 0 })
+
+        // wait for next frame to ensure last layout finished
+        window.requestAnimationFrame(() => {
+          // get the parent dimensions and re-layout the editor
+          const rect = parent.getBoundingClientRect()
+          editor.layout()
+        })
+      }
+      var stringToColour = function(str) {
+        var hash = 0;
+        for (var i = 0; i < str.length; i++) {
+          hash = str.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        var colour = '#', bright = 0;
+        for (var i = 0; i < 3; i++) {
+          var value = (hash >> (i * 8)) & 0xFF;
+          bright += value/3
+          colour += ('00' + value.toString(16)).substr(-2);
+        }
+        return [colour,bright];
+      }
+      let ws, changes = []
+      var userId = "user"+Date.now(), username, pwd
+      async function initWs(){
+        ws = null
+        if(!username){
+          username = await fetch("/server/getuser").then(r => r.text())
+          pwd = await fetch("/editor/getauth").then(r => r.text())
+        }
+        if(currentPath){
+          await files.openPath("")
+          await files.openPath(currentPath)
+        }
+        ws = new WebSocket("wss://thingmaker.us.eu.org/editor/?pwd="+pwd)
+        ws.onopen = function(){
+          for(let i in users){
+            removeUser(i)
+          }
+          users = {}
+          sendChanges()
+          ws.pos = setInterval(function(){
+            sendChanges()
+            ws.send(JSON.stringify({type:"pos",data:editor.getPosition(), id:userId,username,file:currentPath}))
+          },500)
+        }
+        ws.onmessage = function(msg){
+          let data = JSON.parse(msg.data)
+          if(data.type === "changes"){
+            if(data.file === currentPath) edit(data.data)
+          }else if(data.type === "pos"){
+            if(!users[data.id]) addUser(data.username,data.id)
+            moveUser(data.id,new monaco.Range(data.data.lineNumber,data.data.column,data.data.lineNumber,data.data.column),data.file !== currentPath)
+            if(users[data.id].path !== data.file){
+              users[data.id].path = data.file
+              files.setUsers(users)
+            }
+          }else if(data.type === "dc"){
+            removeUser(data.id)
+            files.setUsers(users)
+          }else if(data.type === "saved"){
+            if(currentPath === data.currentPath) saveProg.innerHTML = ""
+          }else if(data.type === "newFile"){
+            files.showPath(data.data)
+          }else if(data.type === "newFolder"){
+            files.showPath(data.data)
+          }else if(data.type === "delete"){
+            files.hidePath(data.data)
+          }
+        }
+        ws.onclose = function(){
+          clearInterval(ws.pos)
+          document.querySelector("#users").innerHTML = ""
+          initWs()
+        }
+        ws.onerror = function(){
+          setTimeout(() => initWs, 4000)
+        }
+      }
+      initWs()
+      function sendChanges(){
+        if(!changes.length) return
+        ws.send(JSON.stringify({type:"changes",data:changes,file:currentPath}))
+        changes.length = 0
+      }
+      function edit(ops){
+        editor.dOnTSeNd = true
+        for(let i of ops) editor.executeEdits("my-source", [i]);
+        editor.dOnTSeNd = false
+      }
+      let users = {}
+      function addUser(username,id){
+        var decorations = editor.createDecorationsCollection([
+          { range: new monaco.Range(1, 1, 1, 1), options: { className: id, overviewRuler:true}},
+        ])
+        /*editor.deltaDecorations([], [
+          { range: new monaco.Range(1, 1, 1, 1), options: { className: id, overviewRuler:true}},
+        ])*/
+        let [color,bright] = stringToColour(username)
+        let textColor = bright>127?"black":"white"
+        users[id] = {username, cursor:decorations,color,textColor,range:null,id}
+        userStyle.sheet.insertRule(`
+.${id} {
+  background: ${color};
+  color:${textColor};
+  width: 2px !important;
+}`)
+        userStyle.sheet.insertRule(`
+.${id}:before{
+  content:"${username}";
+  display:block;
+  position:absolute;
+  bottom:100%;
+  left:0;
+  background:${color};
+  z-index:3;
+  border:1px solid black;
+  white-space: nowrap;
+}
+`)
+        usersChanged()
+      }
+      function moveUser(id,range,hide){
+        /*users[id].cursor = editor.deltaDecorations(users[id].cursor, hide ? [] : [
+          { range, options: { className: id} }
+        ])*/
+        users[id].cursor.set(hide ? [] : [
+          { range, options: { className: id, overviewRuler:true } }
+        ])
+        users[id].range = range
+      }
+      function removeUser(id){
+        //editor.deltaDecorations(users[id].cursor, []);
+        users[id].cursor.clear()
+        delete users[id]
+        usersChanged()
+      }
+      function usersChanged(){
+        document.querySelector("#users").innerHTML = Object.values(users).map(r => '<div style="background:'+r.color+';color:'+r.textColor+';" onclick="goToUser(\''+r.id+'\')">'+r.username+'</div>').join("")
+      }
+      function goToUser(id){
+        let user = users[id]
+        if(!user.range) return alert("User has no cursor")
+        if(currentPath !== user.path) return alert("User is in different file")
+        editor.revealLineInCenter(user.range.endLineNumber)
+      }
+      var userStyle = document.createElement("style")
+      userStyle.id = "userStyle"
+      document.head.appendChild(userStyle)
+
+      let saveProg = document.querySelector("#saveProg")
+      async function save(){
+        let text = editor.getValue()
+        let r = await fetch("/editor/save/"+encodeURIComponent(currentPath), {
+          method:"POST",
+          body:text,
+          credentials:'include'
+        }).then(r => r.text()).catch(e => e.toString())
+        if(r !== "success") return alert(r)
+        prevText = text
+        saveProg.innerHTML = ""
+      }
+      let restartBtn = document.querySelector("#restartBtn")
+      async function restart(){
+        restartBtn.disabled = true
+        let r = await fetch("/internal/restart?pwd="+pwd).then(r => r.text()).catch(e => e)
+        if(r !== "success") alert(r)
+        restartBtn.disabled = false
+      }
+    </script>
+  </div>
+</body>
+
+</html>
