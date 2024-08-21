@@ -15,3 +15,6 @@ language = "nodejs"
 run = ["node", "index.js"]
 deploymentTarget = "cloudrun"
 ignorePorts = false
+
+[objectStorage]
+defaultBucketID = "replit-objstore-dfc036d2-f315-4a87-877d-ec3cea3d75ed"

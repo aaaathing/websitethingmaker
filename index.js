@@ -1268,11 +1268,11 @@ async function getWikiPageTitles(){
   for(var i of otherPages){
     pages[i] = {name:i.replace('wiki:','')}
   }*/
-  return (await fs.promises.readdir(__dirname+"/wiki/")).map(r => r.replace(".json","").replace(/\./g,"/"))
+  return await db.list("wiki/").replace(/\./g,"/"))
 }
 async function getWikiPage(name){
   try{
-    return JSON.parse(await fs.promises.readFile(__dirname+"/wiki/"+name.replace(/\//g,".")+".json","utf8"))//await db.get("wiki:"+name)
+    return await db.get("wiki/"+name.replace(/\//g,"."))
   }catch{
     return null
   }
@@ -1365,13 +1365,7 @@ router.post("/server/wikiPage", getPostData,async function(req,res){
   /*if(!req.body.pwd){
     return res.json({message:"You need to provide a password for deleting and stuff."})
   }*/
-  const path = __dirname+"/wiki/"+req.body.name.replace(/\//g,".")+".json"
-  let exist = true
-  try{
-    await fs.promises.stat(path)
-  }catch{
-    exist = false
-  }
+  const exist = !!db.get("wiki/"+req.body.name.replace(/\//g,"."))
   if(exist) return res.json({message:"That name is already taken"})
   if(req.body.name.match(/[^a-zA-Z0-9\-_\/]/)){
     return res.json({message:"Name can only contain: A-Z, a-z, 0-9, -, _, and /"})
@@ -1455,7 +1449,7 @@ router.post("/server/editWikiPage/:name(*)",getPostData, async function(req,res)
   let authors = page.user ? page.user.split(", ") : []
   if(req.username && !authors.includes(req.username)) authors.push(req.username)
   page.user = authors.join(", ")
-  await fs.promises.writeFile(__dirname+"/wiki/"+name.replace(/\//g,".")+".json", JSON.stringify(page))
+  db.set("wiki/"+name.replace(/\//g,"."), page)
   res.json({success:true})
   Log("Edited wiki page called","<a href='/wiki/page/"+page.name+"' target='_blank'>"+page.name.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")+"</a>")
 })
@@ -1466,11 +1460,7 @@ router.post("/server/deleteWikiPage/:name(*)",getPostData, async function(req,re
   var pwd = process.env['passKey']
   let page = await getWikiPage(name)
   if(req.isAdmin || req.body.pwd === pwd || page.pwd && req.body.pwd === page.pwd){
-    try{
-      await fs.promises.unlink(__dirname+"/wiki/"+name.replace(/\//g,".")+".json")
-    }catch{
-      return res.json({message:"Page doesn't exsist"})
-    }
+    await db.delete("wiki/"+name.replace(/\//g,"."))
     res.json({success:true})
     Log("Deleted wiki page called "+page.name.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"))
   }else{
@@ -1497,7 +1487,7 @@ router.post("/server/commentOnWikiPage/:name(*)",getPostData, async function(req
     created: Date.now(),
     id: generateId()
   })
-  await fs.promises.writeFile(__dirname+"/wiki/"+name.replace(/\//g,".")+".json", JSON.stringify(page))
+  await db.set("wiki/"+name.replace(/\//g,"."), page)
   res.json({success:true})
   Log("New comment at wiki page called","<a href='/wiki/page/"+page.name+"' target='_blank'>"+page.name.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")+"</a>")
 })
@@ -1527,7 +1517,7 @@ router.post("/server/deleteCommentOnWikiPage/:name(*)",getPostData, async functi
     }
   }
   c.splice(i,1)
-  await fs.promises.writeFile(__dirname+"/wiki/"+name.replace(/\//g,".")+".json", JSON.stringify(page))
+  await db.set("wiki/"+name.replace(/\//g,"."), page)
   res.json({success:true})
   Log("Deleted comment at wiki page called",name.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"))
 })
