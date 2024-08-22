@@ -1,23 +1,34 @@
 const fs=require("fs")
-function wasFolderChanged(path,time) {
-  let stuff = fs.readdirSync(path)
+async function wasFolderChanged(path,time) {
+  let stuff = await fs.promises.readdir(path)
   let maxTime = -Infinity
   for(let fname of stuff){
     if(fname.startsWith(".")) continue
-    let stat = fs.statSync(path+"/"+fname)
+    let stat = await fs.promises.stat(path+"/"+fname)
     if(stat.isDirectory()){
-      maxTime = Math.max(maxTime, wasFolderChanged(path+"/"+fname,time))
+      maxTime = Math.max(maxTime, await wasFolderChanged(path+"/"+fname,time))
     }else{
       let ftime = new Date(stat.mtime).getTime()
       maxTime = Math.max(maxTime,ftime)
       if(ftime > time){
-        fetch("https://thingmaker.replit.app/internal/updateFile/"+encodeURIComponent(path+"/"+fname)+"?pwd="+process.env.passKey)
+        let file = path+"/"+fname
+        if(file.startsWith("./")) file = file.replace("./","")
+        console.log(file)
+        let stuff = await (await fetch(
+          "https://thingmaker.replit.app/internal/updateFile/"+encodeURIComponent(file)+"?pwd="+encodeURIComponent(process.env.passKey),
+          {method:"POST", body:await fs.promises.readFile(path+"/"+fname)}
+        )).text()
+        if(stuff !== "success"){
+          throw new Error("fail "+stuff)
+        }
       }
     }
   }
   return maxTime
 }
 
-let time = wasFolderChanged(".", +fs.readFileSync(__dirname+"/updatefilestime.txt",{encoding:"utf-8"}))
-fs.writeFileSync(__dirname+"/updatefilestime.txt", time+"")
-console.log("finish finding changed files")
+;(async function(){
+  let time = await wasFolderChanged(".", +await fs.promises.readFile(__dirname+"/updatefilestime.txt",{encoding:"utf-8"}))
+  await fs.promises.writeFile(__dirname+"/updatefilestime.txt", time+"")
+  console.log("finish finding changed files")
+})()
