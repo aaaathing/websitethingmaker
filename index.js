@@ -147,7 +147,7 @@ async function deleteUselessAccounts(){
 }
 
 let log = [], prelog = []
-async function Log(){
+function Log(){
  //var data = [Date.now(), ...arguments]
   let data = " |"
   for(let i of arguments){
@@ -161,7 +161,7 @@ async function Log(){
   let now = Date.now()
   log.push(now,data)
   
-  await db.set("log", log)
+  db.set("log", log)
 }
 Log.noTime = async function(data){
   //var data = [...arguments]
@@ -181,8 +181,8 @@ function waitToRestart(){
   },500)
 }
 async function clearLog(){
-  log = []
   if(runBy===d[0]){
+    log = []
     await db.set("log",[])
     waitToRestart()
   }

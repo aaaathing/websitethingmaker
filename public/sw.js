@@ -25,12 +25,12 @@ const optionalAssets = [
 ]
 
 function canCache(url) {
-	return url.startsWith("https://thingmaker.us.eu.org") && optionalAssets.includes(url.replace("https://thingmaker.us.eu.org",'')) ||
-    url.startsWith("https://thingmaker.us.eu.org/minekhan/assets/images/") && !url.endsWith("/") ||
-    url.startsWith("https://thingmaker.us.eu.org/minekhan/assets/lang/") && !url.endsWith("/") || url.startsWith("https://thingmaker.us.eu.org/assets/")
+	return url.startsWith(location.origin) && optionalAssets.includes(url.replace(location.origin,'')) ||
+    url.startsWith(location.origin+"/minekhan/assets/images/") && !url.endsWith("/") ||
+    url.startsWith(location.origin+"/minekhan/assets/lang/") && !url.endsWith("/") || url.startsWith(location.origin+"/assets/")
 }
 function cacheForever(url){
-  return url.startsWith("https://thingmaker.us.eu.org/minekhan/assets/sounds/")
+  return false
 }
 
 importScripts("/assets/localforage.js")
@@ -52,20 +52,18 @@ self.addEventListener("activate", event => {
 })
 self.addEventListener("fetch", event => {
 	//if (event.request.method !== 'GET' || event.request.status >= 300) return // Use default behavior
-  event.respondWith(
-    caches.open(cacheName).then(cache => {
-      let url = event.request.url
-      return caches.match(event.request).then(res => {
-        if(res && cacheForever(url)) return res
-        return fetch(event.request).then(fetchRes => {
-          if (fetchRes.ok && canCache(url)) {
-            cache.put(event.request, fetchRes.clone())
-          }
-          return fetchRes
-        }).catch(() => res)
-      })
-    })
-  )
+  if(!canCache(event.request.url)) return
+  event.respondWith((async () => {
+    let url = event.request.url
+    let cache = await caches.open(cacheName)
+    let cacheres = await caches.match(event.request)
+    if(cacheres && cacheForever(url)) return cacheres
+    let fetchRes = await fetch(event.request)
+    if (fetchRes.ok) {
+      cache.put(event.request, fetchRes.clone())
+    }
+    return fetchRes
+  }))
 })
 
 self.addEventListener('push', async event => {
