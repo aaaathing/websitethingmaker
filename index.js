@@ -943,16 +943,20 @@ router.get("/banned", (req,res) => {
   res.send("People banned:<br>"+getBanned().replace(/\n/g,"<br>").replace(/\t/g,"&nbsp;&nbsp;&nbsp;&nbsp;"))
 })
 router.get("/assets/common.js", (req,res) => {
+  let userInfo = null
   if(req.user){
     if(!("profanityFilter" in req.user)) req.user.profanityFilter = true
-    delete req.user.comments
-    delete req.user.password
-    delete req.user.bio
+    userInfo = {
+      username:req.user.username,
+      admin:req.user.admin,
+      profanityFilter:req.user.profanityFilter,
+      notif:req.user.notifs
+    }
   }
-  let user = req.user ? JSON.stringify(req.user).replace(/</g,"\\<").replace(/>/g,"\\>") : "null"
+  let user = JSON.stringify(userInfo).replace(/</g,"\\<").replace(/>/g,"\\>")
   let parser = new Transform({
     transform(data, encoding, done) {
-      const str = data.toString().replace('USERDATA', user).replace("USERCOUNT",onlineCount);
+      const str = data.toString().replace('USERDATA', user)
       this.push(str);
       done();
     }

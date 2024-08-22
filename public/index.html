@@ -338,14 +338,14 @@ body[theme=dark] #links a.no{
     <a href="https://tommustbe12.com/">tommustbe12.com</a><br>
     <a href="https://elbozopremio.com/">elbozopremio.com</a><br>
 
-    <!--<h2>Website Stats</h2>
+    <h2>Website Stats</h2>
     <a id="showStats">Show</a>
     <p id="users-inactive">Note: Most users are inactive</p>
     <span id="users"></span>
     <a id="showUsers" style="display:none;">Show</a><br>
     <span id="posts"></span><br>
     <span id="worlds"></span><br>
-    <span id="maps"></span>-->
+    <span id="maps"></span>
 
     <h2>MineKhan videos</h2>
     <p>If it says Minecraft it actually means MineKhan</p>
@@ -526,8 +526,8 @@ body[theme=dark] #links a.no{
     <a href="https://www.deviantart.com/yasmintt/art/Minekhan-repl-co-pics-945471226">https://www.deviantart.com/yasmintt/art/Minekhan-repl-co-pics-945471226</a><br>
     <a href="https://www.deviantart.com/yasmintt/art/Minekhan-Play-with-anybody-945480121">https://www.deviantart.com/yasmintt/art/Minekhan-Play-with-anybody-945480121</a><br>
     
-    <!--<h2>Highest records</h2>
-    <span id="records"></span>-->
+    <h2>Highest records</h2>
+    <span id="records"></span>
 
     <!--<h2>Recent updates for MineKhan</h2>
     <div id="updates"></div>
@@ -738,7 +738,7 @@ old imgs
   <button class="close">&times;</button>
 </div>
 <script>
-  /*fetch("/records").then(r => r.json()).then(r => {
+  fetch("/records").then(r => r.json()).then(r => {
     var el = document.querySelector("#records")
     for(var i in r){
       el.innerHTML += `${i}: ${r[i]}<br>`
@@ -769,7 +769,7 @@ old imgs
     fetch("/server/maps").then(r => r.json()).then(r => {
       document.querySelector("#maps").innerHTML = "There are currently "+Object.keys(r).length+" maps and other stuff."
     })
-  }*/
+  }
   /*fetch("/minekhan/recentUpdates").then(r => r.text()).then(r => {
     document.getElementById('updates').innerHTML = r.replace(/\n/g,"<br>")
   })*/

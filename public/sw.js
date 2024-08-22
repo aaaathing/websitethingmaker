@@ -15,19 +15,17 @@ const assets = [
   "/favicon.ico",
   "/style.css",
   "/platformer",
-  "/platformer/"
-]
-const optionalAssets = [
-  ...assets,
+  "/platformer/",
   "/minekhan/Monocraft.ttf",
   "/code%20editor/pythoninterpreter.html",
-  "/minekhan/assets/sounds.epk"
+  "/minekhan/assets/sounds.epk",
 ]
 
 function canCache(url) {
-	return url.startsWith(location.origin) && optionalAssets.includes(url.replace(location.origin,'')) ||
+	return url.startsWith(location.origin) && assets.includes(url.replace(location.origin,'')) ||
     url.startsWith(location.origin+"/minekhan/assets/images/") && !url.endsWith("/") ||
-    url.startsWith(location.origin+"/minekhan/assets/lang/") && !url.endsWith("/") || url.startsWith(location.origin+"/assets/")
+    url.startsWith(location.origin+"/minekhan/assets/lang/") && !url.endsWith("/") ||
+    url.startsWith(location.origin+"/assets/") && !url === location.origin+"/assets/common.js"
 }
 function cacheForever(url){
   return false
@@ -38,7 +36,9 @@ importScripts("/assets/localforage.js")
 self.addEventListener("install", event => {
 	// Kick out the old service worker
   event.waitUntil(
-    caches.open(cacheName).then(cache => cache.addAll(assets)).then(() => self.skipWaiting())
+    caches.open(cacheName)
+    //.then(cache => cache.addAll(assets))
+    .then(() => self.skipWaiting())
   )
 })
 self.addEventListener("activate", event => {
@@ -56,8 +56,10 @@ self.addEventListener("fetch", event => {
   event.respondWith((async () => {
     let url = event.request.url
     let cache = await caches.open(cacheName)
-    let cacheres = await caches.match(event.request)
-    if(cacheres && cacheForever(url)) return cacheres
+    if(cacheForever(url)){
+      let cacheres = await caches.match(event.request)
+      if(cacheres) return cacheres
+    }
     let fetchRes = await fetch(event.request)
     if (fetchRes.ok) {
       cache.put(event.request, fetchRes.clone())
