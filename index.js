@@ -156,22 +156,22 @@ async function deleteUselessAccounts(){
   Log("done")
 }
 
-let log = [], prelog = []
+let log = [], prelog = true
 function Log(){
  //var data = [Date.now(), ...arguments]
   let data = " |"
   for(let i of arguments){
     data += " "+valueToString(i,undefined,arguments)
   }
-  if(prelog){
+  /*if(prelog){
     prelog.push(Date.now())
     prelog.push(data)
     return
-  }
+  }*/
   let now = Date.now()
   log.push(now,data)
-  
-  db.set("log", log)
+
+  if(!prelog) db.set("log", log)
 }
 Log.noTime = async function(data){
   //var data = [...arguments]
@@ -185,7 +185,7 @@ function waitToRestart(){
   setInterval(() => {
     let now = Date.now()
     for(let i in db.timeouts){
-      if(db.timeouts[i].hasNextValue) return
+      if(db.timeouts[i].operation) return
     }
     process.exit()
   },500)
@@ -193,7 +193,7 @@ function waitToRestart(){
 async function clearLog(){
   if(runBy===d[0]){
     log = []
-    await db.set("log",[])
+    await db.set("log",log)
     waitToRestart()
   }
   /*db.set("log",[]).then(() => {
@@ -202,14 +202,8 @@ async function clearLog(){
 }
 //console.clear()
 db.get("log").then(r => {
-  if(r){
-    log = r
-  }
-  var temp = prelog
-  prelog = null
-  for(var i of temp){
-    Log.noTime(...i)
-  }
+  log = r.concat(log)
+  prelog = false
 }).catch(() => {})
 /*fs.promises.readFile(__dirname+"/log.txt",{encoding:"utf8"}).then(r => {
   if(r){
@@ -678,6 +672,9 @@ function getPostBuffer(req,res,next,type,limit=1000000){
   }
   req.on('data', ondata);
   req.on('end', onend);
+}
+function getPostBuffer2(req,res,next){
+  getPostBuffer(req,res,next)
 }
 function getPostText(req,res,next,limit=10000){
   getPostBuffer(req,res,next,"text",limit)
@@ -2827,12 +2824,12 @@ router.post('/internal/run',getPostText,async(req,res) => {
   }
   res.send('success')
 })
-router.post("/internal/updateFile/:file",getPostText,async(req,res)=>{
+router.post("/internal/updateFile/:file",getPostBuffer2,async(req,res)=>{
   if(req.query.pwd !== process.env.passKey) return res.send('Unauthorized')
-  let file = __dirname+(req.params.file ? "/"+req.params.file : "")
-  await fs.promises.writeFile(file,req.body)
+  let relfile = Buffer.from(req.params.file, "base64").toString()
+  await fs.promises.writeFile(relfile,req.body)
   res.send('success')
-  Log("Editor: updated file "+req.params.file)
+  Log("Editor: updated file "+relfile)
 })
 
 app.use('/minekhan/assets', express.static(__dirname+'/public/minekhan/assets'))

@@ -12,14 +12,15 @@ async function wasFolderChanged(path,time) {
       maxTime = Math.max(maxTime,ftime)
       if(ftime > time){
         let file = path+"/"+fname
-        if(file.startsWith("./")) file = file.replace("./","")
+        //if(file.startsWith("./")) file = file.replace("./","")
         console.log(file)
-        let stuff = await (await fetch(
-          "https://thingmaker.replit.app/internal/updateFile/"+encodeURIComponent(file)+"?pwd="+encodeURIComponent(process.env.passKey),
-          {method:"POST", body:await fs.promises.readFile(path+"/"+fname)}
-        )).text()
-        if(stuff !== "success"){
-          throw new Error("fail "+stuff)
+        let stuff = await fetch(
+          "https://thingmaker.replit.app/internal/updateFile/"+(Buffer.from(file).toString("base64")/*.replace("\=+$","")*/)+"?pwd="+encodeURIComponent(process.env.passKey),
+          {method:"POST", body: (await fs.promises.readFile(file))}
+        )
+        let str = await stuff.text()
+        if(str !== "success"){
+          throw new Error("fail "+str.slice(0,1000))
         }
       }
     }

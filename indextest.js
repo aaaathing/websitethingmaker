@@ -2,8 +2,6 @@ const db=require("./db.js")
 
 //  console.log(process.env)
 ;(async function(){
-  db.set("hello",'yoyyyeoyoy')
-  console.log(await db.get("hello"))
 })()
 
 /*function wait(x){return new Promise(r=>setTimeout(r,x))}
