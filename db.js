@@ -66,23 +66,6 @@ module.exports = {
       nextValue:value, operation:null
     }
   },
-  _set:function(key,value){
-    return new Promise(function(resolve,reject){
-      const stream = bucket.file(key+".json").createWriteStream({
-        resumable:false,
-        metadata:{
-        }
-      });
-    
-      stream.on('error', reject);
-    
-      stream.on('finish', () => {
-        resolve(true)
-      });
-    
-      stream.end(value);
-    })
-  },
   set: function(key,value,options){
     if(!value) throw new Error('---------- Missing value for '+key)
     if(!(options && options.raw)) value = JSON.stringify(value)
@@ -94,7 +77,7 @@ module.exports = {
       let t = this.timeouts[key]
       if(!this.timeouts[key]) t = me._newTimeout(key,value)
       t.nextValue = value
-      t.operation = () => me._set(key,value)
+      t.operation = () => bucket.file(key+".json").save(value)
       t.promises.push({
         resolve: () => resolve(true),
         reject
@@ -116,30 +99,29 @@ module.exports = {
       stream.end(value);
     })
   },
-  get:function(key){
-    var me = this
-    return new Promise(async function(resolve,reject){
-      if(me.timeouts[key]){
-        return resolve(JSON.parse(me.timeouts[key].nextValue))
-      }
-      var data = [], str = ""
-      var file = bucket.file(key+".json")
-      if(!(await file.exists())[0]) return resolve(null)
+  get:async function(key){
+    if(this.timeouts[key]){
+      return JSON.parse(this.timeouts[key].nextValue)
+    }
+    var file = bucket.file(key+".json")
+    if(!(await file.exists())[0]) return null
 
-      var stream = file.createReadStream();
-      stream.on("data", r => data.push(r))
-      stream.on("end",function(){
-        try{
-          str = Buffer.concat(data)
-          data = JSON.parse(str)
-        }catch(e){
-          this.Log("Unparseable json "+key+" "+e.message)
-          return
-        }
-        me._newTimeout(key,str)
-        resolve(data)
-      })
-    })
+    let str
+    try{
+      str = (await file.download())[0].toString()
+    }catch(e){
+      console.error("problem key:", key)
+      throw e
+    }
+    let data
+    try{
+      data = JSON.parse(str)
+    }catch(e){
+      this.Log("Unparseable json "+key+" "+e.message)
+      return
+    }
+    this._newTimeout(key,str)
+    return data
   },
   getFile:async function(path){
     var data = ""
@@ -147,7 +129,7 @@ module.exports = {
     if(!(await file.exists())[0]) return null
     return (await file.download())[0]
   },
-  getStream:function(key){
+  /*getStream:function(key){
     var file = bucket.file(key)
     return file.createReadStream();
   },
@@ -164,7 +146,7 @@ module.exports = {
     
       value.pipe(stream)
     })
-  },
+  },*/
   delete: function(key){
     if(this.timeouts[key]){
       this.updateTimeout(key)

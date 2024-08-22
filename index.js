@@ -51,6 +51,17 @@ let multiplayerOn = true
 let multiplayerMsg = "" //message when multiplayer is off
 let doGetPast = false
 
+
+if(!process.env.REPLIT_DEPLOYMENT){
+  console.log('not deployment')
+
+  require("./editor/updatefiles.js")
+  
+  require("./indextest.js")
+  return
+}
+
+
 process.on('unhandledRejection', (reason, p) => {
   //console.error('Unhandled Rejection at: Promise', p, 'reason:', reason);
   //Log(reason.stack)
@@ -74,8 +85,6 @@ const serverInfo = [
 ]
 
 const d = ["2-people","2-people2","Notch","TomMustBe12"]
-
-if(!process.env.REPLIT_DEPLOYMENT) throw new Error("don't run 2 at once")
 
 const express = require('express');
 const app = express();
@@ -109,6 +118,7 @@ const rateLimit = require("./rateLimit.js")(ban)
 const { createCanvas, Image } = require('canvas')
 const nocache = require('nocache')
 const zlib = require('zlib');
+
 
 const SECOND = 1000
 const MINUTE = SECOND * 60
@@ -2816,6 +2826,13 @@ router.post('/internal/run',getPostText,async(req,res) => {
     Log("%< Unable to show output")
   }
   res.send('success')
+})
+router.post("/internal/updateFile/:file",getPostText,async(req,res)=>{
+  if(req.query.pwd !== process.env.passKey) return res.send('Unauthorized')
+  let file = __dirname+(req.params.file ? "/"+req.params.file : "")
+  await fs.promises.writeFile(file,req.body)
+  res.send('success')
+  Log("Editor: updated file "+req.params.file)
 })
 
 app.use('/minekhan/assets', express.static(__dirname+'/public/minekhan/assets'))

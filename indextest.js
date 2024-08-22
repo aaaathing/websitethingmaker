@@ -1,9 +1,16 @@
 const db=require("./db.js")
-function wait(x){return new Promise(r=>setTimeout(r,x))}
+
+//  console.log(process.env)
+;(async function(){
+  db.set("hello",'yoyyyeoyoy')
+  console.log(await db.get("hello"))
+})()
+
+/*function wait(x){return new Promise(r=>setTimeout(r,x))}
 var unzipper = require('unzipper');
 ;(async function(){
   console.log((await db.list()).length)
-})()
+})()*/
 /*let i=0
 db.getStream('users.zip')
 .pipe(unzipper.Parse())
