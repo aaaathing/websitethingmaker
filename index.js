@@ -49,7 +49,8 @@ Subscribers are people who allowed notifications
 //Variables
 let multiplayerOn = true
 let multiplayerMsg = "" //message when multiplayer is off
-let doGetPast = false
+
+const theHost = "thingmaker.us.eu.org"
 
 
 if(!process.env.REPLIT_DEPLOYMENT){
@@ -719,9 +720,7 @@ function logout(request, res){
   return new Promise(async (resolve, reject) => {
     var sid = request.cookies.sid
     res.clearCookie("sid",{
-      maxAge:0,
-      path: "/",
-      domain: ".thingmaker.us.eu.org"
+      maxAge:0
     });
     await db.delete("session:"+sid).then(() => {
       resolve()
@@ -776,6 +775,11 @@ const validate = async(request, response, next) => {
     next()
   }
 }
+app.use((req,res,next) => {
+  if(req.hostname !== theHost && !req.url.startsWith("/internal/")){
+    res.redirect("https://"+theHost+req.url)
+  }else next()
+})
 app.use(validate)
 app.use(async(req,res,next) => {
   if(!banned) await waitForBanned()
@@ -811,7 +815,7 @@ app.use(async(req,res,next) => {
   }else next()
 })
 
-const getpast = {}//For security
+/*const getpast = {}//For security
 if(doGetPast){
   router.get("/getgetpast",nocache(),(req,res) => {
     //if(getpastid) delete getpast[getpastid] //delete old one
@@ -835,20 +839,20 @@ if(doGetPast){
     }
     res.end()
   })
-}
+}*/
 
 /*app.use(function(req,res,next){
   if(req.url !== "/login/" && req.url !== "/server/login"){
     able(req,res,next)
   }else next()
 })*/
-if(doGetPast){
+/*if(doGetPast){
   app.use(function(req,res,next){
     if((!lastOnline[d[0]] || Date.now()-lastOnline[d[0]].time>MINUTE*30) && !req.username && (req.url === "/" || req.url === "/minekhan/" || req.url === "/login/") && getpast[req.clientIp] !== true || req.url === "/getpast"){ 
       res.sendFile(__dirname+"/getpast.html")
     }else next()
   })
-}
+}*/
 
 async function isAdmin(username){
   var admin
@@ -953,22 +957,29 @@ router.get("/assets/common.js", (req,res) => {
     }
   }
   let user = JSON.stringify(userInfo).replace(/</g,"\\<").replace(/>/g,"\\>")
-  let parser = new Transform({
-    transform(data, encoding, done) {
-      const str = data.toString().replace('USERDATA', user)
-      this.push(str);
-      done();
-    }
-  })
-  
   fs.createReadStream(__dirname+'/public/assets/common.js')
     .pipe(newLineStream())
-    .pipe(parser)
-    .on("error",e => {
-      console.error(e)
-    })
+    .pipe(new Transform({
+      transform(data, encoding, done) {
+        const str = data.toString().replace('USERDATA', user)
+        this.push(str);
+        done();
+      }
+    }))
     .pipe(res);
 })
+/*router.get("/news.js", (req,res) => {
+  fs.createReadStream(__dirname+'/public/news.js')
+    .pipe(newLineStream())
+    .pipe(new Transform({
+      transform(data, encoding, done) {
+        const str = data.toString().replace("USERCOUNT",onlineCount)
+        this.push(str);
+        done();
+      }
+    }))
+    .pipe(res);
+})*/
 
 router.get("/server", function(req,res) {
   res.sendFile(__dirname+"/server.html")
@@ -1126,7 +1137,7 @@ router.post("/server/map", getPostData,async function(req, res){
     );
     await db.set("mapsCategory:"+req.body.category,all)
   }
-  await sendNotifToAll("There is a new map called: "+map.name+". Go check it out at https://thingmaker.us.eu.org/maps/map/?map="+map.name)
+  await sendNotifToAll("There is a new map called: "+map.name+". Go check it out at https://"+theHost+"/maps/map/?map="+map.name)
   res.send({success:true})
   Log("New map called",map.name)
 })
@@ -1206,7 +1217,7 @@ router.post("/server/rp", getPostDataLarge, async function(req, res){
     Object.entries(all).sort((a,b) => b[1].created - a[1].created)
   );
   await db.set("maps",all)
-  await sendNotifToAll("There is a new resource pack called: "+rp.name+". Go check it out at https://thingmaker.us.eu.org/maps/rp/?rp="+rp.name)
+  await sendNotifToAll("There is a new resource pack called: "+rp.name+". Go check it out at https://"+theHost+"/maps/rp/?rp="+rp.name)
   res.send({success:true})
   Log("New resource pack called",rp.name)
 })
@@ -1271,7 +1282,7 @@ async function getWikiPageTitles(){
   for(var i of otherPages){
     pages[i] = {name:i.replace('wiki:','')}
   }*/
-  return (await db.list("wiki/")).map(r => r.replace(/\./g,"/"))
+  return (await db.list("wiki/")).map(r => r.replace("wiki/","").replace(/\./g,"/"))
 }
 async function getWikiPage(name){
   try{
@@ -2671,7 +2682,7 @@ router.get("/server/account/*/mksaves", async(req,res) => {
 router.post("/server/know/newWorld",getPostText,async(req,res) => {
   let split = req.body.split(";")
   if(req.username) setOnline(req.username,"new world: "+split[0])
-  Log("MineKhan:",req.username+" created new world called "+split[0]+" with seed "+split[1]+" and world type "+split[2]+" and game mode "+split[3], req.headers.origin!=="https://thingmaker.us.eu.org"&&(req.headers.origin+""!=="null")?"from "+req.headers.origin+"  "+req.url:"")
+  Log("MineKhan:",req.username+" created new world called "+split[0]+" with seed "+split[1]+" and world type "+split[2]+" and game mode "+split[3], req.headers.origin!=="https://"+theHost&&(req.headers.origin+""!=="null")?"from "+req.headers.origin+"  "+req.url:"")
   res.send("done")
 })
 router.post("/server/know/openWorld",getPostText,async(req,res) => {

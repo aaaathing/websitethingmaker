@@ -25,7 +25,7 @@ function canCache(url) {
 	return url.startsWith(location.origin) && assets.includes(url.replace(location.origin,'')) ||
     url.startsWith(location.origin+"/minekhan/assets/images/") && !url.endsWith("/") ||
     url.startsWith(location.origin+"/minekhan/assets/lang/") && !url.endsWith("/") ||
-    url.startsWith(location.origin+"/assets/") && !url === location.origin+"/assets/common.js"
+    url.startsWith(location.origin+"/assets/")
 }
 function cacheForever(url){
   return false

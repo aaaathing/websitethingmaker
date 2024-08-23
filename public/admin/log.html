@@ -69,7 +69,7 @@
         fetch("/log"+options).then(r=>r.text()).then(r => {
           log.innerHTML = r
         }).catch(e => {
-          log.append(e)
+          log.append(document.createElement("br"),e)
         })
       }
       load()
@@ -83,14 +83,14 @@
           method:"POST",
           body:value
         }).then(r => r.text()).then(r => {
-          if(r !== "success") log.append(r)
+          if(r !== "success") log.append(document.createElement("br"),r)
         })
       }
 
       window.restart = async function restart(){
         if(!pwd) pwd = prompt("Password")
         let r = await fetch("/internal/restart?pwd="+pwd).then(r => r.text()).catch(e => e)
-        if(r !== "success") log.append(r)
+        if(r !== "success") log.append(document.createElement("br"),r)
       }
       }
     </script>
