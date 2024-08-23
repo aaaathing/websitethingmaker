@@ -1,4 +1,5 @@
 const {Storage} = require('@google-cloud/storage');
+const { log } = require('console');
 const storage = new Storage({
   credentials:{
     audience: "replit",
@@ -35,6 +36,8 @@ const bucket = storage.bucket("replit-objstore-dfc036d2-f315-4a87-877d-ec3cea3d7
     stream.end(value);
   })
 }*/
+
+function sleep(time){return new Promise(r => setTimeout(r,time))}
 
 module.exports = {
   storage,
@@ -147,7 +150,7 @@ module.exports = {
     let me = this
     return new Promise((resolve,reject) => {
       let t = this.timeouts[key]
-      if(!this.timeouts[key]) t = me._newTimeout(key,value)
+      if(!this.timeouts[key]) t = me._newTimeout(key,null)
       t.nextValue = null
       t.operation = () => bucket.file(key+".json").delete()
       t.promises.push({
@@ -184,6 +187,31 @@ module.exports = {
       return arr
     }
   },
+  autoDeleteOld: function(prefix,timelen){
+    function doBegin(){
+      bucket.getFiles({
+        prefix,
+        maxResults:100
+      }, doNext)
+    }
+    let me = this
+    async function doNext(err, files, nextQuery){
+      for(var i=0; i<files.length; i++){
+        let name = files[i].name
+        if(name.startsWith(prefix) && (Date.now() - new Date(files[i].metadata.updated).getTime()) > timelen){
+          await me.delete(name.substring(0,name.lastIndexOf(".json")))
+        }
+      }
+      await sleep(1000*60*60)
+      if(nextQuery){
+        bucket.getFiles(nextQuery, doNext)
+      }else{
+        doBegin()
+      }
+    }
+    doBegin()
+  },
+  
   atInterval:function(){
     for(var i in this.timeouts) this.updateTimeout(i)
   },

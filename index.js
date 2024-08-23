@@ -54,8 +54,6 @@ let doGetPast = false
 
 if(!process.env.REPLIT_DEPLOYMENT){
   console.log('not deployment')
-
-  require("./editor/updatefiles.js")
   
   require("./indextest.js")
   return
@@ -137,7 +135,7 @@ async function findLongKeys(){
   }
   Log("done")
 }
-async function findUselessAccounts(g){
+/*async function findUselessAccounts(g){
   var keys = await db.list("user:",true)
   var p = []
   for(var i in keys){
@@ -154,7 +152,8 @@ async function deleteUselessAccounts(){
   for(var i of p) p[i] = db.delete(i)
   await Promise.all(p)
   Log("done")
-}
+}*/
+db.autoDeleteOld("session:", DAY*60)
 
 let log = [], prelog = true
 function Log(){

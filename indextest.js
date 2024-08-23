@@ -1,14 +1,13 @@
+if(1){
+  require("./editor/updatefiles.js")
+  return
+}
+
+
 const db=require("./db.js")
 
 ;(async function(){
-  /*db.bucket.addLifecycleRule({
-    action:"delete",
-    condition:{
-      matchesPrefix:"session:",
-      age:60
-    }
-  })
-  console.log("done")*/
+  
 })()
 
 /*function wait(x){return new Promise(r=>setTimeout(r,x))}
