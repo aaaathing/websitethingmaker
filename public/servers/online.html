@@ -81,13 +81,13 @@
         let count = 0
         for(let i=userArray.length-1; i>=0; i--){
           let u = userArray[i]
-          if(now - users[u].time > 86400000){//24 hours
+          /*if(now - users[u].time > 86400000){//24 hours
             delete users[u]
             userArray.splice(i,1)
             continue
-          }
+          }*/
           let str = timeString2(now - users[u].time)
-          html += u+" | "+users[u].path+" | "+str+"<br>"
+          html += users[u].username.join(", ")+" | "+users[u].path+" | "+str+"<br>"
           if(now - users[u].time < minTime && u !== username) minTimeStr = str, minTime = now - users[u].time
           count++
         }
@@ -96,30 +96,31 @@
         document.title = "online " + minTimeStr
       }
       
-      var ws, users = {}, username, userArray = [], timeOffset
+      var ws, users = {}, username, userArray = []
       function ondata(data){
         if(data.type === "all"){
-          timeOffset = Date.now() - data.now
+          let timeOffset = Date.now() - data.now
           userArray.length = 0
-          for(let user in data.data){
-            users[user] = {path:data.data[user].path ,time:data.data[user].time+timeOffset}
-            userArray.push(user)
+          for(let user of data.data){
+            users[user.id] = {...user, time:user.time+timeOffset}
+            userArray.push(user.id)
             userEvent(user)
           }
           userArray.sort((a,b) => users[a].time - users[b].time)
         }else{
-          let now = data.time+timeOffset
-          if(!users[data.user]) users[data.user] = {path:data.path}
-          users[data.user].time = now
-          users[data.user].path = data.path
-          if(userArray.includes(data.user)) userArray.splice(userArray.indexOf(data.user),1)
-          userArray.push(data.user)
-          userEvent(data.user)
+          let now = Date.now()
+          if(!users[data.id]) users[data.id] = {...data}
+          users[data.id].time = now
+          users[data.id].path = data.path
+          users[data.id].username = data.username
+          if(userArray.includes(data.id)) userArray.splice(userArray.indexOf(data.id),1)
+          userArray.push(data.id)
+          userEvent(data)
         }
       }
       const theu = location.hash.replace("#",""), userEventsEl = document.querySelector("#userEvents")
       function userEvent(u){
-        if(u === theu){
+        if(u.username.includes(theu)){
           let el = document.createElement("span")
           el.textContent = u+" | "+users[u].path+" | "+timeString3(users[u].time)
           userEventsEl.appendChild(el)

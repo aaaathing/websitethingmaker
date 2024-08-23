@@ -117,6 +117,8 @@ const rateLimit = require("./rateLimit.js")(ban)
 const { createCanvas, Image } = require('canvas')
 const nocache = require('nocache')
 const zlib = require('zlib');
+const { request } = require("http")
+const path = require("path")
 
 
 const SECOND = 1000
@@ -503,24 +505,33 @@ function timeoutPromise(p, time){
   })
 }
 
-let lastOnline = {}, onlineCount = 0
+let lastOnline = new Set()
+let lastOnlineCategories = {i:new Map(),u:new Map()}
 function updateOnline(){
   let now = Date.now()
-  onlineCount = 0
-  for(let i in lastOnline){
-    if(now - lastOnline[i].time > DAY){
-      delete lastOnline[i]
+  for(let u of lastOnline){
+    if(now - u.time > DAY){
+      lastOnline.delete(u)
+      for(let username of u.username) lastOnlineCategories.u.delete(username)
+      for(let ip of u.ip) lastOnlineCategories.i.delete(ip)
       //if(i === d[0]) disable()
-    }else onlineCount++
+    }
   }
-  db.set("lastOnline",lastOnline)
+  db.set("lastOnline",[...lastOnline])
 }
 setInterval(updateOnline,MINUTE)
 db.get("lastOnline").then(r => {
   if(r){
-    for(let i in r){
-      if(!lastOnline[i]) lastOnline[i] = r[i], onlineCount++
+    lastOnline = new Set(r)
+    lastOnlineCategories.i.clear()
+    lastOnlineCategories.u.clear()
+    for(let u of lastOnline){
+      for(let username of u.username) lastOnlineCategories.u.set(username,u)
+      for(let ip of u.ip) lastOnlineCategories.i.set(ip,u)
     }
+    /*for(let i in r){
+      if(!lastOnline[i]) lastOnline[i] = r[i], onlineCount++
+    }*/
     for(let i of onlineWs.connections){
       sendAllOnline(i)
     }
@@ -530,12 +541,20 @@ const badPaths = ["/test","/records","/links.json"]
 function goodPath(path){//for online
   return (path.endsWith(".html") || !path.match(/\.[^.]+$/)) && !path.startsWith("/server/") && !path.startsWith("/editor/") && !path.startsWith("/internal/") && !badPaths.includes(path) && !path.startsWith("/updates/")
 }
-function setOnline(username,path){
+function setOnline(username,path,ip){
   let good = goodPath(path)
-  if(!lastOnline[username] && good) lastOnline[username] = {path:"no path yet"}, onlineCount++
-  if(good) lastOnline[username].time = Date.now()
-  lastOnline[username].path = path
-  if(good) sendOnline(username,lastOnline[username].path)
+  let who = (username ? lastOnlineCategories.u.get(username) : null) || lastOnlineCategories.i.get(ip)
+  if(!who){
+    who = {path:"no path yet", username:[],ip:[], id:generateId()}
+    lastOnline.add(who)
+  }
+  lastOnlineCategories.u.set(username,who)
+  lastOnlineCategories.i.set(ip,who)
+  if(!who.username.includes(username)) who.username.push(username)
+  if(!who.ip.includes(ip)) who.ip.push(ip)
+  if(good) who.time = Date.now()
+  who.path = path
+  if(good) sendOnline(who)
 }
 
 /*function able(req,res,next){
@@ -728,7 +747,8 @@ function logout(request, res){
   })
 }
 
-const validate = async(request, response, next) => {
+const validate = async(request, response, next) => {  
+  request.isGoodPath = goodPath(request.path)
   let sid = request.cookies && request.cookies.sid
   let spwd = request.cookies && request.cookies.spwd
   if(!sid && request.headers.authorization){
@@ -751,13 +771,12 @@ const validate = async(request, response, next) => {
         u.ip.push(request.clientIp)
         change = true
       }
-      if(goodPath(request.path)){
+      if(request.isGoodPath){
         let now = Date.now()
         if(!u.lastActive || now - u.lastActive >= MINUTE){
           u.lastActive = Date.now()
           change = true
         }
-        setOnline(u.username,request.method+" "+request.url)
       }
       request.user = u
       if(change){
@@ -782,6 +801,8 @@ app.use((req,res,next) => {
 })
 app.use(validate)
 app.use(async(req,res,next) => {
+  if(req.isGoodPath) setOnline(req.username,req.method+" "+req.url,req.clientIp)
+  
   if(!banned) await waitForBanned()
   let ban = isBanned(req.username,req.clientIp)
   if(ban && ban.mode === "website"){
@@ -2681,12 +2702,12 @@ router.get("/server/account/*/mksaves", async(req,res) => {
 
 router.post("/server/know/newWorld",getPostText,async(req,res) => {
   let split = req.body.split(";")
-  if(req.username) setOnline(req.username,"new world: "+split[0])
+  if(req.username) setOnline(req.username,"new world: "+split[0],request.clientIp)
   Log("MineKhan:",req.username+" created new world called "+split[0]+" with seed "+split[1]+" and world type "+split[2]+" and game mode "+split[3], req.headers.origin!=="https://"+theHost&&(req.headers.origin+""!=="null")?"from "+req.headers.origin+"  "+req.url:"")
   res.send("done")
 })
 router.post("/server/know/openWorld",getPostText,async(req,res) => {
-  if(req.username) setOnline(req.username,"open world: "+req.body)
+  if(req.username) setOnline(req.username,"open world: "+req.body,request.clientIp)
   Log("MineKhan:",req.username+" played world called "+req.body)
   res.send("done")
 })
@@ -2841,6 +2862,7 @@ router.post('/internal/run',getPostText,async(req,res) => {
 router.post("/internal/updateFile/:file",getPostBuffer2,async(req,res)=>{
   if(req.query.pwd !== process.env.passKey) return res.send('Unauthorized')
   let relfile = Buffer.from(req.params.file, "base64").toString()
+  await fs.promises.mkdir(path.dirname(relfile),{recursive:true})
   await fs.promises.writeFile(relfile,req.body)
   res.send('success')
   Log("Editor: updated file "+relfile)
@@ -3970,12 +3992,12 @@ onlineWs.onrequest = function(request,connection){
 function sendAllOnline(connection){
   connection.sendUTF(JSON.stringify({
     type:"all",
-    data:lastOnline,
+    data:[...lastOnline].map(({id,path,username,time}) => ({id,path,username,time})),
     now:Date.now()//for correct time
   }))
 }
-function sendOnline(user,path){
-  let str = JSON.stringify({user,path,time:Date.now()})
+function sendOnline({id,path,username,time}){
+  let str = JSON.stringify({id,path,username,time})
   for(var i=0; i<onlineWs.connections.length; i++){
     var con = onlineWs.connections[i]
     con.sendUTF(str)
