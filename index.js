@@ -2837,6 +2837,8 @@ router.post("/internal/updateFile/:file",getPostBuffer2,async(req,res)=>{
 })
 
 app.use('/minekhan/assets', express.static(__dirname+'/public/minekhan/assets'))
+
+/*
 const assets = db.storage.bucket("assets-thingmaker-minekhan")
 
 let idx1, idx2, idxNotDeepest
@@ -2883,6 +2885,7 @@ router.get(/^\/minekhan\/assets\/(.*)$/, async function(req,res,next){
     res.send(html)
   }
 })
+*/
 
 function LogAllOut(){
   db.list("session:").then(m => {

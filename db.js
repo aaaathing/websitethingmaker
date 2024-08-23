@@ -106,13 +106,7 @@ module.exports = {
     var file = bucket.file(key+".json")
     if(!(await file.exists())[0]) return null
 
-    let str
-    try{
-      str = (await file.download())[0].toString()
-    }catch(e){
-      console.error("problem key:", key)
-      throw e
-    }
+    let str = (await file.download())[0].toString()
     let data
     try{
       data = JSON.parse(str)
@@ -124,7 +118,6 @@ module.exports = {
     return data
   },
   getFile:async function(path){
-    var data = ""
     var file = bucket.file(path)
     if(!(await file.exists())[0]) return null
     return (await file.download())[0]
@@ -156,7 +149,7 @@ module.exports = {
       let t = this.timeouts[key]
       if(!this.timeouts[key]) t = me._newTimeout(key,value)
       t.nextValue = null
-      t.operation = () => bucket.file(key+".json").delete({ignoreNotFound:true})
+      t.operation = () => bucket.file(key+".json").delete()
       t.promises.push({
         resolve: () => resolve(true),
         reject
@@ -164,9 +157,9 @@ module.exports = {
       this.updateTimeout(key)//it may be able to upload so update it
     })
   },
-  getToObj:function(key,obj){
+  /*getToObj:function(key,obj){
     return this.get(key).then(r => obj[key] = r)
-  },
+  },*/
   list:async function(prefix,values){
     const [files] = await bucket.getFiles({prefix});
   
@@ -194,11 +187,12 @@ module.exports = {
   atInterval:function(){
     for(var i in this.timeouts) this.updateTimeout(i)
   },
-  getSize:function(){
+  /*getSize:function(){
     return bucket.getMetadata().then(metadata => {
       metadata = metadata[0]
       console.log(metadata.size)
     })
-  }
+  },*/
+  bucket
 }
 setInterval(() => module.exports.atInterval(),1000)

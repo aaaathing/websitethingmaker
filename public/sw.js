@@ -65,7 +65,7 @@ self.addEventListener("fetch", event => {
       cache.put(event.request, fetchRes.clone())
     }
     return fetchRes
-  }))
+  })())
 })
 
 self.addEventListener('push', async event => {
