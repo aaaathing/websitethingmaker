@@ -357,7 +357,7 @@ document.body.appendChild(script)
 var div = document.createElement("div")
 div.innerHTML = `
 <div>
-  <b>thingMaker's accounts</b>
+  <b>to contact thingMaker</b>
   <ul>
     <li><a href="https://scratch.mit.edu/users/2-people">Scratch</a></li>
     <li><a href="https://replit.com/@thingMaker">Replit</a></li>

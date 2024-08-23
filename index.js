@@ -3983,23 +3983,21 @@ function sendOnline(user,path){
 
 //====================== UDPATES
 router.get("/minekhan/updatesAfter/:time", (req,res) => {
-  let found, afterFound = !(+req.params.time)
-  let parser = new Transform({
-    transform(data, encoding, done) {
-      let str = data.toString()
-      if(found && str.startsWith("-- ")) afterFound = true
-      if(str === "-- "+req.params.time+"\n") found = true
-      if(afterFound){
-        //if(str.startsWith("-- ")) str = str.substring(0,3)+new Date(+str.substring(3,str.length-1)).toLocaleDateString(undefined,{year: "numeric", month: "long", day: "numeric"})+"\n"
-        this.push(str);
-      }
-      done();
-    }
-  })
-  
+  let found
   fs.createReadStream(__dirname+'/public/minekhan/updates.txt')
     .pipe(newLineStream())
-    .pipe(parser)
+    .pipe(new Transform({
+      transform(data, encoding, done) {
+        let str = data.toString()
+        let isIt = str.match(/-- (\d*)/)
+        if(isIt && +isIt[1] > req.params.time) found = true
+        if(found){
+          //if(str.startsWith("-- ")) str = str.substring(0,3)+new Date(+str.substring(3,str.length-1)).toLocaleDateString(undefined,{year: "numeric", month: "long", day: "numeric"})+"\n"
+          this.push(str);
+        }
+        done();
+      }
+    }))
     .on("error",e => {
       console.error(e)
     })
@@ -4012,9 +4010,10 @@ router.get("/minekhan/recentUpdates", async(req,res) => {
   let buffer = Buffer.alloc(amount)
   await handle.read(buffer, 0, amount, size-amount)
   let str = buffer.toString()
-  str = str.substring(str.indexOf("-- ")).replace(/-- (.*)\n/g, (_,$1) => {
+  str = str.substring(str.indexOf("-- "))
+  /*.replace(/-- (.*)\n/g, (_,$1) => {
     return "-- "+(new Date(+$1).toLocaleDateString(undefined,{year: "numeric", month: "long", day: "numeric"}))+"\n"
-  })
+  })*/
   await handle.close()
   res.send(str)
 })
