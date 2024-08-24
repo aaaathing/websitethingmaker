@@ -18,6 +18,7 @@
   </head>
   <body>
     <h1>Live list of people online</h1>
+    <input type="checkbox" id="showIfUsername"><label for="showIfUsername">Show only if has username</label><br>
     <b>There are <span id="onlineCount"></span> users in the last 24 hours.</b>
     <div id="online"></div>
     <br><br>
@@ -74,13 +75,20 @@
         }))
       }
 
+      let showIfUsername = document.querySelector("#showIfUsername")
       function updateList(){
         let now = Date.now()
         let html = ""
         let minTime = Infinity, minTimeStr = ""
         let count = 0
-        for(let i=userArray.length-1; i>=0; i--){
+        loop:for(let i=userArray.length-1; i>=0; i--){
           let u = userArray[i]
+          detectUsername:if(showIfUsername.checked){
+            for(let username of users[u].username){
+              if(username) break detectUsername
+            }
+            continue loop
+          }
           /*if(now - users[u].time > 86400000){//24 hours
             delete users[u]
             userArray.splice(i,1)

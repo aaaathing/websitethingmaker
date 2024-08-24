@@ -1644,7 +1644,7 @@ router.post('/testNotif',getPostData, async(req, res) => {
 });
 
 async function addSubscription(s,username){
-  Log("add subscription "+username,s)
+  Log("add subscription "+username)
   var r = await db.get("subscriptions")
   r = r || []
   let exist
@@ -2702,12 +2702,12 @@ router.get("/server/account/*/mksaves", async(req,res) => {
 
 router.post("/server/know/newWorld",getPostText,async(req,res) => {
   let split = req.body.split(";")
-  if(req.username) setOnline(req.username,"new world: "+split[0],request.clientIp)
+  setOnline(req.username,"new world: "+split[0],request.clientIp)
   Log("MineKhan:",req.username+" created new world called "+split[0]+" with seed "+split[1]+" and world type "+split[2]+" and game mode "+split[3], req.headers.origin!=="https://"+theHost&&(req.headers.origin+""!=="null")?"from "+req.headers.origin+"  "+req.url:"")
   res.send("done")
 })
 router.post("/server/know/openWorld",getPostText,async(req,res) => {
-  if(req.username) setOnline(req.username,"open world: "+req.body,request.clientIp)
+  setOnline(req.username,"open world: "+req.body,request.clientIp)
   Log("MineKhan:",req.username+" played world called "+req.body)
   res.send("done")
 })
