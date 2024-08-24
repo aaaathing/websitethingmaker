@@ -692,8 +692,8 @@ function getPostBuffer(req,res,next,type,limit=1000000){
   req.on('data', ondata);
   req.on('end', onend);
 }
-function getPostBuffer2(req,res,next){
-  getPostBuffer(req,res,next)
+function getPostBufferHuge(req,res,next){
+  getPostBuffer(req,res,next,null,10000000)
 }
 function getPostText(req,res,next,limit=10000){
   getPostBuffer(req,res,next,"text",limit)
@@ -2859,7 +2859,7 @@ router.post('/internal/run',getPostText,async(req,res) => {
   }
   res.send('success')
 })
-router.post("/internal/updateFile/:file",getPostBuffer2,async(req,res)=>{
+router.post("/internal/updateFile/:file",getPostBufferHuge,async(req,res)=>{
   if(req.query.pwd !== process.env.passKey) return res.send('Unauthorized')
   let relfile = Buffer.from(req.params.file, "base64").toString()
   await fs.promises.mkdir(path.dirname(relfile),{recursive:true})

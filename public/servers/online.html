@@ -87,8 +87,8 @@
             continue
           }*/
           let str = timeString2(now - users[u].time)
-          html += users[u].username.join(", ")+" | "+users[u].path+" | "+str+"<br>"
-          if(now - users[u].time < minTime && u !== username) minTimeStr = str, minTime = now - users[u].time
+          html += u+" | "+users[u].username.join(", ")+" | "+users[u].path+" | "+str+"<br>"
+          if(now - users[u].time < minTime && !users[u].username.includes(username)) minTimeStr = str, minTime = now - users[u].time
           count++
         }
         if(onlineCount.innerHTML !== count+"") onlineCount.innerHTML = count+""
@@ -120,7 +120,7 @@
       }
       const theu = location.hash.replace("#",""), userEventsEl = document.querySelector("#userEvents")
       function userEvent(u){
-        if(u.username.includes(theu)){
+        if(u === theu){
           let el = document.createElement("span")
           el.textContent = u+" | "+users[u].path+" | "+timeString3(users[u].time)
           userEventsEl.appendChild(el)
