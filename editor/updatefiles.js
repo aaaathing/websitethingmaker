@@ -3,7 +3,7 @@ async function wasFolderChanged(path,time) {
   let stuff = await fs.promises.readdir(path)
   let maxTime = -Infinity
   for(let fname of stuff){
-    if(fname.startsWith(".")) continue
+    if(fname.startsWith(".") || fname === "node_modules") continue
     let stat = await fs.promises.stat(path+"/"+fname)
     if(stat.isDirectory()){
       maxTime = Math.max(maxTime, await wasFolderChanged(path+"/"+fname,time))
