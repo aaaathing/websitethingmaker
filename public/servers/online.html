@@ -114,7 +114,7 @@
             userArray.push(user.id)
             userEvent(user)
           }
-          userArray.sort((a,b) => users[a].time - users[b].time)
+          userArray.sort((a,b) => (users[a].time || -Infinity) - (users[b].time || -Infinity))
         }else{
           let now = Date.now()
           if(!users[data.id]) users[data.id] = {...data}
