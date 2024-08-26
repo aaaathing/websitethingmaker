@@ -200,7 +200,7 @@ ${buttonText ? `<button onclick="comment()" class="comment-button">${buttonText}
     })
   }
   async function uploadIt(d, type){
-    var buffer = await readFileAsDataURL(d)
+    /*var buffer = await readFileAsDataURL(d)
     var res = await fetch("/server/newMedia", {
       method: 'POST',
       body: buffer,
@@ -210,7 +210,21 @@ ${buttonText ? `<button onclick="comment()" class="comment-button">${buttonText}
     }).then(r => r.json())
     if(res.success){
       addToComment("<"+(type || "img")+" src='"+res.url+"'"+(type==="video"?"controls":"")+"/>")
-    }else alert(res.message)
+    }else alert(res.message)*/
+    let r
+    let formData = new FormData()
+    formData.append("file",d)
+    formData.append("upload_preset","ygf5chcy")
+    try{
+      r = await (await fetch("https://api.cloudinary.com/v1_1/doooij2qr/auto/upload", {
+        method:"POST",
+        body:formData
+      })).json()
+    }catch(e){
+      alert(e.message)
+      return
+    }
+    addToComment("<"+(type || "img")+" src='"+r.secure_url+"'"+(type==="video"?"controls":"")+"/>")
   }
 
   function addToComment(str){
