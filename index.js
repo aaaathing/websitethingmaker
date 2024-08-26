@@ -723,6 +723,20 @@ function limitImage(data, size = 800){
     return canvas.toDataURL()
   }
 }
+
+function auth(req,res,next){//https://stackoverflow.com/questions/5951552/basic-http-authentication-in-node-js
+  var header = req.headers.authorization || '';       // get the auth header
+  res.header("WWW-Authenticate", 'Basic realm="website inside"')
+  var token = header.split(/\s+/).pop() || '';        // and the encoded auth token
+  var auth = Buffer.from(token, 'base64').toString(); // convert from base64
+  var parts = auth.split(/:/);                        // split on colon
+  var username = parts.shift();                       // username is first
+  var password = parts.join(':');
+  req.thePassword = password
+  if(password === process.env.passKey) next()
+  else res.status(401).sendFile(__dirname+"/401.html")
+}
+
 //cookies to see if you logged in
 function setUser(sid, res, pwd, username){
   res.cookie("sid", sid, {
@@ -2841,7 +2855,7 @@ router.get('/internal/restart',async(req,res) => {
 })
 let runBy = null
 router.post('/internal/run',getPostText,async(req,res) => {
-  if(req.query.pwd !== process.env.passKey) return res.send('Unauthorized')
+  //if(req.query.pwd !== process.env.passKey) return res.send('Unauthorized')
   Log("%> "+req.body)
   runBy = req.username
   let res2
