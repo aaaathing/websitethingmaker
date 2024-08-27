@@ -3778,8 +3778,8 @@ servers.toRes = function(){
     players:r.players.map(r => r.username),
     thumbnail:r.thumbnail,
     safe:r.safe,
-    unsecure:r.unsecure,
     url:r.url,
+		wsurl:r.wsurl,
     version:r.version
   }))
 }
@@ -3806,18 +3806,23 @@ function findServerInfo(id){
   }
 }
 async function getServerInfo(info){
-  var data = await fetch("http"+(info.unsecure ? "" : "s")+"://"+info.url+"/info").then(r => r.json()).catch(e => {})
+  var data = await fetch(info.url+"/info").then(r => r.json()).catch(e => {})
   if(data) info.id = data.id
   return info
 }
-function getServerInfoForId(id){
+function getServerInfoForId(id, url,wsurl){
   return new Promise(function(resolve,reject){
     var p = [], done
     for(var i of serverInfo){
       if(!findServer(i.id)) p.push(getServerInfo(i).then(r => {
-        if((r.id || r.id === 0) && r.id === id) resolve(r), done = true
+        if((r.id) && r.id === id) resolve(r), done = true
       }))
     }
+		if(url){
+			p.push(getServerInfo({url,wsurl}).then(r => {
+        if((r.id) && r.id === id) resolve(r), done = true
+      }))
+		}
     Promise.all(p).then(() => {
       if(!done) resolve()
     })
@@ -3829,10 +3834,10 @@ serverWs.validateFunc = async function(request, options, urlData){
   if(findServer(id)) return false
   var info = findServerInfo(id)
   if(!info){
-    info = await getServerInfoForId(id)
+    info = await getServerInfoForId(id,urlData.query.url,urlData.query.wsurl)
   }   
   if(info){
-    let pwd = await fetch("http"+(info.unsecure ? "" : "s")+"://"+info.url+"/validateServer/?pwd="+encodeURIComponent(urlData.query.pwd)).then(r => r.text()).catch(e => Log(e))
+    let pwd = await fetch(info.url+"/validateServer/?pwd="+encodeURIComponent(urlData.query.pwd)).then(r => r.text()).catch(e => Log(e))
     if(pwd !== "yes"){
       //Log("<h2>Warning: Unvalidated server</h2>",info)
       info = null
@@ -3845,20 +3850,20 @@ serverWs.onrequest = function(req, connection, urlData){
   var id = urlData.query.target
   var info = req.serverInfo
   var server = {
-    serverId:id, id,
+    serverId:id,
+		id:info && info.url ? "external:"+encodeURIComponent(info.url) : id,
     name:null,
     description:null,
     thumbnail:null,
     players:[],
-    url:info && info.url || requestIp.getClientIp(req),
+    url:info && info.url,
+    wsurl:info && info.wsurl,
     safe:info && info.safe,
-    unsecure:info && info.unsecure,
     connection
   }
   connection.on("message", function(message){
     var data = JSON.parse(message.utf8Data)
     if(data.type === "init"){
-      server.id = info && info.url ? "external:"+info.url : data.id
       server.name = ""+data.name
       server.description = data.description
       server.thumbnail = data.thumbnail
