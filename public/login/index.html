@@ -102,12 +102,12 @@
     <script>
       //This page can be used with window.open()
       //just listen for postMessages
-      var parent = window.opener || window
-      function postLogged(username){
-        parent.postMessage("logged:"+username, "*");
+      var parent = window.opener || window.top || window
+      function postLogged(res){
+        parent.postMessage({logged:res}, "*");
       }
       function postCanceled(){
-        parent.postMessage("canceled", "*");
+        parent.postMessage({canceled:true}, "*");
       }
       window.onbeforeunload = postCanceled
 
@@ -164,7 +164,7 @@
         }).then(res => res.json()).then(async res => {
           if(res.success){
             await sameSubscribe()
-            postLogged(username)
+            postLogged(res)
             location.href = redirect || res.redirect
           }else{
             error.innerHTML = res.message
@@ -187,7 +187,7 @@
         }).then(res => res.json()).then(async res => {
           if(res.success){
             await sameSubscribe()
-            postLogged(username)
+            postLogged(res)
             location.href = redirect || res.redirect
           }else{
             error.innerHTML = res.message
