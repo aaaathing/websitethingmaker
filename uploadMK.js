@@ -7,7 +7,7 @@ let fs=require("fs").promises
 	console.log("Reading...")
 	let files = await fs.readdir("public/minekhan/")
 	let str = await fs.readFile("public/minekhan/"+files.find(r => r.startsWith("_mksrc") && r.endsWith(".html")), { encoding: 'utf8' })
-	let str2 = await fs.readFile("public/minekhan/"+files.find(r => r.startsWith("_mksrc-world") && r.endsWith(".js")), { encoding: 'utf8' })
+	let str2 = await fs.readFile("public/minekhan/"+files.find(r => r.startsWith("_mksrc") && r.endsWith("-world.js")), { encoding: 'utf8' })
 	let minify = (await import("minify")).minify
 	console.log("Minifying...")
 	let whereInsert = str.indexOf("//INSERT-SERVER-CODE-HERE")

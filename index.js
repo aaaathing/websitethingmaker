@@ -988,7 +988,7 @@ router.get("/assets/common.js", (req,res) => {
       username:req.user.username,
       admin:req.user.admin,
       profanityFilter:req.user.profanityFilter,
-      notif:req.user.notifs
+      notifs:req.user.notifs
     }
   }
   let user = JSON.stringify(userInfo).replace(/</g,"\\<").replace(/>/g,"\\>")
