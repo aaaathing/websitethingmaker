@@ -498,7 +498,7 @@ body[theme=dark] #links a.no{
           let image
           if(i[0].startsWith("https://www.youtube.com/watch?v=")) image = "https://img.youtube.com/vi/"+i[0].replace("https://www.youtube.com/watch?v=","")+"/default.jpg"
           if(i[0].startsWith("https://www.youtube.com/shorts/")) image = "https://img.youtube.com/vi/"+i[0].replace("https://www.youtube.com/shorts/","")+"/default.jpg"
-          if(!i[3] && image){
+          if(/*!i[3] && */image){
             let img = document.createElement("img")
             img.src = image
             a.appendChild(img)
@@ -506,14 +506,14 @@ body[theme=dark] #links a.no{
           }
           a.appendChild(document.createTextNode(i[1]))
           a.href = i[0]
-          if(i[3]) a.setAttribute("disabled","")
+          //if(i[3]) a.setAttribute("disabled","")
           div.appendChild(a)
-          if(i[3]){
+          /*if(i[3]){
             let s = document.createElement("span")
             if(typeof i[3] === "string") s.innerHTML = "<h3 style='color:red;'>"+i[3]+"</h3>"
             else s.innerHTML = "<h2>Unavailable</h2>"
             div.appendChild(s)
-          }
+          }*/
           div.appendChild(document.createElement("br"))
           div.appendChild(document.createTextNode("By "+i[2]))
           videosEl.appendChild(div)
@@ -552,6 +552,7 @@ old imgs
 		<style>#historycontent img{max-width: 100%;}</style>
 		<div style="white-space: pre-line;" id="historycontent">
 		You can also see list of updates <a href="/minekhan/updates.txt">here</a> and old versions <a href="/minekhan/history">here</a>.
+		<img src="/assets/images/Screenshot 2024-08-27 at 10.15.14 PM.jpg" loading="lazy">
 		<h3>Early days of thingmaker's website</h3>
 		The website started as many files and folders on a old computer at somewhere between late 2020 to early 2021.
 		At this time, it was not accessible from the internet as it was local files.

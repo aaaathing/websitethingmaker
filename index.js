@@ -2714,6 +2714,10 @@ router.get("/server/account/*/mksaves", async(req,res) => {
   res.json(saves)
 })
 
+router.post("/server/suggest",getPostText,async(req,res) => {
+  Log(req.username+" suggest: "+req.body)
+  res.send("done")
+})
 router.post("/server/know/newWorld",getPostText,async(req,res) => {
   let split = req.body.split(";")
   setOnline(req.username,"new world: "+split[0],request.clientIp)
