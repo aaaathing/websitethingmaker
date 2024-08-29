@@ -967,7 +967,7 @@ router.get('/log', async(req,res,next) => {
       }
     }
   }
-  str += "<br>"+banned.length+" banned.<br>Cached: "+Object.keys(db.timeouts).join(", ")
+  str += "<br>"+banned.length+" banned.<br>Cached: "+Object.keys(db.timeouts).length
   str += "<br> Time "+(new Date(Date.now()+time).toLocaleDateString(undefined, {
     month: "short",
     day: "numeric",
@@ -1822,7 +1822,7 @@ router.post("/server/register",getPostData, async (request, response) => {
 })
 
 router.post('/server/login', getPostData, async (request, response) => {
-  rateLimit(request)
+  rateLimit(request,false,0.01)
   if (!request.body.username) {
     return response.status(401).send({success:false, "message": "An `username` is required" })
   } else if (!request.body.password) {
@@ -2715,21 +2715,25 @@ router.get("/server/account/*/mksaves", async(req,res) => {
 })
 
 router.post("/server/suggest",getPostText,async(req,res) => {
+	rateLimit(request,false,0.01)
   Log(req.username+" suggest: "+req.body)
   res.send("done")
 })
 router.post("/server/know/newWorld",getPostText,async(req,res) => {
+	rateLimit(request,false,0.01)
   let split = req.body.split(";")
   setOnline(req.username,"new world: "+split[0],request.clientIp)
   Log("MineKhan:",req.username+" created new world called "+split[0]+" with seed "+split[1]+" and world type "+split[2]+" and game mode "+split[3], req.headers.origin!=="https://"+theHost&&(req.headers.origin+""!=="null")?"from "+req.headers.origin+"  "+req.url:"")
   res.send("done")
 })
 router.post("/server/know/openWorld",getPostText,async(req,res) => {
+	rateLimit(request,false,0.01)
   setOnline(req.username,"open world: "+req.body,request.clientIp)
   Log("MineKhan:",req.username+" played world called "+req.body)
   res.send("done")
 })
 router.post("/server/know/mkError",getPostText,async(req,res) => {
+	rateLimit(request,false,0.01)
   Log("alert","MineKhan Error:",req.username+" encountered error: "+req.body)
   res.send("done")
 })
