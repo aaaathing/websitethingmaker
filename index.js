@@ -127,10 +127,6 @@ const HOUR = MINUTE * 60
 const DAY = HOUR * 24
 const YEAR = DAY * 365
 
-setInterval(() => {
-  updateBanned()
-}, 1000*60*10)
-
 async function findLongKeys(){
   var keys = await db.list("","raw")
   for(var i in keys){
@@ -224,116 +220,106 @@ db.get("log").then(r => {
   }
 })*/
 
+let lastOnline = new Set()
+let lastOnlineCategories = {i:new Map(),u:new Map()}
+function updateOnline(){
+  let now = Date.now()
+  for(let u of lastOnline){
+		if(u.banned && u.unbanTime && now >= u.unbanTime){
+      delete u.banned
+			delete u.banReason
+			delete u.banMode
+			delete u.unbanTime
+  		Log(u.username.join(", ")+" was unbanned.")
+    }
+    if(now - u.time > DAY && !u.banned){
+      lastOnline.delete(u)
+      for(let username of u.username) lastOnlineCategories.u.delete(username)
+      for(let ip of u.ip) lastOnlineCategories.i.delete(ip)
+      //if(i === d[0]) disable()
+    }
+  }
+  db.set("lastOnline",[...lastOnline])
+}
+setInterval(updateOnline,MINUTE)
+db.get("lastOnline").then(r => {
+  if(r){
+    lastOnline = new Set(r)
+    lastOnlineCategories.i.clear()
+    lastOnlineCategories.u.clear()
+    for(let u of lastOnline){
+      for(let username of u.username) lastOnlineCategories.u.set(username,u)
+      for(let ip of u.ip) lastOnlineCategories.i.set(ip,u)
+    }
+    /*for(let i in r){
+      if(!lastOnline[i]) lastOnline[i] = r[i], onlineCount++
+    }*/
+    for(let i of onlineWs.connections){
+      sendAllOnline(i)
+    }
+  }
+  for(var i of waitingForBanned) i()
+  waitingForBanned = null
+})
+const badPaths = ["/test","/records","/links.json"]
+function goodPath(path){//for online
+  return (path.endsWith(".html") || !path.match(/\.[^.]+$/)) && !path.startsWith("/server/") && !path.startsWith("/editor/") && !path.startsWith("/internal/") && !badPaths.includes(path) && !path.startsWith("/updates/")
+}
+function setOnline(username,path,ip){
+  let good = path ? goodPath(path) : false
+  let who = (username ? lastOnlineCategories.u.get(username) : null) || lastOnlineCategories.i.get(ip)
+  if(!who){
+    who = {path:"no path yet", username:[],ip:[], id:generateId()}
+    lastOnline.add(who)
+  }
+  lastOnlineCategories.u.set(username,who)
+  lastOnlineCategories.i.set(ip,who)
+  if(!who.username.includes(username)) who.username.push(username)
+  if(!who.ip.includes(ip)) who.ip.push(ip)
+  if(good) who.time = Date.now()
+  if(path) who.path = path
+  if(good) sendOnline(who)
+	return who
+}
 
-var banned, waitingForBanned = []
+var waitingForBanned = []
 function waitForBanned(){
   return new Promise(resolve => {
     waitingForBanned.push(resolve)
   })
 }
-db.get("banned").then(r => {
-  if(r){
-    banned = r
-    //Log("People banned from MineKhan:\n"+getBannedFromMineKhan())
-  }else{
-    banned = []
-  }
-  for(var i of waitingForBanned) i()
-  waitingForBanned = null
-})
-async function ban(who, reason, unbanTime, ip, mode){
-  for(var i of banned) {
-    if(i.username.includes(who)) return Log(who+" is already banned.")
-  }
-  let r = who && await db.get("user:"+who)
-  if(who && !r) return Log(who+" doesn't exsist")
-  var obj = {username:who ? [who] : [], reason, noIp:ip===false, mode}
-  if(unbanTime) obj.unbanTime = unbanTime+Date.now()
-  if(!obj.noIp && r && r.ip) {
-    obj.ip = r.ip
-  }
-  obj.ip = obj.ip || []
-  if(ip){
-    if(Array.isArray(ip)) obj.ip.push(...ip)
-    else obj.ip.push(ip)
-  }
-  banned.push(obj)
-  await db.set("banned", banned)
-  Log(who+" was banned.")
-  for(var w of worlds){
-    for(var p of w.players){
-      if(p.username === who) p.close()
-    }
-  }
+async function ban(username, reason, unbanTime, ip, mode){
+	let who = setOnline(username,null,ip)
+	if(who.banned) return Log(username+" is already banned.")
+	who.banned = true
+	who.banReason = reason
+	who.banMode = mode
+	if(unbanTime) who.unbanTime = unbanTime+Date.now()
+	updateOnline()//save
+	Log(username+" was banned.")
 }
-async function unban(who){
-  var i = null, I = 0
-  for(var u of banned){
-    if(u === who || u.username.includes(who)){
-      i = I
-      who = u.username ? u.username.join(", ") : "No username"
-    }
-    I++
-  }
-  if(i === null) return Log(who+" is not on the banned list")
-  banned.splice(i,1)
-  db.set("banned", banned)
-  Log(who+" was unbanned.")
+async function unban(username){
+	let who = lastOnlineCategories.u.get(username)
+	if(!who.banned) return Log(username+" not banned")
+	delete who.banned
+	delete who.banReason
+	delete who.banMode
+	delete who.unbanTime
+	updateOnline()//save
+  Log(username+" was unbanned.")
 }
-function getBanned(){
-  let str = ""
-  for(let i of banned){
-    str += "Usernames: "+i.username.join(", ")+"\n"
-    if(i.reason) str += "\tReason: "+i.reason+"\n"
-    if(i.unbanTime) str += "\tUnban in "+timeString(i.unbanTime - Date.now())+"\n"
-    if(i.noIp) str += "\tNo IP\n"
-    //if(i.mode === "website") str += "\tBanned from website.\n"
-    //else if(i.mode === "hide") str += "\tWebsite hidden.\n"
-    if(i.mode) str += "\tMode: "+i.mode+"\n"
-    str += "\n"
-  }
-  return str.substring(0,str.length-2)
-}
-function updateBanned(){
-  for(var u of banned){
-    if(u.unbanTime && Date.now() - u.unbanTime >= 0){
-      unban(u)
-    }
-  }
-}
-function isBanned(username,ip){
-  for(let i of banned){
-    if(i.unbanTime && Date.now() - i.unbanTime >= 0){
-      unban(i)
-      return
-    }
-    if(i.username.includes(username) || i.ip.includes(ip)){
-      let update
-      if(username && !i.username.includes(username)){
-        i.username.push(username)
-        update = true
-      }
-      if(ip && !i.noIp && !i.ip.includes(ip)){
-        i.ip.push(ip)
-        update = true
-      }
-      if(update) db.set("banned", banned)
-      return i
-    }
-  }
-}
-function whyBanned(ban){
+function whyBanned(who){
   let obj = {
     type:"error",
     data:"You are banned."
   }
-  obj.data += "\nBanned: "+ban.username.join(", ")
-  if(ban.reason){
-    obj.data += "\nReason: "+ban.reason
+  obj.data += "\nBanned: "+who.username.join(", ")
+  if(who.banReason){
+    obj.data += "\nReason: "+who.banReason
     obj.long = true
   }
-  if(ban.unbanTime){
-    obj.data += "\nYou will be unbanned in "+timeString(ban.unbanTime - Date.now())
+  if(who.unbanTime){
+    obj.data += "\nYou will be unbanned in "+timeString(who.unbanTime - Date.now())
     obj.long = true
   }
   return obj
@@ -505,73 +491,6 @@ function timeoutPromise(p, time){
   })
 }
 
-let lastOnline = new Set()
-let lastOnlineCategories = {i:new Map(),u:new Map()}
-function updateOnline(){
-  let now = Date.now()
-  for(let u of lastOnline){
-    if(now - u.time > DAY){
-      lastOnline.delete(u)
-      for(let username of u.username) lastOnlineCategories.u.delete(username)
-      for(let ip of u.ip) lastOnlineCategories.i.delete(ip)
-      //if(i === d[0]) disable()
-    }
-  }
-  db.set("lastOnline",[...lastOnline])
-}
-setInterval(updateOnline,MINUTE)
-db.get("lastOnline").then(r => {
-  if(r){
-    lastOnline = new Set(r)
-    lastOnlineCategories.i.clear()
-    lastOnlineCategories.u.clear()
-    for(let u of lastOnline){
-      for(let username of u.username) lastOnlineCategories.u.set(username,u)
-      for(let ip of u.ip) lastOnlineCategories.i.set(ip,u)
-    }
-    /*for(let i in r){
-      if(!lastOnline[i]) lastOnline[i] = r[i], onlineCount++
-    }*/
-    for(let i of onlineWs.connections){
-      sendAllOnline(i)
-    }
-  }
-})
-const badPaths = ["/test","/records","/links.json"]
-function goodPath(path){//for online
-  return (path.endsWith(".html") || !path.match(/\.[^.]+$/)) && !path.startsWith("/server/") && !path.startsWith("/editor/") && !path.startsWith("/internal/") && !badPaths.includes(path) && !path.startsWith("/updates/")
-}
-function setOnline(username,path,ip){
-  let good = goodPath(path)
-  let who = (username ? lastOnlineCategories.u.get(username) : null) || lastOnlineCategories.i.get(ip)
-  if(!who){
-    who = {path:"no path yet", username:[],ip:[], id:generateId()}
-    lastOnline.add(who)
-  }
-  lastOnlineCategories.u.set(username,who)
-  lastOnlineCategories.i.set(ip,who)
-  if(!who.username.includes(username)) who.username.push(username)
-  if(!who.ip.includes(ip)) who.ip.push(ip)
-  if(good) who.time = Date.now()
-  who.path = path
-  if(good) sendOnline(who)
-}
-
-/*function able(req,res,next){
-  if(!lastOnline[d[0]]){
-    res.send("<!doctype html><h1>Disabled</h1>This has been automatically disabled because the website owner has been inactive for over 24 hours.")
-  }else next()
-}
-function disable(){
-  for(let w of worlds){
-    for(let i=w.players.length-1; i>=0; i--){
-      let p = w.players[i]
-      p.sendJSON({type:"error",data:"Multiplayer has been automatically disabled because the website owner has been inactive for over 24 hours."})
-      p.close()
-    }
-  }
-}*/
-
 function sanitize(v){
   v = v.replace(/&/g,"&amp;")
   v = v.replace(/</g,"&lt;")
@@ -649,7 +568,7 @@ function valueToString(v, nf, all){ //for log
       v = v.replace(/%</g, "<b class='console'>&nbsp;</b>")//⋖
     }else if(all && typeof all[0] === "string" && all[0] === "alert"){
       v = sanitize(v)
-      v = "<h2>"+v+"</h2>"
+      v = "<b style='color:red'>"+v+"</b>"
     }else{
       v = sanitize(v)
       v = v.replace(/\n/g,"<br>")
@@ -686,7 +605,11 @@ function getPostBuffer(req,res,next,type,limit=1000000){
   let onend = () => {
     req.body = Buffer.concat(body)
     if(type === "text") req.body = req.body.toString()
-    else if(type === "json") req.body = JSON.parse(req.body.toString())
+    else if(type === "json"){
+			try{
+				req.body = JSON.parse(req.body.toString())
+			}catch{}
+		}
     next()
   }
   req.on('data', ondata);
@@ -815,26 +738,28 @@ app.use((req,res,next) => {
 })
 app.use(validate)
 app.use(async(req,res,next) => {
-  if(req.isGoodPath) setOnline(req.username,req.method+" "+req.url,req.clientIp)
-  
-  if(!banned) await waitForBanned()
-  let ban = isBanned(req.username,req.clientIp)
-  if(ban && ban.mode === "website"){
-    req.banned = true
-    var banData = whyBanned(ban)
+  let who = setOnline(req.username, req.isGoodPath ? req.method+" "+req.url : null, req.clientIp, req.isGoodPath)
+	req.who = who
+	if(req.url.startsWith("/internal/")){
+		next()
+		return
+	}
+	if(waitingForBanned) await waitForBanned()
+  if(who.banned && who.banMode === "website"){
+    var banData = whyBanned(who)
     //res.redirect("https://www.youtube.com/watch?v=tgTUtfb0Ok8")
     res.send(`<!doctype html>
     <title>Banned</title>
     ${banData.data.replace(/\n/g,"<br>")}
     `)
-  }else if(ban && ban.mode === "hide"){
+  }else if(who.banned && who.banMode === "hide"){
     res.status(404).send("")
-  }else if(ban && ban.mode === "rateLimit"){
+  }else if(who.banned && who.banMode === "rateLimit"){
     res.status(429)
-    let timeLeft = timeString(ban.unbanTime - Date.now())
+    let timeLeft = timeString(who.unbanTime - Date.now())
     let parser = new Transform({
       transform(data, encoding, done) {
-        const str = data.toString().replace('TIMELEFT', timeLeft).replace("DESCRIPTION",ban.reason)
+        const str = data.toString().replace('TIMELEFT', timeLeft).replace("DESCRIPTION",who.banReason)
         this.push(str);
         done();
       }
@@ -849,45 +774,6 @@ app.use(async(req,res,next) => {
       .pipe(res);
   }else next()
 })
-
-/*const getpast = {}//For security
-if(doGetPast){
-  router.get("/getgetpast",nocache(),(req,res) => {
-    //if(getpastid) delete getpast[getpastid] //delete old one
-    let getpastid = req.clientIp
-    getpast[getpastid] = Math.round(Math.random()*2176782336).toString(36)
-    setTimeout(() => {
-      let canvas = createCanvas(150,12)
-      let ctx = canvas.getContext("2d")
-      ctx.fillStyle = "lime"
-      ctx.font = "12px monospace"
-      ctx.textBaseline = "top"
-      ctx.fillText(getpast[getpastid],0,-1)
-      let width = ctx.measureText(getpast[getpastid]).width
-      //res.header("Content-Type", "image/png")
-      res.send(Buffer.from(ctx.getImageData(0,0,Math.round(width),12).data))
-    }, 5000)
-  })
-  router.post("/dogetpast",getPostText,async(req,res) => {
-    if(req.body === getpast[req.clientIp]){
-      getpast[req.clientIp] = true
-    }
-    res.end()
-  })
-}*/
-
-/*app.use(function(req,res,next){
-  if(req.url !== "/login/" && req.url !== "/server/login"){
-    able(req,res,next)
-  }else next()
-})*/
-/*if(doGetPast){
-  app.use(function(req,res,next){
-    if((!lastOnline[d[0]] || Date.now()-lastOnline[d[0]].time>MINUTE*30) && !req.username && (req.url === "/" || req.url === "/minekhan/" || req.url === "/login/") && getpast[req.clientIp] !== true || req.url === "/getpast"){ 
-      res.sendFile(__dirname+"/getpast.html")
-    }else next()
-  })
-}*/
 
 async function isAdmin(username){
   var admin
@@ -967,7 +853,7 @@ router.get('/log', async(req,res,next) => {
       }
     }
   }
-  str += "<br>"+banned.length+" banned.<br>Cached: "+Object.keys(db.timeouts).length
+  str += "<br>Cached: "+Object.keys(db.timeouts).length
   str += "<br> Time "+(new Date(Date.now()+time).toLocaleDateString(undefined, {
     month: "short",
     day: "numeric",
@@ -977,9 +863,9 @@ router.get('/log', async(req,res,next) => {
   }))
   res.send(str)
 })
-router.get("/banned", (req,res) => {
+/*router.get("/banned", (req,res) => {
   res.send("People banned:<br>"+getBanned().replace(/\n/g,"<br>").replace(/\t/g,"&nbsp;&nbsp;&nbsp;&nbsp;"))
-})
+})*/
 router.get("/assets/common.js", (req,res) => {
   let userInfo = null
   if(req.user){
@@ -1822,7 +1708,7 @@ router.post("/server/register",getPostData, async (request, response) => {
 })
 
 router.post('/server/login', getPostData, async (request, response) => {
-  rateLimit(request,false,0.01)
+  rateLimit(request,undefined,0.01)
   if (!request.body.username) {
     return response.status(401).send({success:false, "message": "An `username` is required" })
   } else if (!request.body.password) {
@@ -2509,7 +2395,7 @@ router.post("/server/deleteUserComment/*", getPostData,async(req,res) => {
 })
 router.post("/server/voteUser/*", getPostData,async(req,res) => {
   if(!req.username) return res.status(401).send({message:"unauthorized"})
-  rateLimit(req, true, 0.01)
+  rateLimit(req, "diffUsername", 0.01)
   let user = req.url.split("/").pop()
   if(Date.now() - req.user.timestamp < DAY*4){
     res.status(401).send({message:"Your account must be at least four days old."})
@@ -2715,25 +2601,25 @@ router.get("/server/account/*/mksaves", async(req,res) => {
 })
 
 router.post("/server/suggest",getPostText,async(req,res) => {
-	rateLimit(request,false,0.01)
+	rateLimit(request,undefined,0.01)
   Log(req.username+" suggest: "+req.body)
   res.send("done")
 })
 router.post("/server/know/newWorld",getPostText,async(req,res) => {
-	rateLimit(request,false,0.01)
+	rateLimit(request,undefined,0.01)
   let split = req.body.split(";")
   setOnline(req.username,"new world: "+split[0],request.clientIp)
   Log("MineKhan:",req.username+" created new world called "+split[0]+" with seed "+split[1]+" and world type "+split[2]+" and game mode "+split[3], req.headers.origin!=="https://"+theHost&&(req.headers.origin+""!=="null")?"from "+req.headers.origin+"  "+req.url:"")
   res.send("done")
 })
 router.post("/server/know/openWorld",getPostText,async(req,res) => {
-	rateLimit(request,false,0.01)
+	rateLimit(request,undefined,0.01)
   setOnline(req.username,"open world: "+req.body,request.clientIp)
   Log("MineKhan:",req.username+" played world called "+req.body)
   res.send("done")
 })
-router.post("/server/know/mkError",getPostText,async(req,res) => {
-	rateLimit(request,false,0.01)
+router.post("/server/know/minekhan/error",getPostText,async(req,res) => {
+	rateLimit(request,undefined,0.01)
   Log("alert","MineKhan Error:",req.username+" encountered error: "+req.body)
   res.send("done")
 })
@@ -2785,7 +2671,7 @@ router.get("/server/servers", async(req,res) => {
 })
 router.get("/getExternalServerSession/:id", async(req,res) => {
   if(!req.username) return res.status(401).json({type:"error",data:"unauthorized"})
-  let v = await validateMKClient(req.username,req.clientIp)
+  let v = await validateMKClient(req.username,req.clientIp,req.who)
   if(v) return res.send(v)
   let server = findServerForClient(req.params.id)
   if(!server) return res.json({type:"error",data:"can't find server"})
@@ -3042,7 +2928,7 @@ const wsServer = new WebSocketServer({
 wsServer.on("request", req => WebSocketRoom.connection(req))
 
 //Function to validate request
-async function validateMKClient(username,ip){
+async function validateMKClient(username,ip,who){
   if(!multiplayerOn && !d.includes(username)){
     return JSON.stringify({
       type:"error",
@@ -3050,16 +2936,14 @@ async function validateMKClient(username,ip){
     })
   }
 
-  if(!banned) await waitForBanned()
-  let ban = isBanned(username,ip)
-  if(ban){
-    return JSON.stringify(whyBanned(ban))
+  if(who.banned){
+    return JSON.stringify(whyBanned(who))
   }
 }
 async function validateMKWS(request, options){
   //if(request.origin !== "https://thingmaker.us.eu.org") Log('alert',"Incorrect client: "+request.origin)
   var ip = requestIp.getClientIp(request)
-  options.send = await validateMKClient(request.username,ip)
+  options.send = await validateMKClient(request.username,ip, setOnline(request.username,null,ip))
   if(options.send) return false
   
   return true
