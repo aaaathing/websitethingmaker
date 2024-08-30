@@ -222,6 +222,7 @@ db.get("log").then(r => {
 
 let lastOnline = new Set()
 let lastOnlineCategories = {i:new Map(),u:new Map()}
+let banned = new Set()
 function updateOnline(){
   let now = Date.now()
   for(let u of lastOnline){
@@ -230,6 +231,7 @@ function updateOnline(){
 			delete u.banReason
 			delete u.banMode
 			delete u.unbanTime
+			banned.delete(u)
   		Log(u.username.join(", ")+" was unbanned.")
     }
     if(now - u.time > DAY && !u.banned){
@@ -250,6 +252,7 @@ db.get("lastOnline").then(r => {
     for(let u of lastOnline){
       for(let username of u.username) lastOnlineCategories.u.set(username,u)
       for(let ip of u.ip) lastOnlineCategories.i.set(ip,u)
+			if(u.banned) banned.add(u)
     }
     /*for(let i in r){
       if(!lastOnline[i]) lastOnline[i] = r[i], onlineCount++
@@ -296,6 +299,7 @@ async function ban(username, reason, unbanTime, ip, mode){
 	who.banMode = mode
 	if(unbanTime) who.unbanTime = unbanTime+Date.now()
 	updateOnline()//save
+	banned.add(who)
 	Log(username+" was banned.")
 }
 async function unban(username){
@@ -306,6 +310,7 @@ async function unban(username){
 	delete who.banMode
 	delete who.unbanTime
 	updateOnline()//save
+	banned.delete(who)
   Log(username+" was unbanned.")
 }
 function whyBanned(who){
@@ -323,6 +328,17 @@ function whyBanned(who){
     obj.long = true
   }
   return obj
+}
+function getBanned(){
+  let str = ""
+  for(let u of banned){
+    str += "Usernames: "+u.username.join(", ")+"\n"
+    if(u.banReason) str += "\tReason: "+u.banReason+"\n"
+    if(u.unbanTime) str += "\tUnban in "+timeString(u.unbanTime - Date.now())+"\n"
+    if(u.mode) str += "\tMode: "+u.mode+"\n"
+    str += "\n"
+  }
+  return str.substring(0,str.length-2)
 }
 
 var capes = {}
@@ -853,7 +869,7 @@ router.get('/log', async(req,res,next) => {
       }
     }
   }
-  str += "<br>Cached: "+Object.keys(db.timeouts).length
+  str += "<br>Banned: "+banned.size+" | Cached: "+Object.keys(db.timeouts).length
   str += "<br> Time "+(new Date(Date.now()+time).toLocaleDateString(undefined, {
     month: "short",
     day: "numeric",
@@ -863,9 +879,9 @@ router.get('/log', async(req,res,next) => {
   }))
   res.send(str)
 })
-/*router.get("/banned", (req,res) => {
+router.get("/banned", (req,res) => {
   res.send("People banned:<br>"+getBanned().replace(/\n/g,"<br>").replace(/\t/g,"&nbsp;&nbsp;&nbsp;&nbsp;"))
-})*/
+})
 router.get("/assets/common.js", (req,res) => {
   let userInfo = null
   if(req.user){
