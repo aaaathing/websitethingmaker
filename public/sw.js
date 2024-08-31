@@ -18,7 +18,7 @@ const assets = [
   "/platformer/",
   "/minekhan/Monocraft.ttf",
   "/code%20editor/pythoninterpreter.html",
-  "/minekhan/assets/sounds.epk",
+  "/minekhan/assets/sounds.txt",
 ]
 
 function canCache(url) {
@@ -63,7 +63,10 @@ self.addEventListener("fetch", event => {
     let fetchRes = await fetch(event.request)
     if (fetchRes.ok) {
       cache.put(event.request, fetchRes.clone())
-    }
+    }else{
+			let cacheres = await caches.match(event.request)
+      if(cacheres) return cacheres
+		}
     return fetchRes
   })())
 })
