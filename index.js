@@ -272,7 +272,7 @@ function setOnline(username,path,ip){
   let good = path ? goodPath(path) : false
   let who = (username ? lastOnlineCategories.u.get(username) : null) || lastOnlineCategories.i.get(ip)
   if(!who){
-    who = {path:"no path yet", username:[],ip:[], id:generateId()}
+    who = {path:"no path yet", username:[],ip:[], id:generateId(), time: Date.now()}
     lastOnline.add(who)
   }
   lastOnlineCategories.u.set(username,who)
