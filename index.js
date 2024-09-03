@@ -115,7 +115,7 @@ const crypto = require("crypto")
 const fetch = require('@replit/node-fetch')
 const rateLimit = require("./rateLimit.js")(ban)
 const { createCanvas, Image } = require('canvas')
-const nocache = require('nocache')
+//const nocache = require('nocache')
 const zlib = require('zlib');
 const { request } = require("http")
 const path = require("path")
@@ -425,11 +425,22 @@ setInterval(() => {
   updateRecord("maxWorldOpenTime",Math.floor(maxTime/MINUTE))
 }, MINUTE)
 
+async function adjustThumbnail(data,name){
+	if(data.thumbnail && data.thumbnail.startsWith("data:")){
+		let split = data.thumbnail.split(",")
+		let b = Buffer.from(split[1],"base64")
+		let type = split[0].substring(split[0].indexOf(":")+1, split[0].indexOf(";"))
+		let fname = name+"."+mime.extension(type)
+		await db.setFile("images/"+fname, b)
+		data.thumbnail = "/images/"+fname
+		data.thumbnailKey = "images/"+fname //in db
+	}
+}
 async function deleteMap(name){
   let map = await db.get("map:"+name)
   if(!map) return Log("Map doesn't exist: "+name)
   await db.delete("map:"+name)
-  await db.delete("images/mapThumbnail:map:"+name)
+  if(map.thumnailKey) await db.delete(map.thumbnailKey)
   let all = await db.get("maps")
   delete all["map:"+name]
   await db.set("maps",all)
@@ -444,7 +455,7 @@ async function deleteRP(name){
   let map = await db.get("rp:"+name)
   if(!map) return Log("Resource pack doesn't exist: "+name)
   await db.delete("rp:"+name)
-  await db.delete("images/rpThumbnail:rp:"+name)
+  if(map.thumnailKey) await db.delete(map.thumbnailKey)
   let all = await db.get("maps")
   delete all["rp:"+name]
   await db.set("maps",all)
@@ -927,14 +938,14 @@ function getMapTitle(m){
   m.bytes = m.file ? m.file.length : m.code.length
   delete m.code
   delete m.file
-  if(m.thumbnail) m.thumbnail = "/server/mapThumbnail/"+m.name
+  //if(m.thumbnail) m.thumbnail = "/server/mapThumbnail/"+m.name
   return m
 }
 function getRPTitle(m){
   m = Object.assign({},m)
   m.bytes = m.file.length
   delete m.file
-  if(m.thumbnail) m.thumbnail = "/server/rpThumbnail/"+m.name
+  //if(m.thumbnail) m.thumbnail = "/server/rpThumbnail/"+m.name
   return m
 }
 router.get("/server/maps", async function(req,res){
@@ -965,7 +976,7 @@ router.get("/server/mapsSearch", async function(req,res){
   }
   res.json(r)
 })
-router.get('/server/mapThumbnail/*',async function(req,res){
+/*router.get('/server/mapThumbnail/*',async function(req,res){
   var name = req.url.split("/").pop()
   var thumbnail = await db.get("images/mapThumbnail:map:"+name)
   if(!thumbnail){
@@ -996,7 +1007,7 @@ router.get('/server/rpThumbnail/*',async function(req,res){
     res.header("Content-Type", mimeType)
     res.end(Buffer.from(base64Data, "base64"))
   }else res.redirect(thumbnail)
-})
+})*/
 const mapCategories = ["build","parkour","redstone","game"]
 /*run when new category added:
 db.get('maps').then(async r=>{
@@ -1056,10 +1067,10 @@ router.post("/server/map", getPostData,async function(req, res){
     created: Date.now(),
     id: generateId(),
     file: req.body.file || null,
-    thumbnail: req.body.thumbnail?true:false
+    thumbnail: req.body.thumbnail
   }
+  await adjustThumbnail(map,"mapThumbnail:map:"+map.name) //await db.set("images/mapThumbnail:map:"+map.name, req.body.thumbnail)
   await db.set("map:"+map.name, map)
-  if(req.body.thumbnail) await db.set("images/mapThumbnail:map:"+map.name, req.body.thumbnail)
   let all = await db.get("maps")
   all["map:"+map.name] = getMapTitle(map)
   all = Object.fromEntries(
@@ -1084,7 +1095,7 @@ router.get("/server/map/*", async function(req,res){
   if(!map){
     return res.status(404).json(null)
   }
-  if(map.thumbnail) map.thumbnail = "/server/mapThumbnail/"+map.name
+  //if(map.thumbnail) map.thumbnail = "/server/mapThumbnail/"+map.name
   map.bytes = map.file ? map.file.length : map.code.length
   res.json(map)
 })
@@ -1144,10 +1155,10 @@ router.post("/server/rp", getPostDataLarge, async function(req, res){
     created: Date.now(),
     id: generateId(),
     file: req.body.file || null,
-    thumbnail: req.body.thumbnail?true:false
+    thumbnail: req.body.thumbnail
   }
+  await adjustThumbnail(rp,"rpThumbnail:rp:"+rp.name) //await db.set("images/rpThumbnail:rp:"+rp.name, req.body.thumbnail)
   await db.set("rp:"+rp.name, rp)
-  if(req.body.thumbnail) await db.set("images/rpThumbnail:rp:"+rp.name, req.body.thumbnail)
   let all = await db.get("maps")
   all["rp:"+rp.name] = getRPTitle(rp)
   all = Object.fromEntries(
@@ -1165,10 +1176,16 @@ router.post("/server/editrp/:name", getPostData,async function(req, res){
   if(!rp) return res.json({message:"No resource pack"})
   if(req.username !== rp.user) return res.status(401).send({message:"unauthorized"})
   rp.file = req.body.file
-  if(req.body.thumbnail) rp.thumbnail = true
   if(req.body.description) rp.description = req.body.description
   await db.set("rp:"+req.params.name, rp)
-  if(req.body.thumbnail) await db.set("images/rpThumbnail:rp:"+rp.name, req.body.thumbnail)
+  if(req.body.thumbnail){
+		if(rp.thumbnailKey){
+			await db.delete(rp.thumbnailKey)
+			rp.thumbnailKey = undefined
+		}
+		rp.thumbnail = req.body.thumbnail
+		await adjustThumbnail(rp,"rpThumbnail:rp:"+rp.name)
+	}
   let all = await db.get("maps")
   all["rp:"+rp.name] = getRPTitle(rp)
   await db.set("maps",all)
@@ -1181,7 +1198,7 @@ router.get("/server/rp/*", async function(req,res){
   if(!rp){
     return res.status(404).json(null)
   }
-  if(rp.thumbnail) rp.thumbnail = "/server/rpThumbnail/"+rp.name
+  //if(rp.thumbnail) rp.thumbnail = "/server/rpThumbnail/"+rp.name
   rp.bytes = rp.file.length
   delete rp.file
   res.json(rp)
