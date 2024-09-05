@@ -325,6 +325,27 @@ body[theme=dark] #links a.no{
   <div class="main">
     <h2>Website</h2>
     <p>This is the home page of the website of thingmaker. You can find many things like games and useful tools in the links above. Green background means it may be interesting. Some links don't work so they are red.</p>
+		
+		<br><br><br>
+		<h2>If you have screenshots of MineKhan from 2021 to 2022, please put them here so more history can be found.</h2>
+		<input type="file" onchange="uploadit(this)">
+		<script>
+			async function uploadit(e){
+				let r
+		    let formData = new FormData()
+		    formData.append('file', new File([e.files[0]], (new Date(e.files[0].lastModified).toLocaleString())+" "+e.files[0].name, e.files[0]))
+		    formData.append('upload_preset','ygf5chcy')
+		    try{
+		      r = await (await fetch('https://api.cloudinary.com/v1_1/doooij2qr/auto/upload', {
+		        method:'POST',
+		        body:formData
+		      })).json()
+		    }catch(e){
+		      alert(e.message)
+		      return
+		    }
+			}
+		</script>
     
     <h2>Websites you may not have even known existed!</h2>
     <a href="https://mordritch.com/">Modritch.com</a><br>
@@ -338,6 +359,15 @@ body[theme=dark] #links a.no{
     <a href="https://tommustbe12.com/">tommustbe12.com</a><br>
     <a href="https://elbozopremio.com/">elbozopremio.com</a><br>
     <a href="https://github.com/Shawnlandis/eaglercraft/blob/main/index.html">eaglercraft for khan acadmy</a>
+
+		<h2>links</h2>
+<pre>
+https://minecraft1123.glitch.me/
+16f81.csb.app
+https://minecrafterikedition.glitch.me/
+https://minekhan2.w3spaces.com/
+https://minekhan.glitch.me/
+</pre>
 
     <h2>Website Stats</h2>
     <a id="showStats">Show</a>

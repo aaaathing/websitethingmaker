@@ -213,7 +213,7 @@ ${buttonText ? `<button onclick="comment()" class="comment-button">${buttonText}
     }else alert(res.message)*/
     let r
     let formData = new FormData()
-    formData.append("file",d)
+    formData.append('file', new File([d], (new Date(d.lastModified).toLocaleString())+" "+d.name, d))
     formData.append("upload_preset","ygf5chcy")
     try{
       r = await (await fetch("https://api.cloudinary.com/v1_1/doooij2qr/auto/upload", {
