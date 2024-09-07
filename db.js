@@ -102,20 +102,6 @@ module.exports = {
       stream.end(value);
     })
   },
-	setByPipe:function(path,fromStream){
-    return new Promise(function(resolve,reject){
-      var file = bucket.file(path)
-      const stream = file.createWriteStream();
-    
-      stream.on('error', reject);
-    
-      stream.on('finish', () => {
-        resolve(true)
-      });
-    
-      fromStream.pipe(stream)
-    })
-  },
   get:async function(key){
     if(this.timeouts[key]){
       return JSON.parse(this.timeouts[key].nextValue)
@@ -139,8 +125,9 @@ module.exports = {
     if(!(await file.exists())[0]) return null
     return (await file.download())[0]
   },
-  /*getStream:function(key){
+  getStream:async function(key){
     var file = bucket.file(key)
+		if(!(await file.exists())[0]) return null
     return file.createReadStream();
   },
   setStream:function(path,value){
@@ -156,7 +143,7 @@ module.exports = {
     
       value.pipe(stream)
     })
-  },*/
+  },
   delete: function(key){
     if(this.timeouts[key]){
       this.updateTimeout(key)
