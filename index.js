@@ -2809,6 +2809,12 @@ router.post("/internal/updateFile/:file",getPostBufferHuge,async(req,res)=>{
   Log("Editor: updated file "+relfile)
 })
 
+router.post("/server/editorUploadZip/",async(req,res)=>{
+	rateLimit(req)
+	await db.setByPipe('editorZips/'+req.username+"-"+generateId(),req)
+	res.send("success")
+})
+
 app.use('/minekhan/assets', express.static(__dirname+'/public/minekhan/assets'))
 
 /*

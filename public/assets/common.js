@@ -164,6 +164,7 @@ navbar.innerHTML = `
       <a href="/maps/new">Upload Map</a>
       <a href="/maps/newrp">Upload Resource Pack</a>
       <a href='/minekhan/offdown.html'>Offline download</a>
+			<a href="/code%20editor/multifile/?import=%2Fminekhan%2F_mksrc4.html&import=%2Fminekhan%2F_mksrc4-world.js">Edit</a>
     </div>
   </div>
 	<a href="/posts">Posts</a>
@@ -341,7 +342,6 @@ if(loggedInEl && logged){
 <a href="/admin/log.html">Log</a>
 `
   }
-  document.querySelector("#minekhandropdown").insertAdjacentHTML("beforeend","<a href='/minekhan/offdown.html'>Offline download</a>")
 }
 /*.catch(function(e){
   console.log(e)

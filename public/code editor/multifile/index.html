@@ -72,6 +72,7 @@
 
 <body>
 <div id="all">
+	<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
   <script>var require = { paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.43.0/min/vs' } }</script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.43.0/min/vs/loader.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.43.0/min/vs/editor/editor.main.nls.min.js"></script>
@@ -81,27 +82,40 @@
     <h1></h1>
     <button onclick="save()">Save</button>
     <span id="saveProg"></span>
+		<button onclick="if(confirm('If you upload, it can be seen by other people.')) uploadIt()">Upload</button>
+		<span id="uploadProg"></span>
   </div>
   <div id='content'>
+		<script type="module" src="../editor/icons.js"></script>
     <script>
 			let params = new URLSearchParams(location.search)
-			let toImportFiles
-			if(params.has("import")){
-				toImportFiles = params.get("import")
-				history.pushState(null,null,location.path) //remove params
-				alert("Please create new folder for the import")
-			}
 			let waitForFS, fshandle
 			waitForFS = new Promise(resolve => {
 				let button=document.createElement("button")
 				button.style="position:absolute;top:0;left:0;width:100vw;height:100vh;z-index:10;"
-				button.textContent="open folder"
-				button.onclick = () => {
+				button.textContent = "Click to open folder "+(params.has("import") ? "| Please create new folder for the import" : "")
+				button.onclick = async () => {
+					fshandle = await showDirectoryPicker({mode:"readwrite"})
+					for(let i of params.getAll("import")){
+						let name = i.split("/").pop()
+						try{
+							let data = await (await fetch(i)).arrayBuffer()
+							let f = await fshandle.getFileHandle(name, {create:true})
+							let w = await f.createWritable()
+							await w.write(data)
+							await w.close()
+							f = await fshandle.getFileHandle(name+".original", {create:true})
+							w = await f.createWritable()
+							await w.write(data)
+							await w.close()
+						}catch(e){
+							alert("Failed to import: "+e)
+							throw e
+						}
+					}
 					button.remove()
-					showDirectoryPicker({mode:"readwrite"}).then(r => {
-						fshandle = r
-						resolve()
-					})
+					resolve()
+					history.pushState(undefined,null,location.pathname) //remove params
 				}
 				document.body.appendChild(button)
 			})
@@ -151,7 +165,7 @@
 							if(value instanceof FileSystemDirectoryHandle){
 								folders.push(key)
 							}else{
-								files.push(key)
+								if(!key.endsWith(".original")) files.push(key)
 							}
 						}
 						return {folder:true, folders,files}
@@ -177,7 +191,7 @@
           throw new Error()
         },
         getIcon:function(type){
-          return "/editor/icon/"+encodeURIComponent(type)
+          return getIcon(type)
         },
         save:async function(path,data){
           let f = await getToPath(folder)
@@ -194,10 +208,8 @@
       let editor, model
       onload = () => {
         editor = monaco.editor.create(c, {
-          value: `function x() {
-  console.log("Hello world!");
-}`,
-          language: 'javascript'
+          value: `<-- Open a file by clicking it`,
+          language: 'text'
         });
         editor.onDidChangeModelContent(() => {
           saveProg.innerHTML = "Unsaved."
@@ -229,13 +241,33 @@
 				await w.close()
         saveProg.innerHTML = ""
       }
-      let restartBtn = document.querySelector("#restartBtn")
-      async function restart(){
-        restartBtn.disabled = true
-        let r = await fetch("/internal/restart?pwd="+pwd).then(r => r.text()).catch(e => e)
-        if(r !== "success") alert(r)
-        restartBtn.disabled = false
-      }
+
+			let uploadProg = document.querySelector("#uploadProg")
+			async function uploadIt(){
+				uploadProg.textContent = "Uploading"
+				var zip = new JSZip();
+				//let editorname
+				async function find(h,foldername){
+					for await (let [key,value] of h.entries()){
+						if(value instanceof FileSystemDirectoryHandle){
+							find(value,foldername+key+"/")
+						}else{
+							let file = value.getFile()
+							//if(foldername+key === "/editorname.original") editorname = await file.text()
+							zip.file(foldername+key, file, {date:file.lastModified});
+						}
+					}
+				}
+				await find(fshandle,"/")
+				/*if(!editorname){
+					uploadProg.textContent = ""
+					alert("can not upload")
+				}*/
+				let blob = await zip.generateAsync({type:"blob"})
+				let r = await (await fetch("/server/editorUploadZip/",{method:"POST",body:blob})).text()
+				if(r !== "success") alert(r)
+				uploadProg.textContent = ""
+			}
     </script>
   </div>
 </div>

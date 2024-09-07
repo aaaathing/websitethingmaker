@@ -102,6 +102,20 @@ module.exports = {
       stream.end(value);
     })
   },
+	setByPipe:function(path,fromStream){
+    return new Promise(function(resolve,reject){
+      var file = bucket.file(path)
+      const stream = file.createWriteStream();
+    
+      stream.on('error', reject);
+    
+      stream.on('finish', () => {
+        resolve(true)
+      });
+    
+      fromStream.pipe(stream)
+    })
+  },
   get:async function(key){
     if(this.timeouts[key]){
       return JSON.parse(this.timeouts[key].nextValue)
