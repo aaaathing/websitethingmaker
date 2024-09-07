@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>code editor</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body,html,#all{
+      height:100%;
+    }
+    body{
+      margin: 0;
+    }
+		#all{
+      display: flex;
+      flex-direction:column;
+		}
+    #top{
+      text-align:center;
+      border-bottom:1px solid lightgray;
+    }
+    #top button{
+      padding:10px;
+      background:green;
+      border:1px solid gray;
+      cursor:pointer;
+      color:white;
+      transition: 0.5s ease;
+      border-radius:5px;
+    }
+    #top button:hover{
+      background: darkgreen;
+    }
+    #top button:disabled{
+      background:#555;
+    }
+    #content{
+      display: flex;
+      flex-direction:row;
+      height:100%;
+      width:100vw;
+      overflow:hidden;
+    }
+    .codeEditorContainer{
+      height:100%!important;
+      flex-grow: 1;
+      min-height:0;
+    }
+    .fileEditorContainer{
+      height:100%!important;
+      min-height:0;
+      width:20%;
+      border-right:1px solid lightgray;
+    }
+    #users{
+      float:right;
+    }
+    #users > div{
+      border-radius:100%;
+      margin:0 8px;
+      padding:8px;
+      font-family:sans-serif;
+    }
+    h1 {
+      font-family:sans-serif;
+    }
+  </style>
+</head>
+
+<body>
+<div id="all">
+  <script>var require = { paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.43.0/min/vs' } }</script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.43.0/min/vs/loader.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.43.0/min/vs/editor/editor.main.nls.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.43.0/min/vs/editor/editor.main.min.js"></script>
+  <script src="../editor/files.js"></script>
+  <div id="top">
+    <h1></h1>
+    <button onclick="save()">Save</button>
+    <span id="saveProg"></span>
+  </div>
+  <div id='content'>
+    <script>
+			let params = new URLSearchParams(location.search)
+			let toImportFiles
+			if(params.has("import")){
+				toImportFiles = params.get("import")
+				history.pushState(null,null,location.path) //remove params
+				alert("Please create new folder for the import")
+			}
+			let waitForFS, fshandle
+			waitForFS = new Promise(resolve => {
+				let button=document.createElement("button")
+				button.style="position:absolute;top:0;left:0;width:100vw;height:100vh;z-index:10;"
+				button.textContent="open folder"
+				button.onclick = () => {
+					button.remove()
+					showDirectoryPicker({mode:"readwrite"}).then(r => {
+						fshandle = r
+						resolve()
+					})
+				}
+				document.body.appendChild(button)
+			})
+			
+      let parent = document.querySelector("#content")
+      let currentPath, lastFileType
+      let fileTypes = {
+        js: 'javascript',
+        md: 'markdown',
+        mjs: 'javascript',
+        ts: 'typescript'
+      }
+			async function getToPath(path){
+				if(path === "") return fshandle
+				let split = path.split("/")
+				let f = fshandle
+				for(let p of split){
+					try{
+						f = await f.getDirectoryHandle(p)
+					}catch(e){
+						if(e.name === "TypeMismatchError"){
+							f = await f.getFileHandle(p)
+						}else{
+							alert(e)
+							throw e
+						}
+					}
+				}
+				return f
+			}
+      let files = createFileEditor({
+        parent,
+        onload:function(content){
+          editor.dOnTSeNd = true
+          editor.setValue(content)
+          monaco.editor.setModelLanguage(editor.getModel(), fileTypes[lastFileType] || lastFileType);
+          editor.dOnTSeNd = false
+          saveProg.innerHTML = ""
+        },
+        load:async function(path){
+					await waitForFS
+					let f = await getToPath(path)
+					
+          if(f instanceof FileSystemDirectoryHandle){
+						let folders = [], files = []
+						for await (const [key, value] of f.entries()) {
+							if(value instanceof FileSystemDirectoryHandle){
+								folders.push(key)
+							}else{
+								files.push(key)
+							}
+						}
+						return {folder:true, folders,files}
+					}else{
+            currentPath = path
+            lastFileType = path.includes('.') ? path.split(".").pop() : ""
+						return {content: await (await f.getFile()).text() }
+          }
+        },
+        onchange: () => onresize(),
+        newFile: async function(folder,name){
+          let f = await getToPath(folder)
+					await f.getFileHandle(name,{create:true})
+					return true
+        },
+        newFolder: async function(folder,name){
+          let f = await getToPath(folder)
+					await f.getDirectoryHandle(name,{create:true})
+					return true
+        },
+        delete: async function(path){
+					alert("no delete")
+          throw new Error()
+        },
+        getIcon:function(type){
+          return "/editor/icon/"+encodeURIComponent(type)
+        },
+        save:async function(path,data){
+          let f = await getToPath(folder)
+					let w = await f.createWritable()
+					await w.write(data)
+					await w.close()
+        }
+      })
+  
+
+      let c = document.createElement('div')
+      c.className = "codeEditorContainer"
+      parent.appendChild(c)
+      let editor, model
+      onload = () => {
+        editor = monaco.editor.create(c, {
+          value: `function x() {
+  console.log("Hello world!");
+}`,
+          language: 'javascript'
+        });
+        editor.onDidChangeModelContent(() => {
+          saveProg.innerHTML = "Unsaved."
+        })
+        model = editor.getModel()
+        model.onDidChangeContent(function(e){
+          if(editor.dOnTSeNd) return
+          //changes.push(...e.changes)
+        })
+        files.openPath("")
+      }
+      onresize = () => {
+        editor.layout({ width: 0, height: 0 })
+
+        // wait for next frame to ensure last layout finished
+        window.requestAnimationFrame(() => {
+          // get the parent dimensions and re-layout the editor
+          const rect = parent.getBoundingClientRect()
+          editor.layout()
+        })
+      }
+
+      let saveProg = document.querySelector("#saveProg")
+      async function save(){
+        let data = editor.getValue(), folder = currentPath
+        let f = await getToPath(folder)
+				let w = await f.createWritable()
+				await w.write(data)
+				await w.close()
+        saveProg.innerHTML = ""
+      }
+      let restartBtn = document.querySelector("#restartBtn")
+      async function restart(){
+        restartBtn.disabled = true
+        let r = await fetch("/internal/restart?pwd="+pwd).then(r => r.text()).catch(e => e)
+        if(r !== "success") alert(r)
+        restartBtn.disabled = false
+      }
+    </script>
+  </div>
+</div>
+</body>
+
+</html>

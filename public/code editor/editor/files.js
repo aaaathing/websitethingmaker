@@ -121,7 +121,7 @@ function createFileEditor(options){
     delete c.all[name]
   }
   function update(path){
-    return options.load(path).then(r => JSON.parse(r)).then(r => {
+    return options.load(path).then(r => {
       if(r.folder){
         let name = path.split("/").pop()
         let o = {name,all:{}}
@@ -227,21 +227,27 @@ function createFileEditor(options){
   }
   container.querySelector(".newFile").onclick = async function(){
     let folder = getFolderPath(selected), name = prompt("File name")
-    await options.newFile(folder,name)
-    //setPath(folder+"/"+name,"")
-    //updateHTML()
+    let ret = await options.newFile(folder,name)
+		if(ret){
+	    setPath(folder+"/"+name,"")
+	    updateHTML()
+		}
   }
   container.querySelector(".newFolder").onclick = async function(){
     let folder = getFolderPath(selected), name = prompt("Folder name")
-    await options.newFolder(folder,name)
-    //setPath(folder+"/"+name,{name,all:{}})
-    //updateHTML()
+    let ret = await options.newFolder(folder,name)
+		if(ret){
+    	setPath(folder+"/"+name,{name,all:{}})
+    	updateHTML()
+		}
   }
   container.querySelector(".deleteIt").onclick = async function(){
     if(!confirm("Delete "+selected+"?")) return
-    await options.delete(selected)
-    //deletePath(selected)
-    //updateHTML()
+    let ret = await options.delete(selected)
+		if(ret){
+    	deletePath(selected)
+    	updateHTML()
+		}
   }
   container.querySelector(".renameIt").onclick = function(){
     alert('not done')

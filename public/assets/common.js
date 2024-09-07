@@ -145,7 +145,7 @@ async function mentionNotifications(){
 
 //====================NAVBAR===============
 var navbar = document.createElement("div");
-navbar.setAttribute("class", "navbar");
+navbar.className = "navbar navbarStick"
 
 navbar.innerHTML = `
   <a class="logo" href="/">My website</a>
@@ -168,7 +168,9 @@ navbar.innerHTML = `
   </div>
 	<a href="/posts">Posts</a>
 
-	<div class="dropdown" style="float:right;">
+	<a class="right" onclick="navbar.classList.remove('navbarStick')">&times;</a>
+
+	<div class="dropdown right">
     <a class="dropdown-name">Theme</a>
     <div class="dropdown-content">
       <a onclick="setTheme('')">Light</a>
@@ -180,7 +182,7 @@ navbar.innerHTML = `
   <span id="adminNav"></span>
 
   <a class="right" id="loggedIn" href="/login">Log in</a>
-  <div class="dropdown" id="usernameDropdown" style="display:none; float:right;">
+  <div class="dropdown right" id="usernameDropdown" style="display:none;">
     <a class="dropdown-name"></a>
     <div class="dropdown-content">
       <a href="/account">Account</a>
@@ -196,9 +198,11 @@ style.innerHTML = `
 .navbar{
   background:var(--black);
   /*height:47px;*/
-  position:sticky;
-  top:0;
   z-index:10;
+}
+.navbarStick{
+	position:sticky;
+  top:0;
 }
 .navbar:after{
   content:"";

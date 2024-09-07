@@ -115,7 +115,7 @@
             lastFileType = path.includes('.') ? path.split(".").pop() : ""
             lastChanged = j.changed
           }
-          return r
+          return j
         },
         onchange: () => onresize(),
         newFile: async function(folder,name){
