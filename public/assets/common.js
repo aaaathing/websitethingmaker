@@ -854,6 +854,7 @@ HTMLSafeElements.add("iframe")
 HTMLSafeAttributes.add("codetype")
 HTMLSafeAttributes.add("notcode")
 HTMLSafeAttributes.add("inline")
+HTMLSafeAttributes.add("loading")
 //HTMLSafeAttributes.add("panoramashape")
 
 let remove = (function(){ //wow, this is a really advanced filter

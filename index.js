@@ -2637,25 +2637,25 @@ router.get("/server/account/*/mksaves", async(req,res) => {
 
 router.post("/server/suggest",getPostText,async(req,res) => {
 	rateLimit(request,undefined,0.01)
-  Log(req.username+" suggest: "+req.body)
+  Log(req.username+":"+req.who.id+" suggest: "+req.body)
   res.send("done")
 })
 router.post("/server/know/newWorld",getPostText,async(req,res) => {
 	rateLimit(request,undefined,0.01)
   let split = req.body.split(";")
   setOnline(req.username,"new world: "+split[0],request.clientIp)
-  Log("MineKhan:",req.username+" created new world called "+split[0]+" with seed "+split[1]+" and world type "+split[2]+" and game mode "+split[3], req.headers.origin!=="https://"+theHost&&(req.headers.origin+""!=="null")?"from "+req.headers.origin+"  "+req.url:"")
+  Log("MineKhan:",req.username+":"+req.who.id+" created new world called "+split[0]+" with seed "+split[1]+" and world type "+split[2]+" and game mode "+split[3], req.headers.origin!=="https://"+theHost&&(req.headers.origin+""!=="null")?"from "+req.headers.origin+"  "+req.url:"")
   res.send("done")
 })
 router.post("/server/know/openWorld",getPostText,async(req,res) => {
 	rateLimit(request,undefined,0.01)
   setOnline(req.username,"open world: "+req.body,request.clientIp)
-  Log("MineKhan:",req.username+" played world called "+req.body)
+  Log("MineKhan:",req.username+":"+req.who.id+" played world called "+req.body)
   res.send("done")
 })
 router.post("/server/know/minekhan/error",getPostText,async(req,res) => {
 	rateLimit(request,undefined,0.01)
-  Log("alert","MineKhan Error:",req.username+" encountered error: "+req.body)
+  Log("alert","MineKhan Error:",req.username+":"+req.who.id+" encountered error: "+req.body)
   res.send("done")
 })
 
