@@ -1559,6 +1559,15 @@ router.get("/search",async function(req,res){
 
 servePublicFolderIndex("/minekhan/mods")
 
+router.get("/minekhan/minekhan.html", async(req,res) => {
+	let file = (await fs.promises.readdir(__dirname+"/public/minekhan/")).find(r => r.startsWith("_mksrc") && r.endsWith(".html"))
+	res.redirect("/minekhan/"+file)
+})
+router.get("/minekhan/minekhan-world.js", async(req,res) => {
+	let file = (await fs.promises.readdir(__dirname+"/public/minekhan/")).find(r => r.startsWith("_mksrc") && r.endsWith("-world.js"))
+	res.redirect("/minekhan/"+file)
+})
+
 //==================================================
 const publicVapidKey = process.env['publicVapidKey']
 const privateVapidKey = process.env['privateVapidKey']

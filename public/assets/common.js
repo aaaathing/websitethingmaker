@@ -164,7 +164,7 @@ navbar.innerHTML = `
       <a href="/maps/new">Upload Map</a>
       <a href="/maps/newrp">Upload Resource Pack</a>
       <a href='/minekhan/offdown.html'>Offline download</a>
-			<a href="/code%20editor/multifile/?import=%2Fminekhan%2F_mksrc4.html&import=%2Fminekhan%2F_mksrc4-world.js">Edit / Suggest edits</a>
+			<a href="/code%20editor/multifile/?import=%2Fminekhan%2Fminekhan.html&import=%2Fminekhan%2Fminekhan-world.js">Edit / Suggest edits</a>
     </div>
   </div>
 	<a href="/posts">Posts</a>
