@@ -850,6 +850,7 @@ function formatElcb(el){
 // These are extra ones used by website
 HTMLSafeElements.add("image-recipe")
 HTMLSafeElements.add("iframe")
+HTMLSafeElements.add("source")
 //HTMLSafeElements.add("panorama")
 HTMLSafeAttributes.add("codetype")
 HTMLSafeAttributes.add("notcode")
