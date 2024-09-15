@@ -85,7 +85,7 @@
           var div = document.createElement("div")
           div.className = "box"
           div.id = r.id
-          div.innerHTML = `<a href="/post?id=${r.id}">${sanitize(r.title)}</a> <span class="floatright">${timeString(r.timestamp+offset)}</span> <br>by <a href="/user?user=${r.username}" class="user"><img class="pfp" src="/server/pfp/${r.username}"> ${r.username}</a>`
+          div.innerHTML = `<a href="/post?id=${r.id}">${sanitize(r.title)}</a> <span class="floatright">${timeString(r.timestamp+offset)}</span> <br>by <a href="/user?user=${r.username}" class="user"><img class="pfp" src="/server/pfp/${r.username}"  loading="lazy"> ${r.username}</a>`
           content.appendChild(div)
           enableUserPopup(div.querySelector(".user"), r.username)
         })

@@ -296,7 +296,7 @@ ${map.name.replace(/_/g," ")}
         cel.id = id
         cel.innerHTML =
         "<div class='top'><a class='user' href='user?user="+c.username+"'>"
-        +"<img class='pfp' src='/server/pfp/"+c.username+"'>"
+        +"<img class='pfp' src='/server/pfp/"+c.username+"' loading='lazy'>"
         +"<span class='username'>"+c.username+"</span></a>"
         +"<span class='right time' style='padding:0 8px;'>"+timeString(c.timestamp+timeOffset)+"</span>"
         +(yourUsername === c.username || yourUsername === username || you && you.admin ? "<a class='right' onclick='deleteComment(\""+c.id+"\")'>Delete</a>" : "")
