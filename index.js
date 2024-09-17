@@ -2649,7 +2649,13 @@ router.post("/server/suggest",getPostText,async(req,res) => {
   Log(req.username+":"+req.who.id+" suggest: "+req.body)
   res.send("done")
 })
-router.post("/server/know/newWorld",getPostText,async(req,res) => {
+router.post("/minekhan/know",getPostText,async(req,res) => {
+	rateLimit(request,undefined,0.01)
+  setOnline(req.username, req.body,request.clientIp)
+  Log("MineKhan:", "know ", req.username+":"+req.who.id, req.body, req.headers.origin!=="https://"+theHost&&(req.headers.origin+""!=="null")?"from "+req.headers.origin+"  "+req.url:"")
+  res.send("done")
+})
+/*router.post("/server/know/newWorld",getPostText,async(req,res) => {
 	rateLimit(request,undefined,0.01)
   let split = req.body.split(";")
   setOnline(req.username,"new world: "+split[0],request.clientIp)
@@ -2661,7 +2667,7 @@ router.post("/server/know/openWorld",getPostText,async(req,res) => {
   setOnline(req.username,"open world: "+req.body,request.clientIp)
   Log("MineKhan:",req.username+":"+req.who.id+" played world called "+req.body)
   res.send("done")
-})
+})*/
 router.post("/server/know/minekhan/error",getPostText,async(req,res) => {
 	rateLimit(request,undefined,0.01)
   Log("alert","MineKhan Error:",req.username+":"+req.who.id+" encountered error: "+req.body)
