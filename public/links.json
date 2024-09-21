@@ -30,10 +30,10 @@
   "Python interpreter":{"url":"/code%20editor/pythoninterpreter.html", "interesting":true},
 	"Grapher":{"url":"/grapher", "interesting":true, "time":"February 6, 2023"},
 	"Bitmap font generator":{"url":"/bitmap-font-generator.html"},
-	"Fake game":{"url":"/fake game.html", "time":"November 16, 2020"},
-	"life":{"url":"/life.html", "interesting":true},
-	"Pointer lock":{"url":"/Locker.html", "time":"November 16, 2020"},
-	"Text editor":{"url":"/textbox.html"},
-	"Unfinished tower defense":{"url":"/towerDefense.html", "time":"January 15, 2021"},
-	"Random videos":{"url":"/TvGuys.html", "interesting":true}
+	"Fake game":{"url":"/stuff-before/fake game.html", "time":"November 16, 2020"},
+	"life":{"url":"/stuff-before/life.html", "interesting":true},
+	"Pointer lock":{"url":"/stuff-before/Locker.html", "time":"November 16, 2020"},
+	"Text editor":{"url":"/stuff-before/textbox.html"},
+	"Unfinished tower defense":{"url":"/stuff-before/towerDefense.html", "time":"January 15, 2021"},
+	"Random videos":{"url":"/stuff-before/TvGuys.html", "interesting":true}
 }
