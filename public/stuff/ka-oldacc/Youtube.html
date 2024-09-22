@@ -1,0 +1,119 @@
+<!-- from thingmaker old ka account https://www.khanacademy.org/profile/kaid_1192481548237719607966796 -->
+<!-- Nov 6, 2020 -->
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Youtube</title>
+        <base href="https://youtube.com">
+        <style>
+            #more{
+                border:solid white;
+                background:white;
+                cursor:pointer;
+            }
+            #more circle{
+                display:none;
+            }
+            #more:active circle{
+                display:block;
+            }
+            #youtube{
+                text-decoration:none;
+                color:black;
+            }
+            #search{
+                display:inline;
+                
+            }
+            #search button{
+                border:1px solid gray;
+                background:#eee;
+            }
+            body{
+            }
+            #menu{
+                background:white;
+                width:100px;
+                float:left;
+                display:none;
+            }
+            #menu div{
+                text-decoration:none;
+                color:black;
+                line-height:40px;
+                transition:0.5s;
+            }
+            #menu div:hover{
+                background:#eee;
+            }#menu a{
+                font-size:25px;
+                cursor:pointer;
+                text-decoration:none;
+                color:black;
+            }
+            #content{
+                background:#fafafa;
+                padding-top:20px;
+                padding-left:20px;
+            }
+            #content img{
+                width:200px;
+            }
+        </style>
+        <script>
+            function togglemenu(){
+                var show=document.getElementById('menu').style.display;
+                if(show==="none"){
+                    document.getElementById('menu').style.display='block'
+                }else{
+                    document.getElementById('menu').style.display='none'
+                }
+            }
+            function search(){
+                var text=document.getElementById("searchtxt").value;
+                var url="https://youtube.com/results?search_query="+text;
+                window.open(url);
+            }
+        </script>
+    </head>
+    <body>
+        <button id="more"onclick="togglemenu()">
+        <svg width="25"height="20">
+            <circle cx="12"cy="10" r="12"fill="lightgray" />
+            <line x1="0" y1="0" x2="200" y2="0" style="stroke:rgb(0,0,0);stroke-width:2" />
+            <line x1="0" y1="10" x2="200" y2="10" style="stroke:rgb(0,0,0);stroke-width:2" />
+            <line x1="0" y1="20" x2="200" y2="20" style="stroke:rgb(0,0,0);stroke-width:2" />
+        </svg>
+            
+        </button>
+        <a href="https://youtube.com" id='youtube'>
+            <svg width="40"height="30"><rect width="40" height="30" style="fill:rgb(255, 0, 0);"rx="5" ry="5">
+            </rect>
+                <polygon points="15,10 25,15 15,20" style="fill:white;" />
+            </svg>
+            <h1 style="display:inline;">YouTube</h1>
+        </a>
+        
+        <div id="search">
+            <input placeholder="Search"id="searchtxt">
+            <button onclick="search()">o\</button>
+        </div>
+        
+        <br>
+        <div id="menu">
+            <div><a href="https://youtube.com">Home</a></div>
+            <div><a href="https://youtube.com/feed/trending">Trending</a></div>
+            <div><a href="https://youtube.com/feed/trending">Subscriptions</a></div><hr>
+            <div><a href="https://youtube.com/feed/library">Library</a></div>
+            <div><a href="https://youtube.com/feed/history">History</a></div>
+            
+        </div>
+        
+        <div id="content">
+            <a href="https://www.youtube.com/watch?v=9chBPCKZluQ"><img src="https://www.kasandbox.org/programming-images/animals/cat.png"></a>
+            <a href="https://www.youtube.com/watch?v=zjBDK6ufA1c"><img src="https://www.kasandbox.org/programming-images/food/pasta.png"></a>
+        </div>
+
+    </body>
+</html>

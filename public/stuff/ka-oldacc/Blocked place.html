@@ -1,0 +1,54 @@
+<!-- from thingmaker old ka account https://www.khanacademy.org/profile/kaid_1192481548237719607966796 -->
+<!-- Mar 5, 2021 -->
+<!DOCTYPE html>
+<!--https://block.opendns.com/main?url=888888158415688078&ablock&server=pao16&prefs=&tagging=&nref-->
+<html>
+<head>
+<meta charset="utf-8">
+<title>Blocked place</title>
+<style>
+  textarea{
+    width:80%;
+    height:200px;
+    resize:none;
+  }
+</style>
+</head>
+<body>
+
+<textarea id="number">888888158415688078</textarea>
+<br>
+<textarea id="result">www.s.com</textarea>
+
+<script>
+var number = document.getElementById("number")
+var result = document.getElementById("result")
+
+number.oninput = function(){
+  var code = number.value || ""
+  var res = "";
+  for(var i = 0; i<code.length; i+=2){
+    var n = code[i] + code[i+1]
+    n = parseInt(n)
+    var char = String.fromCharCode(n+31)
+    res += char;
+  }
+  result.value = res;
+}
+result.oninput = function(){
+  var str = result.value || ""
+  var res = "";
+  for(var i = 0; i<str.length; i++){
+    var n = str.charCodeAt(i);
+    n = "" + (parseInt(n) - 31)
+    if(n.length === 2){
+      res += n;
+    }
+  }
+  number.value = res;
+}
+
+</script>
+
+</body>
+</html>

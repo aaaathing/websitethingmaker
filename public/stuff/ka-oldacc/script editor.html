@@ -1,0 +1,105 @@
+<!-- from thingmaker old ka account https://www.khanacademy.org/profile/kaid_1192481548237719607966796 -->
+<!-- Dec 18, 2020 -->
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>script editor</title>
+        <style>
+            body,html{
+                margin:0;
+                padding:0;
+            }
+            #editor, #overlay{
+                position:absolute;
+                top:20px;
+                left:20px;
+                padding:10px;
+                border:1px solid black;
+                background:transparent;
+                font-family:monospace;
+            }
+            #editor{
+                background:transparent;
+                color:transparent;
+                caret-color:black; /*Ignore the warning*/
+            }
+        </style>
+    </head>
+    <body>
+          <div id="overlay"></div>
+          <div id="editor" class="editor" contenteditable="true" spellcheck="false">
+            function foo(n) {<br>
+            &nbsp; return n*42;<br>
+            }
+          </div>
+        
+        <script>
+          var colors=[
+            {
+              style:"color:blue;",
+              key:[1,2,3,4,5,6,7,8,9,0,"function","for","var","if","else","while","new","class"]
+            },{
+              style:"color:#a0a;",
+              key:["return"]
+            },{
+              style:"color:gray;",
+              key:["&lt;","&gt;"]
+            },{
+              style:"color:#0c0;",
+              key:["length"]
+            },{
+              style:"color:#09d;",
+              key:["window","document","true","false"]
+            }
+          ];
+          
+          var editor=document.getElementById("editor");
+          var overlay=document.getElementById("overlay");
+          
+          editor.oninput = color;
+          
+          color();
+          function color(){
+            var txt=editor.innerText.replace(/\n/g, "<br>");
+            
+            /*for(var i=0; i<colors.length;i++){
+              var colkey = colors[i];
+              var style = colkey.style;
+              var key = colkey.key;
+              
+              for(var i2=0;i2<key.length;i2++){
+                var regex=new RegExp(key[i2], "gi");
+                txt=txt.replace(regex, "<span style='"+style+"'>"+key[i2]+"</span>");
+              }
+            }*/
+            
+            var regexps = {
+                strReg1: [/(".*?")/g, "color:green;"],
+                strReg2: [/('.*?')/g, "color:green;"],
+                numberReg: [/(\d)/g, "color:blue;"],
+                specialReg: [/\b(new|var|if|do|function|while|switch|for|foreach|in|continue|break)(?=[^\w])/g, "color:blue;"],
+                specialReg2: [/\b(return)(?=[^\w])/g, "color:#a0a;"],
+                functionArgReg: [/(?<=function<\/span>[ ]*[A-Za-z0-9]*[ ]*\()([A-Za-z0-9,]*)(?=\))/g, "color:#0ca;"],
+                functionNameReg: [/(?<=function<\/span>[ ]*)([A-Za-z0-9]*)[ ]*(?=\()/g, "color:#008;"],
+                specialJsGlobReg: [/\b(document|window|Array|String|Object|Number|\$)(?=[^\w])/g, "color:#0ca;"],
+                specialJsReg: [/\b(getElementsBy(TagName|ClassName|Name)|getElementById|typeof|instanceof)(?=[^\w])/g, "color:#008;"],
+                specialMethReg: [/\b(indexOf|match|replace|toString|length)(?=[^\w])/g, "color:#008;"],
+                specialCommentReg: [/(\/\*.*\*\/)/gm, "color:#0c0;"],
+                inlineCommentReg: [/(\/\/.*)/g, "color:#0c0;"],
+            };
+            for(var i in regexps){
+              var regexp = regexps[i];
+              txt = txt.replace(regexp[0], "<span style=\""+regexp[1]+"\">$1</span>")
+            }
+            
+            
+            overlay.innerHTML=txt;
+          }
+function setCharAt(str,index,chr) {
+    if(index > str.length-1) return str;
+    return str.substring(0,index) + chr + str.substring(index+1);
+}
+        </script>
+    </body>
+</html>

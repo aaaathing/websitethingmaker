@@ -1,0 +1,143 @@
+<!-- from thingmaker old ka account https://www.khanacademy.org/profile/kaid_1192481548237719607966796 -->
+<!-- Feb 22, 2021 -->
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>video in html</title>
+        <style>
+          *{
+            box-sizing:border-box;
+          }
+          #output{
+            font-family:"Courier New";
+            width:500px;
+            height:300px;
+          }
+          #video{
+            border:1px solid black;
+            display:inline-block;
+            position:relative;
+          }
+          #controls{
+            top:300px;
+            border-top:1px solid black;
+            display:flex;
+          }
+          #currentTime{
+            width:100%;
+          }
+          #play-pause{
+            cursor:pointer;
+          }
+        </style>
+    </head>
+    <body>
+      <div id="video">
+        <div id="output"></div>
+        <div id="controls">
+          <span id="play-pause">play/pause</span>
+          <input type="range" id="currentTime">
+        </div>
+      </div>
+      
+      <script>
+        var video = [
+          [
+            "",
+            "    █",
+            "  █████",
+            " █     █",
+            "█       █",
+            "█       █",
+            " ███████"
+          ],
+          [
+            "█▓▒░"
+          ],
+          [
+            "█"
+          ]
+        ];
+        
+        var output = document.getElementById("output");
+        var controls = {
+          "play-pause":document.getElementById("play-pause"),
+          currentTime:document.getElementById("currentTime")
+        };
+        var frame = 0;
+        var timer = 0;
+        var play = false;
+        
+        function play(){play=true;updtUI()}
+        function pause(){play=false;updtUI()}
+        function toggle(){play^=true;updtUI()}
+        controls["play-pause"].onclick = output.onclick = toggle
+        
+        function updt(){
+          if(play)timer++;
+          if(timer>3){
+            timer=0;
+            frame++;
+            
+            if(frame >= video.length){
+              frame = video.length-1;
+              pause()
+            }
+            
+            updtUI()
+            
+            if(video[frame]){
+              output.innerHTML = video[frame].join("<br>");
+            }
+          }
+          window.parent.lastAnimFrame = requestAnimationFrame(updt);
+        }
+        function init(){
+          for(var i=0; i<video.length; i++){
+            for(var i2=0; i2<video[i].length; i2++){
+              video[i][i2] = video[i][i2].replace(/ /g,"&nbsp;")
+            }
+          }
+          
+          if(video[0]){
+            output.innerHTML = video[0].join("<br>");
+          }
+        }
+        init()
+        
+        function initUI(){
+          controls.currentTime.setAttribute("min", 0);
+          controls.currentTime.setAttribute("max", video.length-1)
+          controls.currentTime.oninput=function(){
+            frame = this.value;
+            while(!video[frame]){
+              frame--;
+            }
+            if(video[frame]){
+              output.innerHTML = video[frame].join("<br>");
+            }
+          }
+        }
+        function updtUI(){
+          if(play){
+            controls["play-pause"].innerHTML = "&#x23f8;"
+          }else{
+            controls["play-pause"].innerHTML = "&#9654;"
+          }
+          
+          controls.currentTime.value = frame;
+        }
+        initUI();
+        updtUI()
+        
+        
+        //make sure there is only one animation frame
+        if(window.parent.lastAnimFrame){
+          cancelAnimationFrame(window.parent.lastAnimFrame);
+        }
+        
+        updt()
+      </script>
+    </body>
+</html>

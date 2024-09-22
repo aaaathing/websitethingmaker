@@ -117,9 +117,9 @@
           }
         }
 
-        let data = await fetch('programs/list.txt').then(r => r.text()).catch(() => "")
+        let data = await fetch('list.txt').then(r => r.text())
         if(data){
-          async function fetchAndShow(url){
+          /*async function fetchAndShow(url){
             let data = await fetch("programs/"+url).then(r => r.text()).catch(console.error)
             if(!data) return
             data = data.split("\n")
@@ -128,12 +128,14 @@
             a.href="program.html?program=" + i.url;
             a.innerHTML=i.name;
             programContainer.appendChild(a);
-          }
+          }*/
           
           data = data.split("\n")
-          programContainer.append("The programs below were made by thingMaker.")
           for(let i of data){
-            fetchAndShow(i)
+						let a = document.createElement("a");
+						a.href = "program.html?program=" + encodeURIComponent(i);
+						a.innerHTML = i.substring(i.lastIndexOf("/")+1);
+						programContainer.appendChild(a);
           }
         }
       }

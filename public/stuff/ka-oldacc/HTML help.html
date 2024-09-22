@@ -1,0 +1,294 @@
+<!-- from thingmaker old ka account https://www.khanacademy.org/profile/kaid_1192481548237719607966796 -->
+<!-- Feb 2, 2021 -->
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>HTML help</title>
+        <style>
+          *{
+            box-sizing:border-box;
+          }
+          body, html{
+            padding:0;
+            margin:0;
+            font-family:sans-serif;
+            height:100%;
+          }
+          p{
+            font-size:17px;
+          }
+          .nav{
+            background:#ff8;
+            border-bottom:1px solid #bbb;
+          }
+          .navItem{
+            display:inline-block;
+            cursor:pointer;
+            padding:10px;
+          }
+          .navItem:hover{
+            background:#555;
+            color:white;
+          }
+          
+          #view{
+            display:flex;
+            flex-direction:row;
+            min-height:100%;
+          }
+          #sidebar{
+            background:#eee;
+            width:20%;
+          }
+          #content{
+            padding:10px;
+            width:80%;
+          }
+          #sidebar a{
+            display:block;
+            padding:2px 10px;
+            font-size:12px;
+            color:black;
+            text-decoration:none;
+          }
+          #sidebar a:hover{
+            background:pink;
+          }
+          
+          
+          table{
+            border:1px solid #bbb;
+          }
+          table th,td{
+            padding-right:20px;
+          }
+          table tr:nth-child(even){
+            background:#eee;
+          }
+          table thead tr{
+            background:#eee;
+          }
+          
+          .codeBlock{
+            padding:10px;
+            background:#f2f2f2;
+            border-left:2px solid green;
+            overflow:scroll;
+            font-family:"Courier New", monospace;
+          }
+          .codeArea{
+            background:#ddd;
+            font-family:"Courier New", monospace;
+            font-size:14px;
+            padding:1px 2px;
+          }
+          
+          .gray{color:gray;}
+          .blue{color:blue;}
+          .tagColor{color:purple;}
+          .AttrColor{color:rgb(153, 69, 0);}
+          .quotColor{color:blue;}
+        </style>
+    </head>
+    <body>
+        <nav class="nav">
+            <a class="navItem">HTML Help</a>
+        </nav>
+        
+        <div id="view">
+          <div id="sidebar">
+            
+          </div>
+          <div id="content">
+            <div name="HTML Home" class="page">
+            Home
+          </div>
+            <div name="&amp;lt;!DOCTYPE&amp;gt;" class="page">
+              <h1>HTML &lt;!DOCTYPE&gt; Declaration</h1>
+              <p>
+                A <i>doctype</i> is not a html element or tag. It is information for the browser to tell it what type of document the rest of the page will be. <br><br>You should always do this in a HTML5 webpage:
+              </p>
+              <div class="codeBlock">
+                <span class="gray">&lt;!DOCTYPE html&gt;</span>
+              </div>
+              <p>
+                Sometimes, you won't use HTML5. You might use some older HTML version. <br>In that case, you will have a more complicated doctype.
+              </p>
+              <div class="codeBlock">HTML 4.1<br><span class="gray">&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"<br>"http://www.w3.org/TR/html4/strict.dtd"&gt;</span><br><br>
+                XHTML 1.1<br><span class="gray">&lt;!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"<br>"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"&gt;</span></div>
+              <h3>Where to put a doctype</h3>
+              <p>
+                A doctype needs to go before all the html.<br>That means it can be on any line that comes before the html on the page.
+              </p>
+              <div class="codeBlock">
+                <span class="gray">&lt;!DOCTYPE html&gt;</span><br><span class="tagColor">&lt;html&gt;</span><br>
+                &nbsp;&nbsp;<span class="tagColor">&lt;head&gt;</span><br>
+                &nbsp; &nbsp; <span class="tagColor">&lt;title&gt;</span>Webpage<span class="tagColor">&lt;/title&gt;</span><br>
+                &nbsp;&nbsp;<span class="tagColor">&lt;/head&gt;</span><br>
+                &nbsp;&nbsp;<span class="tagColor">&lt;body&gt;</span><br>
+                &nbsp; &nbsp; Content goes here
+                <br>&nbsp;&nbsp;<span class="tagColor">&lt;/body&gt;</span>
+                <br><span class="tagColor">&lt;/html&gt;</span>
+              </div>
+              
+              <h3>Spelling</h3>
+              <p>A doctype can be uppercase or lowercase or a mix of both</p>
+              <div class="codeBlock">
+                <span class="gray">&lt;!DOCTYPE html&gt;</span> Recomendded<br><br>
+                <span class="gray">&lt;!doctype html&gt;</span> Allowed<br><br>
+                <span class="gray">&lt;!DoCtYpE html&gt;</span> Allowed
+              </div>
+              
+              <a href="https://www.w3schools.com/tags/tag_doctype.asp">Read more at W3Schools</a>
+              
+            </div>
+            <div name="&amp;lt;a&amp;gt;" class="page">
+              <h1>HTML &lt;a&gt; tag</h1>
+              <p>
+                The HTML &lt;a&gt; tag is used to create links in html.<br>To set the link, use the href attribute.
+              </p>
+              <div class="codeBlock">
+                <span class="tagColor">&lt;a <span class="AttrColor">href=</span><span class="quotColor">"<a class="quotColor" href="https://website.com">https://website.com</a>"</span>&gt;</span>Link Text<span class="tagColor">&lt;/a&gt;</span>
+              </div>
+              
+              <h2>Attributes</h2>
+              
+              <table>
+                <thead>
+                  <th>Attribute</th>
+                  <th>Required</th>
+                  <th>Value</th>
+                  <th>Description</th>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>href</td>
+                    <td>Required</td>
+                    <td><i>URL</i></td>
+                    <td>This attribute specifies where the link should lead to.</td>
+                  </tr>
+                  <tr>
+                    <td>target</td>
+                    <td>Optional</td>
+                    <td>_blank<br>_parent<br>_self<br>_top</td>
+                    <td>Specifies where to open the linked document</td>
+                  </tr>
+                  <tr>
+                    <td>download</td>
+                    <td>Optional</td>
+                    <td><i>filename</i></td>
+                    <td>Specifies that the target will be downloaded when a user clicks on the hyperlink</td>
+                  </tr>
+                </tbody>
+              </table>
+              
+              <a href="https://www.w3schools.com/tags/tag_a.asp">Read more at w3schools</a>
+              
+            </div>
+            <div name="&amp;lt;base&amp;gt;" class="page">
+              <h1>HTML &lt;base&gt; tag</h1>
+              <p>
+                The <span class="codeArea">&lt;base&gt;</span> tag specifies the base URL and/or target for all relative URLs in a document.<br><br>The <span class="codeArea">&lt;base&gt</span>; tag must have either an href or a target attribute present, or both.<br><br>There can only be one single <span class="codeArea">&lt;base&gt;</span> element in a document, and it must be inside the <span class="codeArea">&lt;head&gt;</span> element.<br><br>Specify a default URL and a default target for all links on a page:
+              </p>
+              <div class="codeBlock">
+                <span class="tagColor">&lt;head&gt;</span><br>
+                &nbsp; <span class="tagColor">&lt;base <span class="AttrColor">href=</span><span class="quotColor">"<a class="quotColor" href="https://www.w3schools.com">https://www.w3schools.com</a>"</span>&gt;</span><br>
+                <span class="tagColor">&lt;/head&gt;</span><br>
+                <span class="tagColor">&lt;body&gt;</span><br>
+                &nbsp; <span class="tagColor">&lt;image <span class="AttrColor">src=</span><span class="quotColor">"<a class="quotColor" href="https://www.w3schools.com/images/stickman.gif">images/stickman.gif</a>"</span> <span class="AttrColor">width=</span><span class="quotColor">"240"</span> <span class="AttrColor">height=</span><span class="quotColor">"39"</span> <span class="AttrColor">alt=</span><span class="quotColor">"Stickman"</span>&gt;</span><br>
+                &nbsp; <span class="tagColor">&lt;a <span class="AttrColor">href=</span><span class="quotColor">"<a href="https://www.w3schools.com/tags/tag_base.asp">tags/tag_base.asp</a>"</span>&gt;</span>HTML base Tag<span class="tagColor">&lt;/a&gt;</span><br>
+                <span class="tagColor">&lt;/body&gt;</span>
+              </div>
+              
+            </div>
+            <div name="&amp;lt;article&amp;gt;" class="page">
+              <h1>HTML &lt;article&gt; tag</h1>
+              <p>
+                The <span class="codeArea">&lt;article&gt;</span> tag specifies independent, self-contained content.<br><br>An article should make sense on its own and it should be possible to distribute it independently from the rest of the site.
+                <br><br>Potential sources for the <span class="codeArea">&lt;article&gt;</span> element:<br><ul>
+                  <li>Forum post</li>
+                  <li>Blog post</li>
+                  <li>News story</li>
+                </ul><br>Note: The &lt;article&gt; element does not render as anything special in a browser. <br><br>Example:
+              </p>
+              <div class="codeBlock">
+                <span class="tagColor">&lt;article&gt;</span><br>
+                &nbsp; <span class="tagColor">&lt;h2&gt;</span>Google Chrome<span class="tagColor">&lt;/h2&gt;</span><br>
+                &nbsp; <span class="tagColor">&lt;p&gt;</span>Google Chrome is a web browser developed by Google, released in 2008. Chrome is the world's most popular web browser today!<span class="tagColor">&lt;/p&gt;</span>
+                <span class="tagColor">&lt;/article&gt;</span><br><br>
+                <span class="tagColor">&lt;article&gt;</span><br>
+                &nbsp; <span class="tagColor">&lt;h2&gt;</span>Mozilla Firefox<span class="tagColor">&lt;/h2&gt;</span><br>
+                &nbsp; <span class="tagColor">&lt;p&gt;</span>Mozilla Firefox is an open-source web browser developed by Mozilla. Firefox has been the second most popular web browser since January, 2018.<span class="tagColor">&lt;/p&gt;</span><br>
+                <span class="tagColor">&lt;/article&gt;</span><br><br>
+                <span class="tagColor">&lt;article&gt;</span><br>
+                &nbsp; <span class="tagColor">&lt;h2&gt;</span>Microsoft Edge<span class="tagColor">&lt;/h2&gt;</span><br>
+                &nbsp; <span class="tagColor">&lt;p&gt;</span>Microsoft Edge is a web browser developed by Microsoft, released in 2015. Microsoft Edge replaced Internet Explorer.<span class="tagColor">&lt;/p&gt;</span><br>
+                <span class="tagColor">&lt;/article&gt;</span>
+              </div>
+              
+              <a href="https://www.w3schools.com/tags/tag_article.asp">Read more at W3Schools</a>
+              
+            </div>
+            <div name="&amp;lt;blockquote&amp;gt;" class="page">
+              <h1>HTML &lt;blockquote&gt; tag</h1>
+              
+              The <span class="codeArea">&lt;blockquote&gt;</span> tag specifies a section that is quoted from another source.<br>Browsers usually indent <span class="codeArea">&lt;blockquote&gt;</span> elements.<br><br>
+              <div class="codeBlock">
+                <span class="tagColor">&lt;blockquote <span class="AttrColor">cite=</span><span class="quotColor">"<a class="quotColor" href="http://www.worldwildlife.org/who/index.html">http://www.worldwildlife.org/who/index.html</a>"</span>&gt;</span><br>
+                For 50 years, WWF has been protecting the future of nature. The world's leading conservation organization, WWF works in 100 countries and is supported by 1.2 million members in the United States and close to 5 million globally.<br>
+                <span class="tagColor">&lt;/blockquote&gt;</span>
+              </div>
+              
+              <h3>Attributes</h3>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Attribute</th>
+                    <th>Required</th>
+                    <th>Value</th>
+                    <th>Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>cite</td>
+                    <td>Required</td>
+                    <td><i>URL</i></td>
+                    <td>Specifies the source of the quotation</td>
+                  </tr>
+                </tbody>
+              </table>
+              
+              <a href="https://www.w3schools.com/tags/tag_blockquote.asp">Read more at W3Schools</a>
+              
+            </div>
+          </div>
+        </div>
+        
+        
+        <script>
+            var sidebar = document.getElementById("sidebar")
+            var pages = document.getElementsByClassName("page")
+            
+            for(var i=0; i<pages.length; i++){
+              var link = document.createElement("a");
+              link.href="javascript:gotoPage("+i+")"
+              link.innerHTML = pages[i].getAttribute("name");
+              sidebar.appendChild(link)
+            }
+            
+            function gotoPage(n){
+              for(var i=0; i<pages.length; i++){
+                if(i === n){
+                  pages[i].style.display="";
+                }else{
+                  pages[i].style.display="none";
+                }
+              }
+            }
+            
+            gotoPage(0)
+        </script>
+    </body>
+</html>

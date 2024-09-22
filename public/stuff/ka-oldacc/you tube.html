@@ -1,0 +1,200 @@
+<!-- from thingmaker old ka account https://www.khanacademy.org/profile/kaid_1192481548237719607966796 -->
+<!-- Dec 29, 2020 -->
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>you tube</title>
+        <style>
+            body,html{
+                margin:0px;
+                padding:0px;
+            }
+            #navigation{
+                position:sticky;
+                top:0px;
+                left:0px;
+                background:lightgray;
+                padding:10px;
+            }
+            #navigation h1{
+                margin:0px;
+                z-index:10;
+            }
+            #menu{
+                padding:10px;
+            }
+            .videoFit{
+                width:100%;
+            }
+            #watchContainer{
+                
+            }
+            #watchContainer #video{
+                position:relative;
+            }
+            #watchContainer #vidSide{
+                width:70%;
+                float:left;
+            }
+            #watchContainer #vidBG{
+                position:relative;
+                background:black;
+                width:100%;
+            }
+            #watchContainer #vidSide #vidTitle{
+                margin:0px;
+            }
+            #watchContainer #playStatusIcon{
+                color:white;
+                background:black;
+                position:absolute;
+                top:50%;
+                left:40%;
+                padding:10px;
+            }
+            #watchContainer #side{
+                color:black;
+            }
+            #watchContainer #side #nextVid{
+                background:lightgray;
+                padding:10px;
+                cursor:pointer;
+            }
+            #watchContainer #side #nextVid:hover{
+                background:gray;
+            }
+            .vidBtn{
+                width:200px;
+                height:100px;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="navigation">
+            <h1>TV Guys</h1>
+        </div>
+        
+        <div id="menu">
+            <h3>Free videos you can watch</h3>
+        </div>
+        
+        <div id="watchContainer">
+            <button onclick="closeVid()">Close</button><br>
+            <div id="vidSide">
+                <div id="vidBG">
+                    <video class="videoFit" id="video" onclick="togglePlay()" controls>
+                        <source id="vidSrc">
+                    </video>
+                    <div id="playStatusIcon"></div>
+                </div><br>
+                <h2 id="vidTitle"></h2>
+            </div>
+            <div id="side">
+                <h3>Next video:</h3>
+                <a id="nextVid"></a>
+            </div>
+        </div>
+        
+        <script>
+            //our free videos
+            var videos=[
+                {
+                  name:"Intro to programming",
+                  url:"https://cdn.kastatic.org/ka-youtube-converted/FCMxA3m_Imc.mp4/FCMxA3m_Imc.mp4"
+                },{
+                  name:"Intro of add",
+                  url:"https://cdn.videvo.net/videvo_files/video/free/2017-08/small_watermarked/170724_15_Setangibeach_preview.webm"
+                },{
+                  name:"Stuff",
+                  url:"https://cdn.videvo.net/videvo_files/video/free/2017-08/small_watermarked/170724_15_Setangibeach_preview.webm"
+                }
+            ];
+            //put buttons for videos
+            var i;
+            for(i=0; i<videos.length; i++){
+                var btn=document.createElement("button");
+                btn.innerHTML=videos[i].name;
+                btn.setAttribute("onclick","playVid("+(i)+")" );
+                btn.setAttribute("class","vidBtn");
+                
+                document.getElementById("menu").appendChild(btn)
+            }
+            
+            
+            //current video
+            var cuVideo=0;
+            
+            //elements
+            var video = document.getElementById("video");
+            var vidContain=document.getElementById("watchContainer");
+            var vidSrc=document.getElementById("vidSrc");
+            var menu=document.getElementById("menu");
+            var vidClickIcon=document.getElementById("playStatusIcon");
+            var nextVid=document.getElementById("nextVid");
+            var vidTitle=document.getElementById("vidTitle");
+            
+            //hide stuff
+            vidContain.style.display="none";
+            vidClickIcon.style.display="none";
+            
+            //when video ends
+            video.addEventListener("ended",playNextVid)
+            
+            //functions
+            function playVid(n){
+                cuVideo=n;
+                var theVideo=videos[n];
+                var theNextVid=videos[n + 1];
+                
+                menu.style.display="none";
+                
+                vidSrc.src=theVideo.url;
+                video.load();
+                
+                vidContain.style.display="";
+                
+                vidTitle.innerHTML=theVideo.name;
+                
+                if(theNextVid){
+                    nextVid.innerHTML=theNextVid.name;
+                    nextVid.onclick=function(){
+                        playNextVid();
+                    };
+                }
+            }
+            function playNextVid(){
+                if(videos[cuVideo+1]){
+                    playVid(cuVideo+1);
+                }
+            }
+            function closeVid(){
+                vidContain.style.display="none";
+                menu.style.display="";
+                video.pause();
+            }
+            function togglePlay(){
+                if(video.paused){
+                    video.play();
+                    
+                    vidClickIcon.innerHTML="Playing";
+                    vidClickIcon.style.display="block";
+                    
+                    setTimeout(function(){
+                        vidClickIcon.style.display="none";
+                    },500)
+                }else{
+                    video.pause();
+                    
+                    vidClickIcon.innerHTML="Paused";
+                    vidClickIcon.style.display="block";
+                    
+                    setTimeout(function(){
+                        vidClickIcon.style.display="none";
+                    },500)
+                }
+                
+            }
+        </script>
+    </body>
+</html>

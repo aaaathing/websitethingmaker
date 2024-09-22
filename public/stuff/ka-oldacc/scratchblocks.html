@@ -1,0 +1,69 @@
+<!-- from thingmaker old ka account https://www.khanacademy.org/profile/kaid_1192481548237719607966796 -->
+<!-- Mar 4, 2021 -->
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>scratchblocks</title>
+        <style>
+            #input{
+                width:80%;
+                height:200px;
+            }
+            #scratchblocks{
+                border:1px solid gray;
+            }
+        </style>
+    </head>
+    <body>
+      <h1>Type here:</h1>
+      <textarea id="input"></textarea>
+      <svg id="scratchblocks" xmlns="http://www.w3.org/2000/svg"></svg>
+      
+      <script>
+        var textWidthDiv = document.createElement("div")
+        textWidthDiv.style.position = "absolute";
+        textWidthDiv.style.top = 0;
+        textWidthDiv.style.left = 0;
+        textWidthDiv.style.zIndex = -10;
+        textWidthDiv.style.opacity=0
+        document.body.appendChild(textWidthDiv)
+        function textWidth(text){
+            textWidthDiv.innerHTML = text;
+            return textWidthDiv.clientWidth;
+        }
+        function textHeight(){
+            textWidthDiv.innerHTML = "text";
+            return textWidthDiv.clientHeight;
+        }
+        
+        var input = document.getElementById("input");
+        var svg = document.getElementById("scratchblocks");
+        input.oninput = function(){
+          svg.innerHTML = scratchblocks(this.value);
+        }
+        input.value = textWidth("dsdsds")
+        
+        function scratchblocks(text){
+          var NumberInputReg = /\((.*?)\)/g
+          var TextInputReg = /\[(.*?)\]/g
+          var DropdownInputReg = /\[(.*?) v\]/g
+          
+          var res = "";
+          var blocks = text.split("\n")
+          var currentBlockY = 0;
+          var textH = textHeight();
+          for(var b = 0; b<blocks.length; b++){
+            var block = blocks[b];
+            
+            var blockHeight = 20;
+            var blockWidth = textWidth(block)
+            res += "<path d='M0 "+currentBlockY+" L"+blockWidth+" "+currentBlockY+" L"+blockWidth+" "+(currentBlockY+blockHeight)+" L0 "+(currentBlockY+blockHeight)+"' fill='red'/>"
+            
+            currentBlockY += blockHeight;
+          }
+          return res;
+        }
+      </script>
+    </body>
+</html>

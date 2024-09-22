@@ -1,0 +1,102 @@
+<!-- from thingmaker old ka account https://www.khanacademy.org/profile/kaid_1192481548237719607966796 -->
+<!-- Jul 6, 2020 -->
+<!DOCTYPE html>
+<html>
+<body>
+
+<style>
+.btn-group button {
+  background-color: #5500ff; 
+  border: 1px solid black; /* Green border */
+  color: white; /* White text */
+  padding: 10px 24px; /* Some padding */
+  cursor: pointer; /* Pointer/hand icon */
+  float: left; /* Float the buttons side by side */
+}
+
+/* Clear floats (clearfix hack) */
+.btn-group:after {
+  content: "";
+  clear: both;
+  display: table;
+}
+
+.btn-group button:not(:last-child) {
+  border-right: none; /* Prevent double borders */
+}
+
+/* Add a background color on hover */
+.btn-group button:hover {
+  background-color: #330099;
+}
+</style>
+
+<div class="btn-group">
+<button style="height:38px;"><img src="https://www.kasandbox.org/programming-images/avatars/leaf-green.png"width="30"></button>
+<button id ="letslogon"onclick="javascript:login()"style="width:220px;">login</button>
+<button>This actually works, thanks to cookies.</button>
+
+<br>
+</div>
+
+<img src="https://www.kasandbox.org/programming-images/avatars/leaf-green.png"><h1>Math Academy</h1><span id="question">What is 1+1? Write answer in text box.</span><br>
+
+
+    <input id="putlet"style="font-family:serif;font-size:20px;">
+    <button style="font-family:cursive;"onclick="javascript:kay()">check</button> <p id="checkit"></p>
+
+<script>
+    function kay(){
+        if(putlet.value==="2580"){
+         {var myWindow = window.open("", "myWindow", "width=200,height=200");
+            myWindow.document.write("<!DOCTYPE html><title>meany</title><a href='https://www.kasandbox.org/programming-images/avatars/leaf-green.png'>secret</a><noscript>Why disable javascript?</noscript>");
+         }}
+        if (putlet.value==="2"){
+            document.getElementById("checkit").innerHTML="Correct";
+            document.getElementById("checkit").style.color="rgb(0,255,0)";
+            document.getElementById("putlet").style.color="rgb(0,255,0)";
+            document.getElementById("question").innerHTML="Now, write 2580 in text box below."
+        }else{
+            document.getElementById("checkit").innerHTML="No, dummy";
+            document.getElementById("checkit").style.color="rgb(255,0,0)";
+            document.getElementById("putlet").style.color="rgb(255,0,0)";
+            var btn = document.createElement("BUTTON");
+            btn.innerHTML = "Try Again";
+            btn.setAttribute("onclick","javascript:tryagain()");
+            btn.setAttribute("id","try2");
+            document.body.appendChild(btn);
+        }
+        
+        
+    }
+    
+    function tryagain(){
+        putlet.value="";
+        var tryit = document.getElementById("try2")
+        tryit.remove();
+        document.getElementById("checkit").innerHTML="";
+        document.getElementById("putlet").style.color="rgb(0, 0, 0)";
+    }
+    
+    document.getElementById("letslogon").innerHTML="Signed in as "+document.cookie;
+    if(document.cookie===""){
+         document.getElementById("letslogon").innerHTML="login"
+    }
+    function login(){
+        var loginguy = prompt("Sign in as...");
+        document.cookie=loginguy;
+        document.getElementById("letslogon").innerHTML="Signed in as "+document.cookie;
+        if(document.cookie===""){
+         document.getElementById("letslogon").innerHTML="login"
+    }
+    }
+    
+</script>
+    
+
+    
+
+    
+    
+    </body>
+</html>

@@ -1557,8 +1557,6 @@ router.get("/search",async function(req,res){
 
 //router.get("/minekhan",(req,res,next)=>res.send('<body style="filter:url(#wavy2);font:50px cursive;">tHERE IS noTHIng HEre!!!!!!!!!!!!!!!!mmmmdsnejwsdnk ahieywbhjsdkjhbja ns bnahjbw</body><svg><filter id="wavy2"><feTurbulence x="0" y="0" baseFrequency="0.01" numOctaves="5" seed="1" /><feDisplacementMap in="SourceGraphic" scale="30" /></filter></svg>'))
 
-servePublicFolderIndex("/minekhan/mods")
-
 router.get("/minekhan/minekhan.html", async(req,res) => {
 	let file = (await fs.promises.readdir(__dirname+"/public/minekhan/")).find(r => r.startsWith("_mksrc") && r.endsWith(".html"))
 	res.redirect("/minekhan/"+file)
@@ -4147,8 +4145,6 @@ router.get("/server/checkPwd/*", function(req, res) {
     res.send("0"); // binary being 'false'
   }
 })
-
-servePublicFolderIndex("/randomscripts")
 
 app.use(router)
 

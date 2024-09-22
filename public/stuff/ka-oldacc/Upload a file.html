@@ -1,0 +1,86 @@
+<!-- from thingmaker old ka account https://www.khanacademy.org/profile/kaid_1192481548237719607966796 -->
+<!-- Nov 10, 2020 -->
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Upload a file</title>
+        <style>
+            #imgu{
+                border:solid blue;
+                background:#aaf;
+                padding:5px;
+            }
+            #imgu::-webkit-file-upload-button {
+                background: #0e0;
+                border:solid green;
+                color: black;
+                padding: 5px;
+            }
+            #imgu::-webkit-file-upload-button:hover{
+                background: #0a0;
+                color: white;
+            }
+            #upldcontainer{
+                border:solid;
+                padding:10px;
+                background:lightblue;
+            }
+            #prev{
+                background: #0e0;
+                border:solid green;
+                color: black;
+                padding: 5px;
+            }
+            #prev:hover{
+                background: #0a0;
+                color: white;
+            }
+            #prevcontainer{
+                background: #fd0;
+                border:solid black;
+                color: black;
+                padding: 10px;
+            }
+            hr{
+                border:1px solid gray;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="upldcontainer">
+            <label for="imgu">Choose an image file: </label>
+            <input id="imgu"type="file"accept="image/*">
+            <button onclick="prev()"id="prev">Preview</button>
+        </div>
+        <div id="prevcontainer">
+            <span id="text">Text will show up here</span>
+            <hr>
+            <img id="imgprev">
+        </div>
+        <script>
+            var img=document.getElementById("imgu");
+            var span=document.getElementById("text");
+            var show=document.getElementById("imgprev");
+            
+            function prev(){
+                /*
+                var reader=new FileReader();
+                
+                reader.addEventListener("load", function(e){
+                    show.src = reader.result;
+                    span.innerHTML = reader.result;
+                }, false);
+                
+                reader.readAsDataURL(img.files[0]);
+                */
+                
+                var ImgUrl = URL.createObjectURL(img.files[0]);
+                
+                show.src = ImgUrl;
+                span.innerHTML = ImgUrl;
+                
+            }
+        </script>
+    </body>
+</html>

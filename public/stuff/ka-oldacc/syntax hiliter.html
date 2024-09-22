@@ -1,0 +1,162 @@
+<!-- from thingmaker old ka account https://www.khanacademy.org/profile/kaid_1192481548237719607966796 -->
+<!-- Jan 28, 2021 -->
+<!DOCTYPE html>
+<!--an attempt at making a text editor, probably with syntax highlighting-->
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>syntax hiliter</title>
+        <style>
+            #editor{
+                border:1px solid black;
+                font-family:"Courier New", monospace;
+                font-size:16px;
+                background:white;
+                cursor:text;
+            }
+            #editor #typeHere{
+                width:2px;
+                position:absolute;
+                border:none;
+                background:transparent;
+            }
+            #editor #typeHere:focus{
+                outline:none;
+            }
+            #editor #editorContent{
+                white-space:nowrap;
+            }
+        </style>
+    </head>
+    <body>
+      
+      <span style="position:absolute;z-index:-10;"><span id="fontTest" style='display:inline-block;font-family:"Courier New",monospace;font-size:16px;'>aa<br>bb</span></span>
+      
+      
+      
+      <div id="editor">
+        <input type="text" id="typeHere">
+        <div id="editorContent">hello</div>
+      </div>
+      
+      <script>
+        String.prototype.splice = function(start, delCount, newSubStr) {
+          return this.slice(0, start) + newSubStr + this.slice(start + Math.abs(delCount));
+        };
+        
+        var editor = {
+          row:0,
+          col:0,
+          
+          fontWidth:document.getElementById("fontTest").clientWidth/2,
+          fontHeight:document.getElementById("fontTest").clientHeight/2,
+          
+          value:[],
+          
+          setValue:function(value){
+            this.value = value.split("\n");
+            
+            this.setCursor(this.value.length-1,  this.value[this.value.length-1].length);
+          },
+          update:function(){
+            this.element.innerHTML = this.value.join("<br>");
+            
+            
+            if(editor.row > (editor.value.length-1)){
+              editor.row = (editor.value.length-1)
+            }
+            if(editor.row < 0){
+              editor.row = 0
+            }
+            
+            this.typeHere.style.left = (editor.col+1)*editor.fontWidth+"px"
+            this.typeHere.style.top = (editor.row+1)*editor.fontHeight-(editor.fontHeight/2)+"px"
+          },
+          leftAndRightKeys:function(){
+            if(editor.col > editor.value[editor.row].length){
+              editor.col=0;
+              editor.row ++;
+            }
+            if(editor.col < 0){
+              if(editor.value[editor.row-1]){
+                editor.col = editor.value[editor.row-1].length;
+                editor.row --;
+              }else{
+                editor.col=0;
+              }
+            }
+          },
+          upAndDownKeys:function(){
+            if(editor.col > editor.value[editor.row].length){
+              editor.col = editor.value[editor.row].length;
+            }
+          },
+          setCursor:function(row, col){
+            this.row = row;
+            this.col = col;
+            
+            this.update();
+          },
+          
+          typeHere:document.getElementById("typeHere"),
+          element:document.getElementById("editorContent")
+        }
+        
+        
+        editor.setValue("fdfgfdfg\nfdfgd\nHello")
+        
+        editor.typeHere.oninput=function(){
+            editor.value[editor.row] = editor.value[editor.row].splice(editor.col,0,editor.typeHere.value)
+            editor.typeHere.value="";
+            
+            editor.col ++;
+            
+            editor.update();
+        }
+        editor.typeHere.onkeypress = function(e){
+            if(e.key === "Enter"){
+              if(editor.value[editor.row+1] === undefined){
+                editor.value.push("");
+              }else{
+                editor.value.splice(editor.row+1, 0, "");
+              }
+              
+              editor.row++;
+              editor.col=0;
+              
+              editor.update()
+            }
+        }
+        editor.typeHere.onkeydown=function(e){
+            if(e.key === "Backspace"){
+              editor.value[editor.row] = editor.value[editor.row].splice(editor.col-1, 1, "");
+              editor.col--;
+              //if(editor.col<0){
+                //editor.value = editor.value.splice(editor.row, 1);
+              //}
+              editor.leftAndRightKeys();
+              editor.update();
+            }else if(e.key === "ArrowLeft"){
+              editor.col--;
+              editor.leftAndRightKeys();
+              editor.update();
+            }else if(e.key === "ArrowRight"){
+              editor.col++;
+              editor.leftAndRightKeys();
+              editor.update();
+            }else if(e.key === "ArrowUp"){
+              editor.row--;
+              editor.upAndDownKeys();
+              editor.update();
+            }else if(e.key === "ArrowDown"){
+              editor.row++;
+              editor.upAndDownKeys();
+              editor.update();
+            }
+        }
+        editor.element.onclick=function(){
+            editor.typeHere.focus()
+        }
+      </script>
+    </body>
+</html>

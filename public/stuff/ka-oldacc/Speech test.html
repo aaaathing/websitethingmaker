@@ -1,0 +1,67 @@
+<!-- from thingmaker old ka account https://www.khanacademy.org/profile/kaid_1192481548237719607966796 -->
+<!-- Jan 29, 2021 -->
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Speech test</title>
+    </head>
+    <body>
+      <button onclick="speak()">Click me to speak</button>
+      <br><br>
+      
+      <label for="voiceChoose">Voice</label>
+      <select id="voiceChoose"></select>
+      <br>
+      
+      <label for="speakWhat">What to speak</label>
+      <input id="speakWhat" type="text">
+      
+      <hr>
+      
+      <table id="voiceInfo"></table>
+      
+      <script type="application/javascript">
+        var speech = new SpeechSynthesisUtterance();
+        var voices = speechSynthesis.getVoices();
+        speech.voice = voices[0]
+        speech.voiceURI = 'native';
+        speech.volume = 1; // 0 to 1
+        speech.rate = 1; // 0.1 to 10
+        speech.pitch = 1; //0 to 2
+        speech.text = 'I sure think you are weird';
+        speech.lang = 'en-US';
+        
+        function speak(){
+            speechSynthesis.speak(speech)
+        }
+      </script>
+      
+      <!-- Other stuff -->
+      <script type="application/javascript">
+        var voiceChoose = document.getElementById("voiceChoose")
+        var voiceInfo = document.getElementById("voiceInfo")
+        var speakWhat = document.getElementById("speakWhat")
+        
+        for(var i=0; i<voices.length; i++){
+          var voice = voices[i];
+          var option = document.createElement("option")
+          option.innerHTML = voice.name;
+          option.value = i;
+          voiceChoose.appendChild(option)
+        }
+        voiceChoose.onchange=function(){
+          speech.voice = voices[voiceChoose.value];
+          voiceInfo.innerHTML="<style>th,td{padding-right:20px;}</style><thead><th>Voice</th><th>Language</th></thead><tbody><tr><td>"+speech.voice.name+"</td><td>"+speech.voice.lang+"</td></tr></tbody>"
+        }
+        voiceChoose.onchange();
+        
+        
+        
+        speakWhat.value="I sure think you are weird"
+        speakWhat.onchange=function(){
+          speech.text = this.value
+        }
+      </script>
+    </body>
+</html>

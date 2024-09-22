@@ -291,11 +291,12 @@ document.body.onload=function(){if(window.processingInstance){processingInstance
         let program
         for(let i of programs) if(i.id === id) program = i
         if(!program && param){
-          program = await fetch("programs/"+param).then(r => r.text()).catch(console.error)
-          let lines = program.split("\n")
-          let info = JSON.parse(lines.shift())
-          type = info.type
-          program = {id:info.url,code:lines.join("\n"),type}
+          program = await fetch(param).then(r => r.text()).catch(console.error)
+          //let lines = program.split("\n")
+          //let info = JSON.parse(lines.shift())
+          type = param.substring(param.lastIndexOf(".")+1)
+					if(type === "js") type = "pjs"
+          program = {id:param,code:program,type}
         }else if(program && param){
           type = program.type
         }else type = getParameterByName("type") || "pjs"

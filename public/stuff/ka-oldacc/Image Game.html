@@ -1,0 +1,102 @@
+<!-- from thingmaker old ka account https://www.khanacademy.org/profile/kaid_1192481548237719607966796 -->
+<!-- Oct 13, 2020 -->
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Image Game</title>
+        <style>
+            body{
+                background:black;
+            }
+            canvas{
+                padding: 0;
+                margin: auto;
+                display: block;
+                border:solid orange;
+                position: absolute;
+                top: 0;
+                bottom: 0;
+                left: 0;
+                right: 0;
+            }
+        </style>
+    </head>
+    <body style="overflow:hidden;">
+
+
+<canvas id="canvas"width="580"height="380"></canvas>
+
+
+<script>
+    var canvas=document.getElementById("canvas");
+    var ctx=canvas.getContext("2d");
+    var things=[];
+    var keys=[];
+    var pos={
+        x:0,
+        y:0,
+        scrollx:0,
+        scrolly:0
+    }
+    var interval = setInterval(update, 20);
+    
+function colorchoose(type){
+    if(type===1){
+    ctx.fillStyle = "lightgreen";
+    }else if(type===2){
+    ctx.fillStyle = "blue";
+    }
+}
+function generate(width,height){
+    for (var i=0;i<width;i++){
+        for(var i2=0;i2<height;i2++){
+            things.push(Math.ceil(Math.random()*2) );
+            things.push(i);
+            things.push(i2);
+        }
+    }
+}
+function render(x,y){
+for(var i3=0; i3<(things.length+3);i3+=3){
+    colorchoose(things[i3]);
+    ctx.fillRect((things[i3-2]*100)-x,(things[i3-1]*100)-y,100,100);
+    
+    ctx.fillStyle = "red";
+    ctx.fillRect(290,190,30,30);
+    ctx.fillStyle = "black";
+    ctx.fillRect(295,195,5,10);
+    ctx.fillRect(310,195,5,10);
+    ctx.fillRect(295,210,20,5);
+}
+
+
+}
+function update(){
+    if(keys&&keys[37]){pos.x-=3}
+    if(keys&&keys[39]){pos.x+=3}
+    if(keys&&keys[38]){pos.y-=3}
+    if(keys&&keys[40]){pos.y+=3}
+    
+    
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    render(pos.x,pos.y);
+}
+
+
+generate(16,16);
+
+
+window.addEventListener('keydown', function (e) {
+    keys=(keys||[]);
+    keys[e.keyCode] = true;
+})
+window.addEventListener('keyup', function (e) {
+    keys[e.keyCode] = false;
+})
+
+</script>
+
+
+    </body>
+</html>

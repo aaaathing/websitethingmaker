@@ -1,0 +1,63 @@
+<!-- from thingmaker old ka account https://www.khanacademy.org/profile/kaid_1192481548237719607966796 -->
+<!-- Nov 17, 2020 -->
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>javascript and css help</title>
+        <style>
+            #demo1,#demo2{
+                border:solid;
+                padding:10px;
+            }
+            #code1{
+                border:solid gray;
+                background:#eee;
+                padding:10px;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="demo1">
+        <h1 id="rst"></h1>
+        <h1>Javascript "?" question mark</h1>
+        <b>How to use:</b><br>
+        
+        <div id="code1">
+        <span style="color:#00c;">var</span> demo=(<span style="color:#09c;">true</span><span style="color:green;">/*boolean*/</span>)<b style="background:yellow;"> ? </b><span style="color:green;">"🥳"/*Boolean is true*/</span> : <span style="color:green;">"🙂"/*Boolean is false*/</span>;
+        <br><span style="color:green;">//Expected output: 🥳</span>
+        </div>
+        
+        <hr>
+        
+        <input id="1"> is more than <input id="2"><button onclick="tryit()">Try it</button>
+        
+        <script>
+        function tryit(){
+            var result=document.getElementById("rst");
+            var a=document.getElementById("1");
+            var b=document.getElementById("2");
+            
+            
+            (a.value>b.value) ? result.innerHTML=("🥳") : result.innerHTML=("🙂") 
+        }
+        </script>
+        </div>
+        <div id="demo2">
+            <h1>Using 3d effects in CSS</h1>
+            <b>Example:</b><br>
+            
+            <div style="perspective: 800px;transform-style:preserve-3d;">
+            <div style="background:red;color:white;padding:10px;width:200px;height:200px;font-size:60px;transform:rotateX(50deg);">I am 3d!</div>
+            </div>
+            
+            Use the transform property: <span style="color:#0a9;">trasform:<span style="color:#0a0;">rotateX(50deg)</span>;</span><hr>
+            <b>Another example:</b>
+            
+            <div style="perspective: 800px;transform-style:preserve-3d;">
+            <div id="3d2" style="background:red;color:white;padding:10px;width:200px;height:200px;font-size:60px;transform:rotateX(50deg);">I am 3d!</div>
+            </div>
+            <input type="range"onchange="document.getElementById('3d2').style.transform='rotateY('+this.value+'deg)'">
+        </div>
+    </body>
+</html>

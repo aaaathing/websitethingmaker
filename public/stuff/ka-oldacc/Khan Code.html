@@ -1,0 +1,139 @@
+<!-- from thingmaker old ka account https://www.khanacademy.org/profile/kaid_1192481548237719607966796 -->
+<!-- Jan 19, 2021 -->
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Khan Code</title>
+        <style>
+          body,html{
+            padding:0;
+            margin:0;
+          }
+          nav#topNav{
+            position:sticky;
+            top:0px;
+            display:block;
+            background:rgb(10, 42, 102);
+            border-bottom:1px solid lightgray;
+          }
+          nav#topNav a{
+            display:inline-block;
+            color:white;
+            padding:20px 25px 20px 25px;
+            font-size:20px;
+            cursor:pointer;
+          }
+          nav#topNav a:hover{
+            background:white;
+            color:black;
+          }
+          
+          
+          /*style for text*/
+          h1,h2,h3,h4,h5,h6{
+            text-align:center;
+          }
+          p{
+            font-size:18px;
+            line-height:25px;
+          }
+          
+          /*Home*/
+          #home{
+            padding:0px 30px;
+          }
+          
+          /*New*/
+          #new{
+            
+          }
+          #editorNewContainer{
+            margin:0px 10%;
+          }
+          #editorNew{
+            height:400px;
+            width:calc(100%);
+          }
+        </style>
+    </head>
+    <body>
+      <nav id="topNav">
+        <a href="javascript:goto('home')">Home</a>
+        <a href="javascript:goto('new')">New</a>
+      </nav>
+      
+      <div id="home" class="page">
+        <h1>Khan Code</h1>
+        <p>
+          Another place to code with less requirments.
+        </p>
+        
+        <h3>Features</h3>
+        <p>
+          Here are some of the features Khan Code has.
+        </p>
+        <ul>
+          <li>There isn't a Oh Noes complaining about your program if it has errors.</li>
+          <li>Keeps track of errors in a table.</li>
+          <li>Uses the same code editor as Khan Academy.</li>
+          <li></li>
+          <li></li>
+          <li></li>
+          <li></li>
+          <li></li>
+        </ul>
+      </div>
+      <div id="new" class="page">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js"></script>
+        
+        <div id="editorNewContainer">
+          <div id="editorNew"></div>
+        </div>
+        
+        <script>
+          function setup(id,mode,value){
+          var editor = ace.edit(id);
+          
+          editor.setValue(value,1)
+          
+          editor.setOptions({
+            enableBasicAutocompletion:true,
+            enableLiveAutocompletion:true,
+            showPrintMargin:true,//vertical limiting strip
+            fontSize:15,
+            showFoldWidgets: true,
+            theme: 'ace/theme/textmate',
+            mode: ("ace/mode/"+mode),
+          });
+          
+          editor.on("change",update);
+          
+          window[id] = editor;
+        }
+        
+        setup("editorNew","html",'<!DOCTYPE html>\n<html>\n  <head>\n    <title>Webpage</title>\n    <meta charset="utf-8">\n  </head>\n  <body>\n    \n    \n  </body>\n</html>');
+        </script>
+      </div>
+      
+      <!--Go to script-->
+      <script>
+        goto("home");
+        
+        function goto(where){
+          var pages = document.getElementsByClassName("page");
+          var i;
+          for(i=0; i<pages.length; i++){
+            var page = pages[i];
+            if(page.id === where){
+              page.style.display="";
+            }else{
+              page.style.display="none";
+            }
+          }
+        }
+        
+        
+      </script>
+    </body>
+</html>

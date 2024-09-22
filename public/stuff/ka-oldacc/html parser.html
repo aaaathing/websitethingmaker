@@ -1,0 +1,63 @@
+<!-- from thingmaker old ka account https://www.khanacademy.org/profile/kaid_1192481548237719607966796 -->
+<!-- Jan 28, 2021 -->
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>html parser</title>
+    </head>
+    <body>
+      <pre id="output"></pre>
+      
+      <script>
+        
+        var htmlToParse = '<html id="everything"><h></h><b>ff</b></html>';
+        
+        var newHtml = ""
+        var parents = {}
+        var indent=0;
+        var isIndexInTag = false;
+        var tagType = "";
+        for(var i=0; i<htmlToParse.length; i++){
+          var char = htmlToParse[i]
+          var alsoAdd=""
+          if(char === "<"){
+            isIndexInTag = true;
+            if(htmlToParse[i+1] === "/"){
+              tagType = "end"
+              indent--;
+            }else{
+              tagType = "start"
+              indent++;
+            }
+            newHtml += "\n"
+            if(tagType === "start"){
+              for(var n=0; n < (indent-1); n++){
+                newHtml += "  "
+              }
+            }else{
+              for(var n=0; n < indent; n++){
+                newHtml += "  "
+              }
+            }
+          }
+          if(char === ">"){
+            isIndexInTag = false;
+            if(htmlToParse[i+1] !== "<"){
+              alsoAdd = "\n"
+              for(var n=0; n<indent; n++){
+                alsoAdd += "  "
+              }
+            }
+          }
+          newHtml += char + alsoAdd;
+        }
+        
+        
+        newHtml = newHtml.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/ /g,"&nbsp;").replace(/\n/g,"<br>")
+        
+        
+        document.getElementById("output").innerHTML = newHtml
+      </script>
+    </body>
+</html>
