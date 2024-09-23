@@ -611,12 +611,12 @@ function valueToString(v, nf, all){ //for log
   return str
 }
 
-function servePublicFolderIndex(path){
+/*function servePublicFolderIndex(path){
   router.get(path, async function(req,res){
     if(!req.url.endsWith("/")) return res.redirect(req.url+"/")
     res.send((await fs.promises.readdir(__dirname+"/public"+path)).map(t => "<a href='"+t+"'>"+t+"</a>").join("<br>"))
   })
-}
+}*/
 
 function getPostBuffer(req,res,next,type,limit=1000000){
   let body = [];
@@ -2797,7 +2797,7 @@ router.get('/internal/restart',async(req,res) => {
 })
 let runBy = null
 router.post('/internal/run',getPostText,async(req,res) => {
-  //if(req.query.pwd !== process.env.passKey) return res.send('Unauthorized')
+  if(req.query.pwd !== process.env.passKey) return res.send('Unauthorized')
   Log("%> "+req.body)
   runBy = req.username
   let res2
@@ -4149,6 +4149,24 @@ router.get("/server/checkPwd/*", function(req, res) {
 app.use(router)
 
 app.use(express.static(__dirname + "/public"))
+
+app.use(async (req, res, next) => {
+	let dir
+	try{
+		dir = await fs.promises.opendir(__dirname+"/public"+req.url)
+	}catch(e){
+		next()
+		return
+	}
+	res.write("<style>a>*{vertical-align:middle;}.item{display:inline-block;width:16px;height:16px;box-sizing:border-box;}.file{border:1px solid black;background:white;}.folder{background:linear-gradient(0,yellow,brown);}</style>")
+	res.write("<h1>Index of "+sanitize(req.path)+"</h1><hr><table><thead><tr><th>Name</th></tr></thead><tbody>")
+	for await(const dirent of dir){
+		let folder = dirent.isDirectory()
+		res.write("<tr><td><a href='"+sanitize(dirent.name)+(folder?"/":"")+"'><div class='item "+(folder?"folder":"file")+"'></div> <span>"+sanitize(dirent.name)+"</span></a></td></tr>")
+	}
+	res.write("</tbody></table>")
+	res.end()
+})
 
 //404
 app.use(function(req, res, next) {
