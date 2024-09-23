@@ -4151,15 +4151,16 @@ app.use(router)
 app.use(express.static(__dirname + "/public"))
 
 app.use(async (req, res, next) => {
+	let path = decodeURIComponent(req.path)
 	let dir
 	try{
-		dir = await fs.promises.opendir(__dirname+"/public"+req.url)
+		dir = await fs.promises.opendir(__dirname+"/public"+path)
 	}catch(e){
 		next()
 		return
 	}
 	res.write("<style>a>*{vertical-align:middle;}.item{display:inline-block;width:16px;height:16px;box-sizing:border-box;}.file{border:1px solid black;background:white;}.folder{background:linear-gradient(0,yellow,brown);}</style>")
-	res.write("<h1>Index of "+sanitize(req.path)+"</h1><hr><table><thead><tr><th>Name</th></tr></thead><tbody>")
+	res.write("<h1>Index of "+sanitize(path)+"</h1><hr><table><thead><tr><th>Name</th></tr></thead><tbody>")
 	for await(const dirent of dir){
 		let folder = dirent.isDirectory()
 		res.write("<tr><td><a href='"+sanitize(dirent.name)+(folder?"/":"")+"'><div class='item "+(folder?"folder":"file")+"'></div> <span>"+sanitize(dirent.name)+"</span></a></td></tr>")
