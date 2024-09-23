@@ -851,6 +851,8 @@ function formatElcb(el){
 HTMLSafeElements.add("image-recipe")
 HTMLSafeElements.add("iframe")
 HTMLSafeElements.add("source")
+HTMLSafeElements.add("blockquote")
+HTMLSafeElements.add("q")
 //HTMLSafeElements.add("panorama")
 HTMLSafeAttributes.add("codetype")
 HTMLSafeAttributes.add("notcode")
@@ -914,7 +916,7 @@ let remove = (function(){ //wow, this is a really advanced filter
 
 function format(str){
   str = str.replace(/{{ASSETS_URL}}/g,mcAssetsUrl)
-  return makeHTMLSafe(str,null,formatElcb)
+  return "<span class='format'>"+makeHTMLSafe(str,null,formatElcb)+"</span>"
 }
 /*function format(m){
   m = m.replace(/{{ASSETS_URL}}/g,mcAssetsUrl)
@@ -1032,7 +1034,12 @@ style.innerHTML = `
   padding: 0 2px;
   margin: 0;
 }
-body[theme=dark] .format pre, body[theme=dark] .format code{
+.format blockquote{
+	padding:8px;
+	background:#eee;
+  color:black;
+}
+body[theme=dark] .format pre, body[theme=dark] .format code, body[theme=dark] .format blockquote{
   color:white;
   background:black;
 }

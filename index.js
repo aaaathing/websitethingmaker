@@ -588,8 +588,8 @@ function valueToString(v, nf, all){ //for log
       if(v === all[0]) v = v.replace("post","<span class='postactivity'>post</span>")
     }else if((typeof all[0] === "string") && all[0].startsWith("Deleted map")){
       if(v === all[0]) v = v.replace("map","<span class='postactivity'>map</span>")
-    }else if((typeof all[0] === "string") && all[0].startsWith("Editor upload zip")){
-			if(v === all[0]) v = v.replace("Editor","<span class='editoractivity'>Editor</span>").replace("zip","<span class='postactivity'>zip</span>")
+    }else if((typeof all[0] === "string") && all[0].startsWith("Upload zip")){
+			if(v === all[0]) v = v.replace("zip","<span class='postactivity'>zip</span>")
 		}else if(all && typeof all[0] === "string" && (all[0].startsWith("%<") || all[0].startsWith("%>"))){
       v = v.replace(/(?<!%)</g,"&lt;")
       v = v.replace(/(?<!%)>/g,"&gt;")
@@ -2829,7 +2829,7 @@ router.post("/server/editorUploadZip/",async(req,res)=>{
 	let id = generateId()+"-"+req.username
 	await db.setStream('editorZips/'+id,req)
 	res.send("success")
-	Log("Editor upload zip: <a href='/server/editorZip/"+id+"' target='_blank'>"+id+"</a>")
+	Log("Upload zip: <a href='/server/editorZip/"+id+"' target='_blank'>"+id+"</a>")
 })
 router.get("/server/editorZip/:id", async(req,res) => {
 	let a = await db.getStream("editorZips/"+req.params.id)
