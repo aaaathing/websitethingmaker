@@ -205,7 +205,7 @@ body[theme=dark] .toggleSwitch > span{
   background:white;
   word-wrap: normal;
 	width: auto;
-  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0);
 }
 body[theme=dark] .popup > span{
   background: #222;
@@ -350,4 +350,18 @@ body[theme=dark] .timeline > div:hover{
 }
 .timeline .popup > span{
   padding:8px;
+}
+
+.dropdown{
+  display:inline-block;
+	position:relative;
+}
+.dropdown .dropdown-content{
+  display:none;
+  position:absolute;
+  z-index:1;
+	box-shadow: 0px 8px 16px 0px rgba(0,0,0);
+}
+.dropdown:hover .dropdown-content{
+  display:block;
 }

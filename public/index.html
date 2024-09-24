@@ -265,6 +265,15 @@ body[theme=dark] #links a.interesting{
 body[theme=dark] #links a.no{
   background: #622;
 }
+#links .dropdown::after{
+	display:block;
+	float:right;
+	content:"▼";
+	position:absolute;
+	top:50%;
+	right:8px;
+	translate: 0 -50%;
+}
 	</style>
 <!-- Global site tag (gtag.js) - Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-VRNT3CCCGH"></script>
@@ -313,11 +322,25 @@ body[theme=dark] #links a.no{
   
   <div id="links">
     <script>
-      let linksEl = document.querySelector("#links")
-      fetch("/links.json").then(r => r.json()).then(r => {
+			function addlinks(r,container){
         for(let i in r){
-          linksEl.insertAdjacentHTML("beforeend","<a href='"+r[i].url+"' class='"+(r[i].no?"no ":"")+(r[i].interesting?"interesting ":"")+"'>"+i+"</a>")
+					let contain = container
+          if(r[i].dropdown){
+						contain = document.createElement("div")
+						contain.className = "dropdown"
+						container.appendChild(contain)
+					}
+					contain.insertAdjacentHTML("beforeend","<a href='"+r[i].url+"' class='"+(r[i].no?"no ":"")+(r[i].interesting?"interesting ":"")+"'>"+i+"</a>")
+					if(r[i].dropdown){
+						let newc = document.createElement("div")
+						newc.className = "dropdown-content"
+						addlinks(r[i].dropdown,newc)
+						contain.appendChild(newc)
+					}
         }
+			}
+      fetch("/links.json").then(r => r.json()).then(r => {
+				addlinks(r,document.querySelector("#links"))
       })
     </script>
   </div>
@@ -721,11 +744,12 @@ New users: ILikeCheese
 New users near this time: Speedy4, springyeet
 
 In July 2022, there were many accounts on the server that were unused, so many of these were deleted.
-<details><p>Near this time, after I added the spectate player feature, I joined the war smp to test it. The people already there were probably Briannastar, Alicia_Heart, and Clown_Pierce. I tried spectating one of them. It was moving in a irritating way. There were a few rooms inside a hill, and one had pink wool.</p></details>
 On July 6, a external server called 'Dope SMP' was created, and a thing that ban people when they try to ban.
 On July 27, flowing water and lava was added to the version of MineKhan.
 The flowing water was glitchy in multiplayer because they appeared and disappeared.
 On the last day of July, the users and posts and other things were moved again. (level db to cloud storage)
+<details><p>Near this time, after I added the spectate player feature, I joined the war smp to test it. The people already there were probably Briannastar, Alicia_Heart, and Clown_Pierce. I tried spectating one of them. It was moving in a irritating way. There were a few rooms inside a hill, and one had pink wool.</p></details>
+<details><p>Another time, I joined a world, normal world type, that had a lot of snow in it. The chunk borders were visible because of the different amounts of snow. There may have been a large tall building. I may have built a large bridge in the world. Some time near this, someone called Coffee suggested to add wolves and snow.</p></details>
 <img src="/assets/images/Screenshot 2024-09-09 at 10.58.18 AM.jpg" loading="lazy">
 <img src="/assets/images/Screenshot 2024-09-09 at 11.15.18 AM.jpg" loading="lazy">
 
@@ -747,7 +771,8 @@ On September 22, a option for disabling filter for chat was added to the version
 <details><p>Some time before September 19, sup6666 started using the code that disabled the filter for everyone. <code inline>Messages.remove=[]</code> Some time before September 22, sup6666 started saying #saveminecraft. He also sent messages (message: "f___ 2-people") with the title command that had f words that the filter could not remove. He stopped after the option for disabling the filter was added. He probably did it because a filter was added to MC that many people disliked.</p></details>
 <img src="/assets/images/Screen Shot 2022-09-02 at 8.31.12 PM.jpg" loading="lazy">
 <details><p>From August 31 to September 2, thingmaker made a vc for fun (https://replit.com/@thingMaker/voice-chat). It was bad quality but also had a written chat. Soon, many people started using it.</p></details>
-<details><p>Near this time, either Spammer17 or sup6666 started complaining that windows was bad. One time, i was in a world, then he joined and i tried to see what he was doing while staying away. There was a house made of only planks, which i looked at. He was not moving much and occasionaly moved. The messages were something like this: <blockquote>s??: @2-people what operating system are you using?<br>2-people: idk<br>s??: how do you not know?</blockquote> After that, the multiplayer started to get slow, and i told him 'macos monterey'. After a while, he did not respond and the world was closed.</p></details>
+<details><p>One time, probably before september 20, I was in a world hosted by someone, with normal world type. There was a house on a hill and a decorated wide tunnel at the bottom of the hill, the hill was a small one. There was also more things. Then, javalover21 joined and started saying something like '2-people is s__t', and may have spammed it. The world closed soon, but the what they said was recorded.</p></details>
+<details><p>Near this time, either Spammer17 or sup6666 started complaining that windows was bad. One time, I was in a world, hosted by someone, that was normal world type and in survival mode, then he joined and i tried to see what he was doing by walking around while staying away. There was a house made of only planks, which i looked at. He was not moving much and occasionaly moved. The messages were something like this: <blockquote>s??: @2-people what operating system are you using?<br>2-people: idk<br>s??: how do you not know?<br>s??: is it windows, mac, or linux?<br>2-people: are you trying to hack<br>s??: no</blockquote> After that, the multiplayer started to get slow, and i told him 'macos monterey'. After a while, he did not respond and the world was closed.</p></details>
 
 October 2022:
 On October 2, comments were added to user profiles.

@@ -1,12 +1,24 @@
 {
   "Home":{"url":"/"},
   "Posts":{"url":"/posts"},
-  "MineKhan":{"url":"/minekhan", "interesting":true},
-  "MineKhan Maps":{"url":"/maps/browse"},
-  "MineKhan Servers":{"url":"/minekhan/live-servers.html","description":"A live list of servers on MineKhan."},
+  "MineKhan":{
+		"url":"/minekhan", "interesting":true,
+		"dropdown":{
+			"Offline download":{"url":"/minekhan/offdown.html"},
+			"MineKhan history":{"url":"/minekhan/history","interesting":true},
+ 	 		"MineKhan mods":{"url":"/stuff/ka/mk-mods"},
+  		"MineKhan Servers":{"url":"/minekhan/live-servers.html","description":"A live list of servers on MineKhan."},
+			"Suggest edits":{"url":"/code%20editor/multifile/?import=%2Fminekhan%2Fminekhan.html&import=%2Fminekhan%2Fminekhan-world.js"}
+		}
+	},
+  "MineKhan Maps":{
+		"url":"/maps/browse",
+		"dropdown":{
+			"Upload MineKhan Map":{"url":"/maps/new"},
+			"Upload MineKhan Resource Pack":{"url":"/maps/new"}
+		}
+	},
   "MineKhan tools":{"url":"/tools"},
-  "MineKhan mods":{"url":"/stuff/ka/mk-mods"},
-  "MineKhan history":{"url":"/minekhan/history","interesting":true},
   "Wiki":{"url":"/wiki"},
   "to do & info":{"url":"/todo.html"},
   "Adder":{"url":"/Adder.html"},

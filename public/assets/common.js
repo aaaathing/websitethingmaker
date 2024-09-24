@@ -156,17 +156,6 @@ navbar.innerHTML = `
     </form>
   </div>
 
-  <div class="dropdown">
-    <a class="dropdown-name">MineKhan</a>
-    <div class="dropdown-content" id="minekhandropdown">
-      <a href="/minekhan">MineKhan</a>
-      <a href="/maps/browse">Maps</a>
-      <a href="/maps/new">Upload Map</a>
-      <a href="/maps/newrp">Upload Resource Pack</a>
-      <a href='/minekhan/offdown.html'>Offline download</a>
-			<a href="/code%20editor/multifile/?import=%2Fminekhan%2Fminekhan.html&import=%2Fminekhan%2Fminekhan-world.js">Edit / Suggest edits</a>
-    </div>
-  </div>
 	<a href="/posts">Posts</a>
 
 	<a class="right" onclick="navbar.classList.remove('navbarStick')">&times;</a>
@@ -200,6 +189,7 @@ style.innerHTML = `
   background:var(--black);
   /*height:47px;*/
   z-index:10;
+  color: white;
 }
 .navbarStick{
 	position:sticky;
@@ -216,11 +206,11 @@ body[theme=dark] .navbar{
 .navbar a{
   /*float: left;
   display: block;*/
-  color: white;
   text-align: center;
   padding: 14px 20px;
   text-decoration: none;
   cursor:pointer;
+  color: white;
 }
 body[theme=dark] .navbar a{
   color:white;
@@ -248,29 +238,18 @@ body[theme=dark] .navbar a:hover{
   background:#111;
 }
 .navbar .dropdown{
-  display:inline-block;
   background:inherit;
 }
 .navbar .dropdown > a{
   display:block;
 }
-.navbar .dropdown .dropdown-name{
-  
-}
 .navbar .dropdown .dropdown-content{
-  display:none;
-  position:absolute;
-  z-index:1;
   background:inherit;
-  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
 }
 .navbar .dropdown .dropdown-content a{
   display:block;
   width:100%;
   float:none;
-}
-.navbar .dropdown:hover .dropdown-content{
-  display:block;
 }
 `
 document.head.appendChild(style)
