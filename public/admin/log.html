@@ -66,10 +66,14 @@
       load()
 
       {
+			async function getPwd(){
+				if(pwd) return
+				pwd = (await Swal.fire({title:"password",input:"password"})).value
+			}
       let pwd
-      function runCode(){
+      async function runCode(){
         let value = document.querySelector("#runWhat").value
-        if(!pwd) pwd = prompt("Password")
+        await getPwd()
         fetch("/internal/run?pwd="+pwd,{
           method:"POST",
           body:value
@@ -77,9 +81,10 @@
           if(r !== "success") log.append(document.createElement("br"),r)
         })
       }
+			window.runCode = runCode
 
       window.restart = async function restart(){
-        if(!pwd) pwd = prompt("Password")
+        await getPwd()
         let r = await fetch("/internal/restart?pwd="+pwd).then(r => r.text()).catch(e => e)
         if(r !== "success") log.append(document.createElement("br"),r)
       }

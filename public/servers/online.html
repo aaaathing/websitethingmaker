@@ -20,7 +20,7 @@
     <h1>Live list of people online</h1>
     <input type="checkbox" id="showIfUsername"><label for="showIfUsername">Show only if has username</label><br>
     <b>There are <span id="onlineCount"></span> users in the last 24 hours.</b>
-    <div id="online"></div>
+    <div id="online" style='white-space:pre;'></div>
     <br><br>
     <div id="userEvents" style="display: flex;flex-direction: column-reverse;"></div>
 
@@ -95,12 +95,12 @@
             continue
           }*/
           let str = timeString2(now - users[u].time)
-          html += u+" | "+users[u].username.join(", ")+" | "+users[u].path+" | "+str+"<br>"
+          html += u+" | "+users[u].username.join(", ")+" | "+users[u].path+" | "+str+"\n"
           if(now - users[u].time < minTime && !users[u].username.includes(username)) minTimeStr = str, minTime = now - users[u].time
           count++
         }
         if(onlineCount.innerHTML !== count+"") onlineCount.innerHTML = count+""
-        if(online.innerHTML !== html) online.innerHTML = html
+        if(online.innerHTML !== html) online.textContent = html
         document.title = "online " + minTimeStr
       }
       
