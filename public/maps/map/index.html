@@ -51,10 +51,10 @@
     var html = ""
     if(map){
       if(map.thumbnail) html += "<img class='thumbnail' src='"+map.thumbnail+"'>"
-      html += "<a><h2>Map: "+format(map.name)+"</h2></a>"
-      if(map.user) html += "By <a href='/user?user="+map.user+"'>"+map.user+"</a><br>"
+      html += "<a><h2>Map: "+sanitize(map.name)+"</h2></a>"
+      if(map.user) html += "By <a href='/user?user="+sanitize(map.user)+"'>"+sanitize(map.user)+"</a><br>"
       if(map.description) html += "<p>"+format(map.description)+"</p>"
-      if(map.code)html += "<br>Code: <input value='"+map.code+"'>"
+      if(map.code)html += "<br>Code: <input value='"+sanitize(map.code)+"'>"
       if(map.file){
         html += "<br><button onclick='download()'>Download the map</button>"
         download = function(){

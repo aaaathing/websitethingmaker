@@ -80,7 +80,7 @@ module.exports = {
       let t = this.timeouts[key]
       if(!this.timeouts[key]) t = me._newTimeout(key,value)
       t.nextValue = value
-      t.operation = () => bucket.file(key+".json").save(value)
+      t.operation = () => bucket.file(key+".json").save(value,{resumable:false})
       t.promises.push({
         resolve: () => resolve(true),
         reject
@@ -102,7 +102,7 @@ module.exports = {
       stream.end(value);
     })
   },
-  get:async function(key){
+  get:async function(key,options){
     if(this.timeouts[key]){
       return JSON.parse(this.timeouts[key].nextValue)
     }
@@ -119,11 +119,6 @@ module.exports = {
     }
     this._newTimeout(key,str)
     return data
-  },
-  getFile:async function(path){
-    var file = bucket.file(path)
-    if(!(await file.exists())[0]) return null
-    return (await file.download())[0]
   },
   getStream:async function(key){
     var file = bucket.file(key)
@@ -144,6 +139,9 @@ module.exports = {
       value.pipe(stream)
     })
   },
+	deleteFile: function(path){
+		return bucket.file(path).delete()
+	},
   delete: function(key){
     if(this.timeouts[key]){
       this.updateTimeout(key)
@@ -188,6 +186,12 @@ module.exports = {
       return arr
     }
   },
+	addToList: async function(key,value){
+		var file = bucket.file(key+".txt")
+		let offset = +(await file.getMetadata())[0].size
+		const stream = file.createWriteStream({resumable:false, offset, validation:false})
+	},
+	
   autoDeleteOld: function(prefix,timelen){
     function doBegin(){
       bucket.getFiles({
@@ -213,9 +217,6 @@ module.exports = {
     doBegin()
   },
   
-  atInterval:function(){
-    for(var i in this.timeouts) this.updateTimeout(i)
-  },
   /*getSize:function(){
     return bucket.getMetadata().then(metadata => {
       metadata = metadata[0]
@@ -224,4 +225,6 @@ module.exports = {
   },*/
   bucket
 }
-setInterval(() => module.exports.atInterval(),1000)
+setInterval(() => {
+	for(var i in module.exports.timeouts) module.exports.updateTimeout(i)
+},1000)

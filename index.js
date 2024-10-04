@@ -644,6 +644,9 @@ function getPostBuffer(req,res,next,type,limit=1000000){
   req.on('data', ondata);
   req.on('end', onend);
 }
+function getPostBuffer2(req,res,next){
+  getPostBuffer(req,res,next)
+}
 function getPostBufferHuge(req,res,next){
   getPostBuffer(req,res,next,null,10000000)
 }
@@ -2095,10 +2098,10 @@ router.get("/currentMedia", async(req,res) => {
   res.json({success:true,url})
 })*/
 router.get("/images/*",async(req,res) => {
-  var buffer = await db.getFile("images/"+req.params[0])
+  var stream = await db.getStream("images/"+req.params[0])
   if(!buffer) return res.end()
   res.header("Content-Type", mime.lookup(req.params[0]))
-  res.end(buffer)
+  stream.pipe(res)
 })
 // user makes a post/blog
 router.post("/server/post", getPostData, async(request, response) => {
@@ -2577,58 +2580,62 @@ router.get("/server/compareUser/:user1/:user2",async(req,res) => {
 router.get("/minekhan/saves", async(req,res) => {
   if(!req.username) return res.status(401).json("Unauthorized")
   var saves = await db.get("saves:"+req.username)
-  if(!saves) return res.json(null)
-  for(var i=0; i<saves.length; i++){
-    var s = saves[i]
-    saves[i] = {
-      edited:s.edited,
-      id:s.id,
-      name:s.name,
-      thumbnail:s.thumbnail,
-      version:s.version,
-      size:s.code ? s.code.length : 0
-    }
-  }
   res.json(saves)
 })
-router.get("/minekhan/saves/*", async(req,res) => {
+router.get("/minekhan/saves/:id", async(req,res) => {
   if(!req.username) return res.status(401).json("Unauthorized")
-  var saves = await db.get("saves:"+req.username)
-  if(!saves) return res.json(null)
-  let id = req.params[0]
-  for(var i=0; i<saves.length; i++){
-    var s = saves[i]
-    if(s.id.toString() === id) return res.json(s)
-  }
-  res.json(null)
+	let stream = await db.getStream("saves:"+req.username+":"+req.params.id)
+	if(!stream) res.json(null)
+	stream.pipe(res)
 })
-router.post("/minekhan/saves", getPostDataLarge,async(req,res) => {
+router.post("/minekhan/saves", getPostBuffer2,async(req,res) => {
   if(!req.username) return res.status(401).json("Unauthorized")
-  var save = req.body
-  if(!save || !save.id) res.json({message:"invalid save"})
+	try{
+  	var save = JSON.parse(req.body.toString())
+	}catch{
+		return res.send("bad format")
+	}
   var saves = await db.get("saves:"+req.username) || []
   var found = false
   for(var i=0; i<saves.length; i++){
     if(saves[i].id === save.id){
-      saves[i] = save
+      saves[i] = {
+				edited:save.edited,
+	      id:save.id,
+	      name:save.name,
+	      thumbnail:save.thumbnail,
+	      version:save.version,
+	      size:save.code ? save.code.length : 0
+			}
       found = true
     }
   }
-  if(!found) saves.push(save)
+  if(!found){
+		saves.push({
+			edited:save.edited,
+			id:save.id,
+			name:save.name,
+			thumbnail:save.thumbnail,
+			version:save.version,
+			size:save.code ? save.code.length : 0
+		})
+	}
   await db.set("saves:"+req.username, saves)
+	await db.setFile("saves:"+req.username+":"+save.id, req.body)
   res.json({success:true})
   //Log("MineKhan: "+req.username+" saved world called "+save.name)
 })
-router.delete("/minekhan/saves/*", async(req,res) => {
+router.delete("/minekhan/saves/:id", async(req,res) => {
   if(!req.username) return res.status(401).json("Unauthorized")
   var saves = await db.get("saves:"+req.username)
   if(!saves) return res.json({message:"save doesn't exist"})
-  let id = req.params[0]
+  let id = req.params.id
   for(var i=0; i<saves.length; i++){
     var s = saves[i]
     if(s.id.toString() === id){
       saves.splice(i,1)
       await db.set("saves:"+req.username, saves)
+			await db.deleteFile("saves:"+req.username+":"+id)
       res.json({success:true})
       Log("MineKhan: "+req.username+" deleted world called "+s.name)
       return
@@ -2636,11 +2643,11 @@ router.delete("/minekhan/saves/*", async(req,res) => {
   }
   res.json({message:"save doesn't exist"})
 })
-router.get("/server/account/*/mksaves", async(req,res) => {
-  let username = req.params[0]
+/*router.get("/server/account/:user/mksaves", async(req,res) => {
+  let username = req.params.user
   var saves = await db.get("saves:"+username)
   res.json(saves)
-})
+})*/
 
 router.post("/server/suggest",getPostText,async(req,res) => {
 	rateLimit(request,undefined,0.01)
