@@ -763,11 +763,6 @@ const validate = async(request, response, next) => {
     next()
   }
 }
-app.use((req,res,next) => {
-  if(req.hostname !== theHost && !req.url.startsWith("/internal/")){
-    res.redirect("https://"+theHost+req.url)
-  }else next()
-})
 app.use(validate)
 app.use(async(req,res,next) => {
   let who = setOnline(req.username, req.isGoodPath ? req.method+" "+req.url : null, req.clientIp, req.isGoodPath)
@@ -2099,7 +2094,7 @@ router.get("/currentMedia", async(req,res) => {
 })*/
 router.get("/images/*",async(req,res) => {
   var stream = await db.getStream("images/"+req.params[0])
-  if(!buffer) return res.end()
+  if(!stream) return res.end()
   res.header("Content-Type", mime.lookup(req.params[0]))
   stream.pipe(res)
 })
@@ -4167,11 +4162,17 @@ app.use(async (req, res, next) => {
 		return
 	}
 	res.write("<style>a>*{vertical-align:middle;}.item{display:inline-block;width:16px;height:16px;box-sizing:border-box;}.file{border:1px solid black;background:white;}.folder{background:linear-gradient(0,yellow,brown);}</style>")
-	res.write("<h1>Index of "+sanitize(path)+"</h1><hr><table><thead><tr><th>Name</th></tr></thead><tbody>")
+	res.write("<h1>Index of "+sanitize(path)+"</h1><hr>")
+	let list = ""
 	for await(const dirent of dir){
 		let folder = dirent.isDirectory()
-		res.write("<tr><td><a href='"+sanitize(dirent.name)+(folder?"/":"")+"'><div class='item "+(folder?"folder":"file")+"'></div> <span>"+sanitize(dirent.name)+"</span></a></td></tr>")
+		list += "<tr><td><a href='"+sanitize(dirent.name)+(folder?"/":"")+"'><div class='item "+(folder?"folder":"file")+"'></div> <span>"+sanitize(dirent.name)+"</span></a></td></tr>"
+		if(!folder && dirent.name.toLowerCase().startsWith("readme")){
+			res.write("<h2>"+sanitize(dirent.name)+"</h2>"+await fs.promises.readFile(__dirname+"/public"+path+dirent.name)+"<hr>")
+		}
 	}
+	res.write("<table><thead><tr><th>Name</th></tr></thead><tbody>")
+	res.write(list)
 	res.write("</tbody></table>")
 	res.end()
 })

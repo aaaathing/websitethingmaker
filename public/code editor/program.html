@@ -258,8 +258,8 @@ processingInstance._images = {}
 processingInstance.getImage = function(a){if(!_images[a]){_images[a]=loadImage("https://cdn.kastatic.org/third_party/javascript-khansrc/live-editor/build/images/"+a+".png")}return _images[a]}
 frameRate(60)
 `+editor.getValue()+`
-}};var canvas = document.getElementById("mycanvas");
-document.body.onload=function(){if(window.processingInstance){processingInstance.exit()}window.processingInstance = new Processing(canvas, programCode)};
+}}
+document.body.onload=function(){if(window.processingInstance){processingInstance.exit()}window.processingInstance = new Processing(document.getElementById("mycanvas"), programCode)};
 `;
           idoc.body.appendChild(script);
         }else{
