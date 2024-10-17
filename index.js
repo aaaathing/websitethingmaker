@@ -220,12 +220,12 @@ db.get("log").then(r => {
   }
 })*/
 
-let lastOnline = new Set()
+let lastOnline = new Map()
 let lastOnlineCategories = {i:new Map(),u:new Map()}
 let banned = new Set()
 function updateOnline(){
   let now = Date.now()
-  for(let u of lastOnline){
+  for(let [id,u] of lastOnline){
 		if(u.banned && u.unbanTime && now >= u.unbanTime){
       delete u.banned
 			delete u.banReason
@@ -235,21 +235,22 @@ function updateOnline(){
   		Log(u.username.join(", ")+" was unbanned.")
     }
     if(now - u.time > DAY && !u.banned){
-      lastOnline.delete(u)
+      lastOnline.delete(id)
       for(let username of u.username) lastOnlineCategories.u.delete(username)
       for(let ip of u.ip) lastOnlineCategories.i.delete(ip)
       //if(i === d[0]) disable()
     }
   }
-  db.set("lastOnline",[...lastOnline])
+  db.set("lastOnline",[...lastOnline.values()])
 }
 setInterval(updateOnline,MINUTE)
 db.get("lastOnline").then(r => {
   if(r){
-    lastOnline = new Set(r)
+    lastOnline = new Map()
+		for(let i of r) lastOnline.set(i.id,i)
     lastOnlineCategories.i.clear()
     lastOnlineCategories.u.clear()
-    for(let u of lastOnline){
+    for(let [id,u] of lastOnline){
       for(let username of u.username) lastOnlineCategories.u.set(username,u)
       for(let ip of u.ip) lastOnlineCategories.i.set(ip,u)
 			if(u.banned) banned.add(u)
@@ -273,7 +274,7 @@ function setOnline(username,path,ip){
   let who = (username ? lastOnlineCategories.u.get(username) : null) || lastOnlineCategories.i.get(ip)
   if(!who){
     who = {path:"no path yet", username:[],ip:[], id:generateId(), time: Date.now()}
-    lastOnline.add(who)
+    lastOnline.set(who.id,who)
   }
   lastOnlineCategories.u.set(username,who)
   lastOnlineCategories.i.set(ip,who)
@@ -292,7 +293,7 @@ function waitForBanned(){
   })
 }
 async function ban(username, reason, unbanTime, ip, mode){
-	let who = setOnline(username,null,ip)
+	let who = lastOnline.get(username) || setOnline(username,null,ip)
 	if(who.banned) return Log(username+" is already banned.")
 	who.banned = true
 	who.banReason = reason
@@ -2590,6 +2591,7 @@ router.post("/minekhan/saves", getPostBuffer2,async(req,res) => {
 	}catch{
 		return res.send("bad format")
 	}
+	if(!db.canSetFile("saves:"+req.username+":"+save.id)) return res.status(429).send("too many requests")
   var saves = await db.get("saves:"+req.username) || []
   var found = false
   for(var i=0; i<saves.length; i++){
@@ -3966,7 +3968,7 @@ onlineWs.onrequest = function(request,connection){
 function sendAllOnline(connection){
   connection.sendUTF(JSON.stringify({
     type:"all",
-    data:[...lastOnline].map(({id,path,username,time}) => ({id,path,username,time})),
+    data:[...lastOnline.values()].map(({id,path,username,time}) => ({id,path,username,time})),
     now:Date.now()//for correct time
   }))
 }

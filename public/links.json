@@ -19,6 +19,7 @@
 		}
 	},
   "MineKhan tools":{"url":"/tools"},
+	"History of website":{"url":"/history.html","interesting":true},
   "Wiki":{"url":"/wiki"},
   "to do & info":{"url":"/todo.html"},
   "Adder":{"url":"/Adder.html"},

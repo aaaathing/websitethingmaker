@@ -39,7 +39,7 @@ const bucket = storage.bucket("replit-objstore-dfc036d2-f315-4a87-877d-ec3cea3d7
 
 function sleep(time){return new Promise(r => setTimeout(r,time))}
 
-module.exports = {
+let db = module.exports = {
   storage,
   timeouts:{},
   updateTimeout(n){
@@ -69,12 +69,19 @@ module.exports = {
       nextValue:value, operation:null
     }
   },
+	fileTimeouts:new Map(),
+	canSetFile:function(path){
+		if(!this.fileTimeouts.has(path) || Date.now() >= this.fileTimeouts.get(path)){
+			this.fileTimeouts.set(path, Date.now()+1000)
+			return true
+		}
+	},
   set: function(key,value,options){
     if(!value) throw new Error('---------- Missing value for '+key)
     if(!(options && options.raw)) value = JSON.stringify(value)
-    if(this.timeouts[key]){
+    /*if(this.timeouts[key]){
       this.updateTimeout(key)
-    }
+    }*/
     let me = this
     return new Promise((resolve,reject) => {
       let t = this.timeouts[key]
@@ -226,5 +233,9 @@ module.exports = {
   bucket
 }
 setInterval(() => {
-	for(var i in module.exports.timeouts) module.exports.updateTimeout(i)
+	let now = Date.now()
+	for(var i in db.timeouts) db.updateTimeout(i)
+	for(let [path,time] of db.fileTimeouts){
+		if(now>=time) db.fileTimeouts.delete(path)
+	}
 },1000)
