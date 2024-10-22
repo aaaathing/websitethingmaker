@@ -1,3 +1,4 @@
+// Oct 13, 2023
 //jshint esnext:true
 //change these
 const gsize = 64;//grid size

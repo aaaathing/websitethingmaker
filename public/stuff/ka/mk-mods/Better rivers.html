@@ -1,8 +1,11 @@
+<!-- Sep 8, 2023 -->
+<!-- Last updated Oct 2, 2023 -->
 <!DOCTYPE html>
 <!-- @MineKhan version Alpha 0.7.1
 
 Realistic rivers
 It is very hard to generate rivers in an infinite world that flow downhill.
+When scaled up 4 times, rivers can be up to 1024 blocks (or meters) long.
 
 	NOTE:
 The "Save" button saves your world to your local browser. Nobody else can see it. However, if you're on a public or shared computer, that save may be deleted unexpectedly. So it's a good idea to keep a safe copy of your save string somewhere where it won't be deleted.
@@ -916,7 +919,8 @@ function interpolateRivers(cx,cz,scaleBy,prevRivers,rivers,offsetX,offsetZ,newPr
                     getRiver(rx+1,rz+1,riverLowers)||0
                 )
             )
-            river = Math.round(river)*0.7
+            //river = Math.round(river)*0.7
+            river = (river*river+river+river)/3
             setRiver(x+cx*16,z+cz*16,rivers,river)
             setRiver(x+cx*16,z+cz*16,newPrevRiverArray,river)
             setRiver(x+cx*16,z+cz*16,newRiverLowers,lower)
@@ -983,11 +987,7 @@ function generateChunk(x,z,seed){
     }
     
     //Create a heightmap for the result
-    for(let cx=-5; cx<=5; cx++){
-        for(let cz=-5; cz<=5; cz++){
-            getHeightmap(cx,cz,heightmaps,(Math.floor(x/Scale)+cx),(Math.floor(z/Scale)+cz),Scale,riverLowers,extraNoisemaps);
-        }
-    }
+    getHeightmap(0,0,heightmaps,Math.floor(x/Scale),Math.floor(z/Scale),Scale,riverLowers,extraNoisemaps);
     
     for(let bx=0;bx<16;bx++){
         for(let bz=0;bz<16;bz++){

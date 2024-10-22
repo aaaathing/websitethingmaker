@@ -1,3 +1,4 @@
+// Sep 2, 2023
 /*
 The brighter areas are higher.
 Rivers are generated first, then height is controlled by rivers.

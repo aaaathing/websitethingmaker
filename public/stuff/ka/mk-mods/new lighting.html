@@ -1,8 +1,8 @@
-<!-- Jun 29, 2021 -->
-<!-- Last updated Mar 19, 2023 -->
+<!-- Apr 29, 2023 -->
 <!DOCTYPE html>
 <!-- @MineKhan version Alpha 0.7.1
-play.minekhan.repl.co
+
+not done
 
 	NOTE:
 The "Save" button saves your world to your local browser. Nobody else can see it. However, if you're on a public or shared computer, that save may be deleted unexpectedly. So it's a good idea to keep a safe copy of your save string somewhere where it won't be deleted.
@@ -85,7 +85,7 @@ This isn't entirely necessary, but it's considered best practice. Some OpenGL ES
 <html>
 	<head>
 		<meta charset="utf-8">
-		<title>MineKhan Stair Corners</title>
+		<title>new lighting</title>
 		<link id="vtfont" href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
 	</head>
 	<style>
@@ -188,7 +188,7 @@ This isn't entirely necessary, but it's considered best practice. Some OpenGL ES
 	<script>
 		// Code edits will erase the world.
 		// Place save code here to load your world. Make extra sure you got it copied so you don't paste in the wrong thing and delete your world on accident lol
-		var loadString = "World;3uzr8s;0,b,-j,-i,ey,3;Alpha 0.7.1;2,8,b,s,t,ej,f0,10c,3kb,3ks,6bv,7wr,9hn,9i4,9vv,9wc;1,0,0,sy8,sy9,sya,n6,daq,a5c,a5d,db6,3u8,a5t,dbm,a68,a69,dc2,dcg,dch,dci,t5s,u8,u9,768,769,aci,acy,ade,djm,11c,11d,7dc,7dd,ajm,ak2,aki,dqq,18g,18h,7kg,7kh,k80,aqq,4fm,arm,dxu,1fk,1fl,7rk,7rl,kf4,axu,4mq,ayq,e4y,1mo,1mp,7yo,7yp,km8,b4y,4tu,b5u,ec2,1ts,1tt,85s,85t,1d9c,bc2,bci,bcy,ej6,20w,20x,8cw,8cx,bj6,bjm,bk2,eqa,282,evm,bq8,bq9,ew2,bqo,bqp,ewi,br4,br5,ewy,exc,exd,exe;1,0,-1,ga,gb,gc,gd,12e2,pqz,pr0,z8d,15ln,syk,syl,sym,syn,nd,ne,nf,ng,nh,12l5,18wq,6zf,6zg,db1,dbh,a5q,a5r,dbx,a66,3un,dcd,a6m,a6n,15sq,1c4b,dcs,dct,dcu,dcv,15t8,t65,t66,t67,uh,ui,uj,uk,ul,um,un,gnt,76i,76j,76k,76l,76m,76n,15zt,1cbe,djv,djw,160b,1cbw,n1p,n1q,n1r,11l,11m,11n,11o,11p,11q,11r,gux,7dm,7dn,7do,7dp,7dq,7dr,k2h,dqy,dqz,167e,1ciz,n8s,n8t,n8u,18p,18q,18r,18s,18t,18u,18v,wux,dwa,7kr,7ks,7kt,7ku,7kv,dwq,ne5,ne6,dx6,dxm,k9l,dy2,ka2,nfv,nfw,nfx,1fv,1fw,1fx,1fy,1fz,7rv,7rw,7rx,7ry,7rz,ay2,nl9,nla,ayi,ayy,kgp,e56,kh6,nmz,nn0,1mz,1n0,1n1,1n2,1n3,7yz,7z0,7z1,7z2,7z3,b56,4u2,b62,knt,eca,koa,nu3,1u3,1u4,1u5,1u6,1u7,863,864,865,866,867,bca,ub1,ub2,ub3,516,bd6,kux,eje,kve,217,218,219,21a,21b,8d7,8d8,8d9,8da,8db,bje,bju,bka,l21,eqi,28a,evu,ewa,bqj,bqk,bql,bqm,bqn,ewq,bqz,br0,5fh,5fi,5fj,ex6,brf,brg,brh,bri,brj,l95,exm,exn,exo,exp,exq,exr"
+		var loadString = ""
 	</script>
 	<script type="x-shader/vertex" id="blockVertexShader">
 		attribute vec3  aVertex;
@@ -987,6 +987,9 @@ function MineKhan() {
 	let strokeWeight = function(num) {
 		ctx.lineWidth = num
 	}
+	function map(v, min, max, min2, max2){
+        return min2 + (max2 - min2) * ((v - min) / (max - min));
+    }
 	const ARROW = "arrow"
 	const HAND = "pointer"
 	const CROSS = "crosshair"
@@ -1122,8 +1125,6 @@ function MineKhan() {
 	const CUBE     = 0
 	const SLAB     = 0x100 // 9th bit
 	const STAIR    = 0x200 // 10th bit
-	const STAIRCORNEROUT=0x2000
-	const STAIRCORNERIN=0x2200
 	const FLIP     = 0x400 // 11th bit
 	const NORTH    = 0 // 12th and 13th bits for the 4 directions
 	const SOUTH    = 0x800
@@ -1435,54 +1436,6 @@ function MineKhan() {
 			flip: true,
 			rotate: true
 		},
-		stairCornerOut: {
-		    verts: [
-				[objectify( 0, 0,  0, 16, 16, 0, 0)], //bottom
-				[objectify( 0, 8,  16, 16, 16, 0, 0), objectify( 0, 16,  16, 8, 8, 0, 0)], //top
-				[objectify(8, 16, 16, 8, 8, 0, 0), objectify(16, 8, 16, 16, 8, 0, 0)], //north
-				[objectify( 0, 8,  0, 16, 8, 0, 0), objectify( 0, 16,  8, 8, 8, 0, 0)], //south
-				[objectify(16, 8, 0, 16, 8, 0, 0), objectify(8, 16, 8, 8, 16, 0, 0)], //east
-				[objectify( 0, 8, 8, 8, 8, 0, 0), objectify( 0, 16, 16, 8, 16, 8, 0)]  //west
-			],
-			cull: {
-				top: 0,
-				bottom: 3,
-				north: 3,
-				south: 0,
-				east: 0,
-				west: 0
-			},
-			texVerts: [],
-			buffer: null,
-			size: 10,
-			varients: [],
-			flip: true,
-			rotate: true
-		},
-		stairCornerIn: {
-		    verts: [
-            	[objectify(0,0,0,16,16,0,0)],
-            	[objectify(8,8,8,8,8,0,0),objectify(0,16,16,16,8,0,0),objectify(0,16,8,8,8,0,0)],
-            	[objectify(16,16,16,16,16,0,0)],
-            	[objectify(8,16,8,8,8,0,0),objectify(0,16,0,8,8,0,0),objectify(0,8,0,16,8,0,0)],
-            	[objectify(8,16,0,8,8,0,0),objectify(16,16,8,8,8,0,0),objectify(16,8,0,16,8,0,0)],
-            	[objectify(0,16,16,16,16,0,0)]
-            ],
-            cull: {
-				top: 0,
-				bottom: 3,
-				north: 3,
-				south: 0,
-				east: 0,
-				west: 0
-			},
-			texVerts: [],
-			buffer: null,
-			size: 10,
-			varients: [],
-			flip: true,
-			rotate: true
-		}
 	}
 	win.shapes = shapes
 
@@ -1740,16 +1693,11 @@ function MineKhan() {
 			let baseBlock = blockData[i]
 			let slabBlock = Object.create(baseBlock)
 			let stairBlock = Object.create(baseBlock)
-			let stairCornerOutBlock = Object.create(baseBlock)
-			let stairCornerInBlock = Object.create(baseBlock)
 			slabBlock.shape = shapes.slab
 			baseBlock.shape = shapes.cube
 			stairBlock.shape = shapes.stair
-			stairCornerOutBlock.shape = shapes.stairCornerOut
-			stairCornerInBlock.shape = shapes.stairCornerIn
 			blockData[i | SLAB] = slabBlock
 			blockData[i | STAIR] = stairBlock
-			blockData[i | STAIRCORNEROUT] = stairCornerOutBlock
 			let v = slabBlock.shape.varients
 			for (let j = 0; j < v.length; j++) {
 				if (v[j]) {
@@ -1766,22 +1714,6 @@ function MineKhan() {
 					blockData[i | STAIR | j << 10] = block
 				}
 			}
-			v = stairCornerOutBlock.shape.varients
-			for (let j = 0; j < v.length; j++) {
-				if (v[j]) {
-					let block = Object.create(baseBlock)
-					block.shape = v[j]
-					blockData[i | STAIRCORNEROUT | j << 10] = block
-				}
-			}
-			v = stairCornerInBlock.shape.varients
-			for (let j = 0; j < v.length; j++) {
-				if (v[j]) {
-					let block = Object.create(baseBlock)
-					block.shape = v[j]
-					blockData[i | STAIRCORNERIN | j << 10] = block
-				}
-			}
 		}
 	}
 	let indexOrder;
@@ -1796,7 +1728,6 @@ function MineKhan() {
 	let hexagonVerts
 	let slabIconVerts
 	let stairIconVerts
-	let stairCornerIconVerts
 	let blockIcons
 	{
 		let side = Math.sqrt(3) / 2
@@ -1822,11 +1753,6 @@ function MineKhan() {
 			-s,0.5,0,0,0.8,      -q,0.25,0.5,0,0.8, -q,-0.75,0.5,1,0.8, -s,-0.5,0,1,0.8,    // side of the top step
 			-q,-0.25,0.5,0.5,0.8, 0,-0.5,1,0.5,0.8,  0,-1,1,1,0.8,      -q,-0.75,0.5,1,0.8, // side of the bottom step
 		]
-		stairCornerIconVerts = new Float32Array([
-			0, 1, 1, side, 0.5, 1, 0, 0, 1, -side, 0.5, 1,
-			0, 0, 1, side, 0.5, 1, side, -0.5, 1, 0, -1, 1,
-			-side, 0.5, 1, 0, 0, 1, 0, -1, 1, -side, -0.5, 1,
-		])
 	}
 	function genIcons() {
 		blockIcons = [null]
@@ -1887,25 +1813,6 @@ function MineKhan() {
 			gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.STATIC_DRAW)
 			blockIcons[i | STAIR] = buffer
 			blockIcons.lengths[i | STAIR] = 6 * 6
-			
-			data = []
-			for (let j = 11; j >= 0; j--) {
-				let tex = textureCoords[textureMap[block.textures[texOrder[Math.floor(j / 4)]]]]
-
-				data.push(-stairCornerIconVerts[j * 3 + 0] * scale)
-				data.push(stairCornerIconVerts[j * 3 + 1] * scale)
-				data.push(0.1666666)
-				data.push(tex[(j * 2 + 0) % 8])
-				data.push(tex[(j * 2 + 1) % 8])
-				data.push(shadows[Math.floor(j / 4)])
-			}
-			buffer = gl.createBuffer()
-			gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
-			gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.STATIC_DRAW)
-			blockIcons[i | STAIRCORNEROUT] = buffer
-			blockIcons.lengths[i | STAIRCORNEROUT] = 6 * 3
-			blockIcons[i | STAIRCORNERIN] = buffer
-			blockIcons.lengths[i | STAIRCORNERIN] = 6 * 3
 		}
 	}
 
@@ -3229,6 +3136,36 @@ function MineKhan() {
 			}
 			this.renderData[index] = 1 << 31 | pos | visible << 13 | this.palleteMap[blockState]
 		}
+		side1 = []
+		side2 = []
+		sliceThing(thing,lx,ly,lx2,ly2,verts,idx,side){
+		    this.side1.length=this.side2.length=0
+		    for(let i=0;i<12;i++){
+		        let cx, cy
+		        switch(side){
+		            case "bottom":
+		            case "top":
+		                cx = verts[i+idx]
+		                cy = verts[i+idx+2]
+		                break
+		            case "north":
+		            case "south":
+		                cx = verts[i+idx]
+		                cy = verts[i+idx+1]
+		                break
+		            case "east":
+		            case "west":
+		                cx = verts[i+idx+1]
+		                cy = verts[i+idx+2]
+		                break
+		        }
+		        if(((lx2 - lx)*(cy - ly) - (ly2 - ly)*(cx - lx)) > 0){
+		            side1.push(verts[i+idx],verts[i+idx+1],verts[i+idx+2])
+		        }else{
+		            side2.push(verts[i+idx],verts[i+idx+1],verts[i+idx+2])
+		        }
+		    }
+		}
 		genMesh(barray, index) {
 			if (!this.renderLength) {
 				return index
@@ -3247,6 +3184,8 @@ function MineKhan() {
 			let shapeTexVerts = null
 			let pallete = this.pallete
 			let intShad = interpolateShadows
+			
+			let slices=[]
 			
 			for (let i = 0; i < length; i++) {
 				data = rData[i]
@@ -3269,50 +3208,53 @@ function MineKhan() {
 				for (let n = 0; n < 6; n++) {
 					side = blockSides[n]
 					if (sides & Block[side]) {
-						shadows = getShadows[side](x, y, z, blocks)
 						let directionalFaces = shapeVerts[Sides[side]]
-						// if (directionalFaces.length > 1) {
-						// 	let average = (shadows[0] + shadows[1] + shadows[2] + shadows[3]) / 4
-						// 	shadows[0] = average
-						// 	shadows[1] = average
-						// 	shadows[2] = average
-						// 	shadows[3] = average
-						// }
+						/*if (1||directionalFaces.length > 1) {
+						 	let average = (shadows[0] + shadows[1] + shadows[2] + shadows[3]) / 4
+						 	shadows[0] = average
+						 	shadows[1] = average
+						shadows[2] = average
+						  shadows[3] = average
+						}*/
 						for (let facei = 0; facei < directionalFaces.length; facei++) {
+						    slices.length=0
 							verts = directionalFaces[facei]
 							texVerts = textureCoords[textureMap[tex[texNum]]]
+						    slices.push(...verts,1,1,1,1)
+						    for(let k=0;k<slices.length;k+=16){
 							tx = texVerts[0]
 							ty = texVerts[1]
 							texShapeVerts = shapeTexVerts[n][facei]
 
-							barray[index] = verts[0] + x2
-							barray[index+1] = verts[1] + y2
-							barray[index+2] = verts[2] + z2
+							barray[index] = slices[k] + x2
+							barray[index+1] = slices[k+1] + y2
+							barray[index+2] = slices[k+2] + z2
 							barray[index+3] = tx + texShapeVerts[0]
 							barray[index+4] = ty + texShapeVerts[1]
-							barray[index+5] = shadows[0]
+							barray[index+5] = slices[12]
 
-							barray[index+6] = verts[3] + x2
-							barray[index+7] = verts[4] + y2
-							barray[index+8] = verts[5] + z2
+							barray[index+6] = slices[k+3] + x2
+							barray[index+7] = slices[k+4] + y2
+							barray[index+8] = slices[k+5] + z2
 							barray[index+9] = tx + texShapeVerts[2]
 							barray[index+10] = ty + texShapeVerts[3]
-							barray[index+11] = shadows[1]
+							barray[index+11] = slices[13]
 
-							barray[index+12] = verts[6] + x2
-							barray[index+13] = verts[7] + y2
-							barray[index+14] = verts[8] + z2
+							barray[index+12] = slices[k+6] + x2
+							barray[index+13] = slices[k+7] + y2
+							barray[index+14] = slices[k+8] + z2
 							barray[index+15] = tx + texShapeVerts[4]
 							barray[index+16] = ty + texShapeVerts[5]
-							barray[index+17] = shadows[2]
+							barray[index+17] = slices[14]
 
-							barray[index+18] = verts[9] + x2
-							barray[index+19] = verts[10] + y2
-							barray[index+20] = verts[11] + z2
+							barray[index+18] = slices[k+9] + x2
+							barray[index+19] = slices[k+10] + y2
+							barray[index+20] = slices[k+11] + z2
 							barray[index+21] = tx + texShapeVerts[6]
 							barray[index+22] = ty + texShapeVerts[7]
-							barray[index+23] = shadows[3]
+							barray[index+23] = slices[15]
 							index += 24
+						    }
 						}
 					}
 					texNum++
@@ -5032,7 +4974,7 @@ function MineKhan() {
 		}
 
 		if (k === "enter") {
-			blockMode = blockMode === CUBE ? SLAB : (blockMode === SLAB ? STAIR : (blockMode === STAIR ? STAIRCORNEROUT : (blockMode === STAIRCORNEROUT ? STAIRCORNERIN : CUBE)))
+			blockMode = blockMode === CUBE ? SLAB : (blockMode === SLAB ? STAIR : CUBE)
 			updateHUD = true
 		}
 
