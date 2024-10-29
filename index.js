@@ -1616,7 +1616,7 @@ async function clearSubscriptions(){
 
   for(var i in s){
     webPush.sendNotification(s[i], payload)
-      .catch(error => console.error(error));
+      .catch(error => console.warn(error));
   }
   Log("Done")
 }
@@ -1636,7 +1636,7 @@ function sendNotifTo(msg, subscription, fromUser = null, actions){
           db.set("user:"+fromUser.username, fromUser)
           Log("removed subscription "+fromUser.username,subscription)
         }
-      }else console.error(error)
+      }else console.warn(error)
     });
 }
 async function sendNotifToUser(msg,username,actions){
@@ -2581,7 +2581,7 @@ router.get("/minekhan/saves", async(req,res) => {
 router.get("/minekhan/saves/:id", async(req,res) => {
   if(!req.username) return res.status(401).json("Unauthorized")
 	let stream = await db.getStream("saves:"+req.username+":"+req.params.id)
-	if(!stream) res.json(null)
+	if(!stream) return res.json(null)
 	stream.pipe(res)
 })
 router.post("/minekhan/saves", getPostBuffer2,async(req,res) => {
@@ -2651,25 +2651,32 @@ router.post("/server/suggest",getPostText,async(req,res) => {
   Log(req.username+":"+req.who.id+" suggest: "+req.body)
   res.send("done")
 })
+function where(req){
+	let thing = req.headers.referer||req.headers.referrer||req.headers.origin
+	return (thing!=="https://"+theHost||thing!=="https://"+theHost+"/minekhan/")&&(thing+""!=="null")?"from "+thing:""
+}
 router.post("/minekhan/know",getPostText,async(req,res) => {
 	rateLimit(request,undefined,0.01)
   setOnline(req.username, req.body,request.clientIp)
-  Log("MineKhan:", "know ", req.username+":"+req.who.id, req.body, req.headers.origin!=="https://"+theHost&&(req.headers.origin+""!=="null")?"from "+req.headers.origin+"  "+req.url:"")
+  Log("MineKhan:", "know ", req.username+":"+req.who.id, req.body, where(req))
   res.send("done")
 })
-/*router.post("/server/know/newWorld",getPostText,async(req,res) => {
+
+//{old
+router.post("/server/know/newWorld",getPostText,async(req,res) => {
 	rateLimit(request,undefined,0.01)
-  let split = req.body.split(";")
-  setOnline(req.username,"new world: "+split[0],request.clientIp)
-  Log("MineKhan:",req.username+":"+req.who.id+" created new world called "+split[0]+" with seed "+split[1]+" and world type "+split[2]+" and game mode "+split[3], req.headers.origin!=="https://"+theHost&&(req.headers.origin+""!=="null")?"from "+req.headers.origin+"  "+req.url:"")
+  setOnline(req.username,"new world: "+req.body,request.clientIp)
+  Log("MineKhan:","know old",req.username+":"+req.who.id+" created new world "+req.body, where(req))
   res.send("done")
 })
 router.post("/server/know/openWorld",getPostText,async(req,res) => {
 	rateLimit(request,undefined,0.01)
-  setOnline(req.username,"open world: "+req.body,request.clientIp)
-  Log("MineKhan:",req.username+":"+req.who.id+" played world called "+req.body)
+  setOnline(req.username,"play world: "+req.body,request.clientIp)
+  Log("MineKhan:","know old",req.username+":"+req.who.id+" played world "+req.body, where(req))
   res.send("done")
-})*/
+})
+//}
+
 router.post("/server/know/minekhan/error",getPostText,async(req,res) => {
 	rateLimit(request,undefined,0.01)
   Log("alert","MineKhan Error:",req.username+":"+req.who.id+" encountered error: "+req.body)

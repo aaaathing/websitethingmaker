@@ -27,9 +27,6 @@ function canCache(url) {
     url.startsWith(location.origin+"/minekhan/assets/lang/") && !url.endsWith("/") ||
     url.startsWith(location.origin+"/assets/")
 }
-function cacheForever(url){
-  return false
-}
 
 importScripts("/assets/localforage.js")
 
@@ -52,14 +49,18 @@ self.addEventListener("activate", event => {
 })
 self.addEventListener("fetch", event => {
 	//if (event.request.method !== 'GET' || event.request.status >= 300) return // Use default behavior
+	if(event.request.url.startsWith("https://example")){
+		event.respondWith(new Response("123213232121231"))
+	}
   if(!canCache(event.request.url)) return
   event.respondWith((async () => {
-    let url = event.request.url
     let cache = await caches.open(cacheName)
+    /*
+		let url = event.request.url
     if(cacheForever(url)){
       let cacheres = await caches.match(event.request)
       if(cacheres) return cacheres
-    }
+    }*/
     let fetchRes = await fetch(event.request)
     if (fetchRes.ok) {
       cache.put(event.request, fetchRes.clone())
