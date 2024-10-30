@@ -1,0 +1,26 @@
+<!doctype html>
+
+<h1 style="text-align:center;">Creepy window</h1>
+
+<script>
+  var myWin = window.open("","_blank","width=300,height=300")
+  myWin.document.write("<span style='font-size:100px;'>😊</span>")
+  var i=0;
+  function moveWin(){
+    i+=0.05;
+    if(i>Math.PI*2)i=0;
+    var x = ((Math.sin(i)+1)/2)*1000;
+    var y = ((Math.cos(i)+1)/2)*300;
+    myWin.moveTo(x,y)
+  }
+
+  window.onbeforeunload=function(){
+    myWin.close()
+  }
+  
+  function updt(){
+    moveWin();
+    requestAnimationFrame(updt);
+  }
+  updt();
+</script>

@@ -182,13 +182,14 @@ Log.noTime = async function(data){
 db.Log = Log
 
 function waitToRestart(){
+	console.log("waiting to restart")
   serverPort.close()
 	updateOnline()
   setInterval(() => {
-    let now = Date.now()
     for(let i in db.timeouts){
       if(db.timeouts[i].operation) return
     }
+		console.log("restarting")
     process.exit()
   },500)
 }
@@ -543,18 +544,18 @@ function sanitize(v){
 function valueToString(v, nf, all){ //for log
   var str = ""
   if(v === undefined || v === null){
-    str = "<span class='null'>"+v+"</span>"
+    str = "<span style='color:#0aa'>"+v+"</span>"
   }else if(typeof v === "function"){
-    str = "<span class='function'>"+v.toString()+"</span>"
+    str = "<span style='color:purple'>"+v.toString()+"</span>"
   }else if(Array.isArray(v)){
-    str = "<span class='array'>["
+    str = "<span style='color:red'>["
     for(var i=0; i<v.length; i++){
       str += valueToString(v[i], true, all)+", "
     }
     if(v.length)str = str.substring(0, str.length-2) //remove trailing ", "
     str += "]</span>"
   }else if(typeof v === "object"){
-    str = "<span class='object'>{"
+    str = "<span style='color:red'>{"
     var hasTrailing
     for(var i in v){
       str += "<span class='objectProperty'>"+i+"</span>: "+valueToString(v[i], true, all)+", "
@@ -563,49 +564,52 @@ function valueToString(v, nf, all){ //for log
     if(hasTrailing)str = str.substring(0, str.length-2) //remove trailing ", "
     str += "}</span>"
   }else if(typeof v === "number"){
-    str = "<span class='number'>"+v.toString()+"</span>"
+    str = "<span style='color:orange'>"+v.toString()+"</span>"
   }else if(typeof v === "string"){
     if((typeof all[0] === "string") && (all[0].startsWith("MineKhan") || all[0].startsWith("Message"))){
       if(v === all[0]){
         v = sanitize(v)
         if(v.startsWith("Message")){
-          v = v.replace("Message","<span class='minekhan2activity'>Message</span>")
+          v = v.replace("Message","<span style='font-weight:bold'>Message</span>")
         }
-        v = v.replace("MineKhan","<span class='minekhanactivity'>MineKhan</span>")
+        if(v.startsWith("know")){
+          v = v.replace("know","<span style='color:yellow'>know</span>")
+        }
+        v = v.replace("MineKhan","<span style='background:yellow'>MineKhan</span>")
       }else v = sanitize(v)
     }else if((typeof all[0] === "string") && all[0].startsWith("Editor:")){
       if(v === all[0]){
         v = sanitize(v)
-        v = v.replace("Editor:","<span class='editoractivity'>Editor:</span>")
+        v = v.replace("Editor:","<span style='background:cyan'>Editor:</span>")
       }
     }else if((typeof all[0] === "string") && all[0].startsWith("New comment")){
       if(v === all[0]){
         v = v.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
-        v = v.replace("comment","<span class='postactivity'>comment</span>")
+        v = v.replace("comment","<span style='background:orange'>comment</span>")
       }
     }else if((typeof all[0] === "string") && (all[0].startsWith("New post") || all[0].startsWith("Edited post"))){
-      if(v === all[0]) v = v.replace("post","<span class='postactivity'>post</span>")
+      if(v === all[0]) v = v.replace("post","<span style='background:orange'>post</span>")
     }else if((typeof all[0] === "string") && (all[0].startsWith("New wiki") || all[0].startsWith("Edited wiki"))){
       if(v === all[0]){
         v = v.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
-        v = v.replace("wiki","<span class='postactivity'>wiki</span>")
+        v = v.replace("wiki","<span style='background:orange'>wiki</span>")
       }
     }else if((typeof all[0] === "string") && (all[0].startsWith("New map") || all[0].startsWith("New resource pack") || all[0].startsWith("Edited resource pack"))){
       if(v === all[0]){
         v = v.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
-        v = v.replace(/(map|resource pack)/,"<span class='postactivity'>$1</span>")
+        v = v.replace(/(map|resource pack)/,"<span style='background:orange'>$1</span>")
       }
     }else if((typeof all[0] === "string") && all[0].startsWith("Deleted wiki")){
       if(v === all[0]){
         v = v.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
-        v = v.replace("wiki","<span class='postactivity'>wiki</span>")
+        v = v.replace("wiki","<span style='background:orange'>wiki</span>")
       }
     }else if((typeof all[0] === "string") && all[0].startsWith("Deleted post")){
-      if(v === all[0]) v = v.replace("post","<span class='postactivity'>post</span>")
+      if(v === all[0]) v = v.replace("post","<span style='background:orange'>post</span>")
     }else if((typeof all[0] === "string") && all[0].startsWith("Deleted map")){
-      if(v === all[0]) v = v.replace("map","<span class='postactivity'>map</span>")
+      if(v === all[0]) v = v.replace("map","<span style='background:orange'>map</span>")
     }else if((typeof all[0] === "string") && all[0].startsWith("Upload zip")){
-			if(v === all[0]) v = v.replace("zip","<span class='postactivity'>zip</span>")
+			if(v === all[0]) v = v.replace("zip","<span style='background:orange'>zip</span>")
 		}else if(all && typeof all[0] === "string" && (all[0].startsWith("%<") || all[0].startsWith("%>"))){
       v = v.replace(/(?<!%)</g,"&lt;")
       v = v.replace(/(?<!%)>/g,"&gt;")
@@ -617,9 +621,9 @@ function valueToString(v, nf, all){ //for log
     }else{
       v = sanitize(v)
       v = v.replace(/\n/g,"<br>")
-      v = v.replace(/(added cape|removed cape|got cape called|changed their cape|lost cape|removed their cape)/, "<span class='capeactivity'>$1</span>")
-      v = v.replace(/(changed their bio|changed their skin|changed their pfp|changed their background)/, "<span class='useractivity'>$1</span>")
-      v = v.replace(/(invited|voted|tried to vote)/, "<span class='user2activity'>$1</span>")
+      v = v.replace(/(added cape|removed cape|got cape called|changed their cape|lost cape|removed their cape)/, "<span style='background:#88f'>$1</span>")
+      v = v.replace(/(changed their bio|changed their skin|changed their pfp|changed their background)/, "<span style='background:lightgreen'>$1</span>")
+      v = v.replace(/(invited|voted|tried to vote)/, "<span style='background:red'>$1</span>")
     }
     if(nf)str = "<span style='color:green;'>'"+v+"'</span>"
     else str = v
@@ -2965,6 +2969,7 @@ function setPassword(username,pwd){
 
 let serverPort = app.listen(8080, '0.0.0.0', function(){
   Log("Server running");
+	console.log("server running")
 });
 
 //WebSocket

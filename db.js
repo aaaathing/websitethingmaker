@@ -158,7 +158,7 @@ let db = module.exports = {
       let t = this.timeouts[key]
       if(!this.timeouts[key]) t = me._newTimeout(key,null)
       t.nextValue = null
-      t.operation = () => bucket.file(key+".json").delete()
+      t.operation = () => bucket.file(key+".json").delete({ignoreNotFound:true})
       t.promises.push({
         resolve: () => resolve(true),
         reject
