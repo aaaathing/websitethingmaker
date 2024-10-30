@@ -51,24 +51,6 @@ let multiplayerOn = true
 let multiplayerMsg = "" //message when multiplayer is off
 
 const theHost = "thingmaker.us.eu.org"
-
-
-if(!process.env.REPLIT_DEPLOYMENT){
-  console.log('not deployment')
-  
-  require("./indextest.js")
-  return
-}
-
-
-process.on('unhandledRejection', (reason, p) => {
-  //console.error('Unhandled Rejection at: Promise', p, 'reason:', reason);
-  //Log(reason.stack)
-  //setTimeout(() => process.exit(), 2000)
-  console.error(reason)
-  process.exit()
-});
-
 const serverInfo = [
   /*{url:"scn.tnjs.repl.co",safe:true},
   {url:"mkServer.minekhan.repl.co",safe:true},
@@ -82,8 +64,25 @@ const serverInfo = [
   {url:"mkserver.tommustbe12.repl.co"}
   {url:"mk-server.awhatcott.repl.co"}*/
 ]
-
 const d = ["2-people","2-people2","Notch","TomMustBe12"]
+const alertStrs = ["don"+"gwei","alertthis"]
+
+
+
+
+if(!process.env.REPLIT_DEPLOYMENT){
+  console.log('not deployment')
+  
+  require("./indextest.js")
+  return
+}
+process.on('unhandledRejection', (reason, p) => {
+  //console.error('Unhandled Rejection at: Promise', p, 'reason:', reason);
+  //Log(reason.stack)
+  //setTimeout(() => process.exit(), 2000)
+  console.error(reason)
+  process.exit()
+});
 
 const express = require('express');
 const app = express();
@@ -169,6 +168,10 @@ function Log(){
   let now = Date.now()
   log.push(now,data)
 
+	for(let i of alertStrs){
+		if(data.includes(i)) log.push(now," | <b style='color:red'>alert found string "+i+"</b>")
+	}
+
   if(!prelog) db.set("log", log)
 }
 Log.noTime = async function(data){
@@ -180,6 +183,7 @@ db.Log = Log
 
 function waitToRestart(){
   serverPort.close()
+	updateOnline()
   setInterval(() => {
     let now = Date.now()
     for(let i in db.timeouts){
@@ -470,6 +474,17 @@ function generatePassword(){
   return Array.from(crypto.randomFillSync(new Uint32Array(length)))
     .map((x) => wishlist[x % wishlist.length])
     .join('')
+}
+const hashCode = function(str) {
+  var hash = 0,
+    i, chr;
+  if (this.length === 0) return hash;
+  for (i = 0; i < str.length; i++) {
+    chr = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + chr;
+    hash |= 0; // Convert to 32bit integer
+  }
+  return hash;
 }
 
 function timeString(millis) {
@@ -2653,12 +2668,12 @@ router.post("/server/suggest",getPostText,async(req,res) => {
 })
 function where(req){
 	let thing = req.headers.referer||req.headers.referrer||req.headers.origin
-	return (thing!=="https://"+theHost||thing!=="https://"+theHost+"/minekhan/")&&(thing+""!=="null")?"from "+thing:""
+	return (thing!=="https://"+theHost&&thing!=="https://"+theHost+"/minekhan/")&&(thing+""!=="null")?"from "+thing:""
 }
 router.post("/minekhan/know",getPostText,async(req,res) => {
 	rateLimit(request,undefined,0.01)
   setOnline(req.username, req.body,request.clientIp)
-  Log("MineKhan:", "know ", req.username+":"+req.who.id, req.body, where(req))
+  Log("MineKhan:", "know ", req.username+":"+req.who.id, where(req), req.body)
   res.send("done")
 })
 
@@ -2666,13 +2681,13 @@ router.post("/minekhan/know",getPostText,async(req,res) => {
 router.post("/server/know/newWorld",getPostText,async(req,res) => {
 	rateLimit(request,undefined,0.01)
   setOnline(req.username,"new world: "+req.body,request.clientIp)
-  Log("MineKhan:","know old",req.username+":"+req.who.id+" created new world "+req.body, where(req))
+  Log("MineKhan:","know old", req.username+":"+req.who.id,where(req)," created new world "+req.body)
   res.send("done")
 })
 router.post("/server/know/openWorld",getPostText,async(req,res) => {
 	rateLimit(request,undefined,0.01)
   setOnline(req.username,"play world: "+req.body,request.clientIp)
-  Log("MineKhan:","know old",req.username+":"+req.who.id+" played world "+req.body, where(req))
+  Log("MineKhan:","know old", req.username+":"+req.who.id,where(req)," played world "+req.body)
   res.send("done")
 })
 //}
