@@ -832,12 +832,11 @@ HTMLSafeElements.add("iframe")
 HTMLSafeElements.add("source")
 HTMLSafeElements.add("blockquote")
 HTMLSafeElements.add("q")
-//HTMLSafeElements.add("panorama")
 HTMLSafeAttributes.add("codetype")
 HTMLSafeAttributes.add("notcode")
 HTMLSafeAttributes.add("inline")
 HTMLSafeAttributes.add("loading")
-//HTMLSafeAttributes.add("panoramashape")
+HTMLSafeAttributes.add("preload")
 
 let remove = (function(){ //wow, this is a really advanced filter
   var arr = [//if you update this, also update one on website
