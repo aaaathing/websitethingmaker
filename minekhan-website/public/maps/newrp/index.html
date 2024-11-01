@@ -2,10 +2,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="shortcut icon" href="/play/favicon.ico">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <link rel="stylesheet" href="/maps/new/style.css">
-  <title>Edit resource pack</title>
+	<base href="/minekhan-website/">
+  <link rel="stylesheet" href="maps/new/style.css">
+  <link rel="shortcut icon" href="assets/favicon.png">
+  <title>Upload a resource pack</title>
 
   <!-- Global site tag (gtag.js) - Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-VRNT3CCCGH"></script>
@@ -19,8 +20,12 @@
 </head>
 <body>
   <div class="box">
-    <h2>Edit Resource pack: <span id="rpName"></span></h2>
-    
+    <h2>Submit Resource pack</h2>
+    <span style="color:white ;">Format can be found at this <a href='wiki/required-page/Resource_Packs'>wiki page</a>.</span>
+    <div class="input-box">
+      <input oninput="this.value = this.value.replaceAll(' ', '_')" type="text" name="name" id="name" autocomplete="off" required>
+      <label for="name">Name of resource pack*</label>
+    </div>
     <div class="input-box">
       <input type="text" name="description" id="description" autocomplete="off">
       <label for="description">Description</label>
@@ -45,10 +50,8 @@
   </div>
 
   <script>
-    const urlParams = new URLSearchParams(location.search)
     var msg = document.querySelector("#message")
-    var rpName = document.querySelector("#rpName")
-    rpName.textContent = urlParams.get("rp")
+    var rpName = document.querySelector("#name")
     var description = document.querySelector("#description")
     var file = document.querySelector("#file")
     var thumbnail = document.querySelector("#thumbnail")
@@ -80,16 +83,17 @@
     }
     function save(onfail){
       var body = JSON.stringify({
+        name:rpName.value,
         description:description.value,
         file: fileData,
         thumbnail: thumbnailData
       })
-      fetch("/server/editrp/"+urlParams.get('rp'),{
+      fetch("/server/rp",{
         method:"POST",
         body:body
       }).then(r => r.json()).then(r => {
         if(r.success){
-          location.href = "/maps/rp/?rp="+urlParams.get('rp')
+          location.href = "maps/rp/?rp="+rpName.value
         }else{
           msg.innerHTML = r.message
           onfail()

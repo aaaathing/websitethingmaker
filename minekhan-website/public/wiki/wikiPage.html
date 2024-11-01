@@ -4,9 +4,10 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Wiki</title>  
+		<base href="/minekhan-website/">
+    <title>MineKhan | Wiki</title>  
     <link rel="stylesheet" href="/assets/common.css">
-    <link rel="stylesheet" href="/wiki/style.css">
+    <link rel="stylesheet" href="wiki/style.css">
 
     <style>
       .comment{
@@ -97,30 +98,33 @@
 </script>
   </head>
   <body>
-    <!--<h1 class="title">WIKIFOR</h1>
-    <h1 class="wiki">Wiki</h1>-->
+    <div class="bar">
+	    <h1 class="title">MineKhan</h1>
+	    <h1 class="wiki">Wiki</h1>
+	    <div class="search-container">
+	      <form action="wiki/search">
+	        <input type="text" placeholder="Search wiki..." name="q"><!--remove spaces
+	     --><button type="submit">🔎</button>
+	      </form>
+	    </div>
+
+			<center>
+			<!--<button onclick="window.location.href = '/wiki'" class="home"><img src="https://cdn-icons-png.flaticon.com/512/93/93634.png" alt="back" class="homeimg"> Back</button>-->
+			<button onclick="location.href='wiki'">Home</button>
+			<button onclick="location.href='wiki/search'">All</button>
+			<button onclick="location.href='wiki/new'">New</button>
+			</center>
+		</div>
 
     <div id="content">
-      <div class="search-container">
-        <form action="/wiki/search">
-          <input type="text" placeholder="Search wiki..." name="q"><!--remove spaces
-        --><button type="submit">🔎</button>
-        </form>
-      </div>
-      <center>
-        <!--<button onclick="window.location.href = '/wiki'" class="home"><img src="https://cdn-icons-png.flaticon.com/512/93/93634.png" alt="back" class="homeimg"> Back</button>-->
-        <button onclick="location.href='/wiki'">Home</button>
-        <button onclick="location.href='/wiki/search'">All</button>
-        <button onclick="location.href='/wiki/new'">New</button>
-      </center>
       <h1 id="wikiTitle"></h1><hr>
       <div id="tableContents"></div>
       <div id="wikiContent" class="format"></div>
       <center>
         <br>
         <button class='delete' onclick='deletePage()'>Delete this page</button>
-        <span id='deleteMsg'></span><button onclick="location.href='/wiki/edit/'+pagename">Edit</button>
-        <button onclick="location.href='/wiki/previousVersions/'+pagename">View previous versions</button><br>
+        <span id='deleteMsg'></span><button onclick="location.href='wiki/edit/'+pagename">Edit</button>
+        <button onclick="location.href='wiki/previousVersions/'+pagename">View previous versions</button><br>
         <hr><h2>Talk | suggestions</h2>
       </center>
       <div id="comments"></div>
@@ -139,7 +143,7 @@
       handleData(PAGEDATA)
       async function handleData(data){
         if(!data){
-          location.href = "/wiki/404"
+          location.href = "wiki/404"
           return
         }
         pagename = data.name
@@ -210,7 +214,7 @@
           body:JSON.stringify({pwd:pwd})
         }).then(r => r.json()).then(data => {
           if(data.success){
-            location.href = "/wiki"
+            location.href = "wiki"
           }else{
             msg.innerHTML = data.message
             if(data.noAccess){

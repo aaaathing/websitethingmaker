@@ -5,9 +5,10 @@
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>Wiki</title>
+	<base href="/minekhan-website/">
+	<title>MineKhan | Wiki</title>
   <link rel="stylesheet" href="/assets/common.css">
-	<link rel="stylesheet" href="/wiki/style.css">
+	<link rel="stylesheet" href="wiki/style.css">
 
   <!-- Global site tag (gtag.js) - Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-VRNT3CCCGH"></script>
@@ -22,15 +23,16 @@
 
 <body>
   <div class="bar">
+    <h1 class="title">MineKhan</h1>
     <h1 class="wiki">Wiki</h1>
     <div class="search-container">
-      <form action="/wiki/search">
+      <form action="wiki/search">
         <input type="text" placeholder="Search wiki..." name="q"><!--remove spaces
      --><button type="submit">🔎</button>
       </form>
     </div>
     
-    <center><button onclick="window.location.href = '/wiki'" class="home"><img src="https://cdn-icons-png.flaticon.com/512/93/93634.png" alt="back" class="homeimg"> Back</button></center>
+    <center><button onclick="window.location.href = 'wiki'" class="home"><img src="https://cdn-icons-png.flaticon.com/512/93/93634.png" alt="back" class="homeimg"> Back</button></center>
   </div>
   
   <div id="content">

@@ -5,9 +5,10 @@
     <link href='https://fonts.googleapis.com/css?family=Aclonica' rel='stylesheet'>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width">
+		<base href="/minekhan-website/">
     <title>MineKhan&nbsp|&nbspMaps</title>
     <link rel="shortcut icon" href="/play/favicon.ico">
-    <link href="/maps/style.css" rel="stylesheet" type="text/css" />
+    <link href="maps/style.css" rel="stylesheet" type="text/css" />
     
     <!-- Global site tag (gtag.js) - Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-VRNT3CCCGH"></script>
@@ -27,8 +28,8 @@
 </div>
 
 <div class="row">
-  <a href="/maps/new">Upload map</a><br>
-  <a href="/maps/newrp">Upload resource pack</a>
+  <a href="maps/new">Upload map</a><br>
+  <a href="maps/newrp">Upload resource pack</a>
   <div class="leftcolumn" id="maps">
     <div class="card">
       Loading the maps.. <div class="loader"></div>
@@ -48,14 +49,14 @@
     for(var i in maps){
       let thing = maps[i]
       if(i.startsWith("rp")){
-        html += "<div class='card'><a href='/maps/rp/?rp="+sanitize(thing.name)+"'>"
+        html += "<div class='card'><a href='maps/rp/?rp="+sanitize(thing.name)+"'>"
         if(thing.thumbnail) html += `<img src="${sanitize(thing.thumbnail).replace(/"/g,"&quot;")}">`
         html += "<h2>Resource pack: "+sanitize(thing.name)+"</h2></a>"
         if(thing.user) html += "By: "+sanitize(thing.user)
         if(thing.description) html += "<p>"+format(thing.description)+"</p>"
         html += "</div>"
       }else{
-        html += "<div class='card'><a href='/maps/map/?map="+sanitize(thing.name)+"'>"
+        html += "<div class='card'><a href='maps/map/?map="+sanitize(thing.name)+"'>"
         if(thing.thumbnail) html += `<img src="${sanitize(thing.thumbnail).replace(/"/g,"&quot;")}">`
         html += "<h2>Map: "+sanitize(thing.name)+"</h2></a>"
         if(thing.user) html += "By: "+sanitize(thing.user)
