@@ -70,7 +70,7 @@ const alertStrs = ["don"+"gwei","alertthis"]
 
 
 
-if(!process.env.REPLIT_DEPLOYMENT&&0){
+if(!process.env.REPLIT_DEPLOYMENT){
   console.log('not deployment')
   
   require("./indextest.js")

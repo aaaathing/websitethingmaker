@@ -157,6 +157,7 @@ navbar.innerHTML = `
   </div>
 
 	<a href="/posts">Posts</a>
+	<a href="/minekhan-website/">MineKhan website</a>
 
 	<a class="right" onclick="navbar.classList.remove('navbarStick')">&times;</a>
 

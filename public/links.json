@@ -12,15 +12,16 @@
 		}
 	},
   "MineKhan Maps":{
-		"url":"/maps/browse",
+		"url":"/minekhan-website/maps/browse",
 		"dropdown":{
-			"Upload MineKhan Map":{"url":"/maps/new"},
-			"Upload MineKhan Resource Pack":{"url":"/maps/new"}
+			"Upload MineKhan Map":{"url":"/minekhan-website/maps/new"},
+			"Upload MineKhan Resource Pack":{"url":"/minekhan-website/maps/new"}
 		}
 	},
+	"MineKhan website":{"url":"/minekhan-website/"},
+  "MineKhan Wiki":{"url":"/minekhan-website/wiki"},
   "MineKhan tools":{"url":"/tools"},
 	"History of website":{"url":"/history.html","interesting":true},
-  "Wiki":{"url":"/wiki"},
   "to do & info":{"url":"/todo.html"},
   "Adder":{"url":"/Adder.html"},
   "Program browser (doesn't work anymore)":{"url":"/programBrowser.html"},
