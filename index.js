@@ -964,16 +964,7 @@ router.get("/search",async function(req,res){
   for(let i of posts){
     if(i.title.toLowerCase().includes(q.toLowerCase())) links[i.title] = {url:"/post/?id="+i.id}
   }
-  let maps = await db.get("maps")
-  for(let i in maps){
-    let name = maps[i].name.replace(/_/g," ")
-    if(name.toLowerCase().includes(q.toLowerCase()) || (maps[i].description || "").toLowerCase().includes(q.toLowerCase())) links[name] = {url:"/maps/map/?map="+maps[i].name,description:maps[i].description}
-  }
-  let wikiPages = await getWikiPageTitles()
-  for(let i of wikiPages){
-    let name = i.replace(/_/g," ")
-    if(name.toLowerCase().includes(q.toLowerCase())) links[i] = {url:"/wiki/page/"+i}
-  }
+  await mkwebsite.search(links,q)
   var pageStr = JSON.stringify(links).replace(/</g,"\\<").replace(/>/g,"\\>")
   var parser = new Transform({
     transform(data, encoding, done) {
@@ -3600,7 +3591,7 @@ app.use(router)
 
 app.use(express.static(__dirname + "/public"))
 
-require("./minekhan-website/index.js")
+const mkwebsite = require("./minekhan-website/index.js")
 
 app.use(async (req, res, next) => {
 	let path = decodeURIComponent(req.path)

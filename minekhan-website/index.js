@@ -592,3 +592,16 @@ router.get(websiteBase+"/wiki/search",async function(req,res){
 
 app.use(router)
 app.use(websiteBase, express.static(__dirname + "/public"))
+
+module.exports.search = async function(links,q){
+	let maps = await db.get("maps")
+  for(let i in maps){
+    let name = maps[i].name.replace(/_/g," ")
+    if(name.toLowerCase().includes(q.toLowerCase()) || (maps[i].description || "").toLowerCase().includes(q.toLowerCase())) links[name] = {url:"/maps/map/?map="+maps[i].name,description:maps[i].description}
+  }
+  let wikiPages = await getWikiPageTitles()
+  for(let i of wikiPages){
+    let name = i.replace(/_/g," ")
+    if(name.toLowerCase().includes(q.toLowerCase())) links[i] = {url:"/wiki/page/"+i}
+  }
+}
