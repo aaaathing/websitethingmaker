@@ -1868,7 +1868,7 @@ router.post("/server/voteUser/*", getPostData,async(req,res) => {
   rateLimit(req, "diffUsername", 0.01)
   let user = req.url.split("/").pop()
   if(Date.now() - req.user.timestamp < DAY*4){
-    res.status(401).send({message:"Your account must be at least four days old."})
+    res.status(401).send({message:"Cannot vote if less than 4 days old."})
     Log(req.username+" tried to vote "+user+" "+req.body.vote)
     return
   }

@@ -225,7 +225,7 @@
         document.title = "Post: "+d.title
         document.querySelector("#title").innerHTML = sanitize(d.title)
         document.querySelector("#timestamp").innerHTML = timeString(d.timestamp+timeOffset)
-        document.querySelector("#by").innerHTML = "by <a href='/user?user="+d.username+"'><img src='"+(user && user.pfp)+"'>"+d.username+"</a>"
+        document.querySelector("#by").innerHTML = "by <a href='/user?user="+d.username+"'><img src='"+sanitize(user && user.pfp)+"'>"+d.username+"</a>"
         enableUserPopup(document.querySelector("#by a"), d.username)
         if(user) makeVotes(document.querySelector("#vote"),user,myUsername)
         document.querySelector("#postContent").innerHTML = format(d.content)

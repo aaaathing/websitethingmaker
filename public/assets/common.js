@@ -533,20 +533,17 @@ function enableUserPopup(el,user){
 
 function makeVotes(el,data,yourUsername){
   let username = data.username
-  el.innerHTML = `
-<span class="allVotes" style="margin-right:16px;font-size:16px;vertical-align:middle;"></span>
-<button class="vote_1 small">+1</button>
-<button class="vote_0 small">0</button>
-<button class="vote_-1 small">-1</button>
-<span class="helpBtn">
-?
+  el.innerHTML = `<div class="popupContainer">
+<a class="allVotes"></a>
 <div class="popup">
-  <span style="padding:8px;">
-    If a user has 10 or more votes, they can create and edit wiki pages.
-  </span>
+	<span style="padding:8px;">
+		<button class="vote_1 small">+1</button>
+		<button class="vote_0 small">0</button>
+		<button class="vote_-1 small">-1</button>
+		If a user has 10 or more votes, they can create and edit wiki pages.
+	</span>
 </div>
-</span>
-`
+</div>`
   let voteEl = el.querySelector(".allVotes")
   let otherVotes = 0, yourVote = 0
   let votes = 0

@@ -58,7 +58,7 @@ h1, h3{
 h1{font-size:50px;}
 
 a{
-  text-decoration:none;
+	text-decoration: underline #00f4;
   color:blue;
   cursor:pointer;
 }
@@ -297,19 +297,20 @@ body[theme=dark] .comment .top{
   to{}
 }
 
-.helpBtn{
+/*popupContainer contains popup and text*/
+.popupContainer{
   display:inline-block;
-  border:1px solid gray;
+  /*border:1px solid gray;
   border-radius:100%;
   width:20px;
   height:20px;
-  text-align:center;
+  text-align:center;*/
   cursor:pointer;
 }
-.helpBtn:not(:hover) .popup{
+.popupContainer:not(:hover) .popup{
   display:none;
 }
-.helpBtn .popup{
+.popupContainer .popup{
   cursor:auto;
 }
 .timeline{
