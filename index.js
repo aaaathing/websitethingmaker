@@ -1108,26 +1108,28 @@ router.get('/server/getuser', (req, res)=>{
 });
 
 router.post("/server/register",getPostData, async (request, response) => {
-  if (!request.body.password) {
+  if (!request.body.username) {
     return response.status(401).json({
       success: false,
-      "message": "A `password` is required"
+      "message": "A username is required"
     })
-  }else if (!request.body.username) {
-    return response.status(401).json({
-      success: false,
-      "message": "A `username` is required"
-    })
-  }else if (request.body.username.length > 15){
+  }
+	if (request.body.username.length > 15){
     return response.json({
       success:false,
-      message: "Username can only have less than 15 characters."
+      message: "Username can only have less than 25 characters."
     })
   }
-
-  if(request.body.username.match(/[^a-zA-Z0-9\-_]/)){
-    return response.json({message:"Username can only contain characters: A-Z, a-z, 0-9, - and _"})
-  }
+	let badChars = request.body.username.match(/[^-_\p{L}\p{N}]/ug)
+	if(badChars){
+		return response.json({message:"Username can only contain letters, numbers, - and _. Bad ones: "+badChars.join(" ")})
+	}
+	if (!request.body.password) {
+		return response.status(401).json({
+			success: false,
+			"message": "A password is required"
+		})
+	}
 
   var exsists = false
   await db.get("user:"+request.body.username).then(u => {
@@ -1180,9 +1182,9 @@ router.post("/server/register",getPostData, async (request, response) => {
 router.post('/server/login', getPostData, async (request, response) => {
   rateLimit(request,undefined,0.01)
   if (!request.body.username) {
-    return response.status(401).send({success:false, "message": "An `username` is required" })
+    return response.status(401).send({success:false, "message": "A username is required" })
   } else if (!request.body.password) {
-    return response.status(401).send({success:false, "message": "A `password` is required" })
+    return response.status(401).send({success:false, "message": "A password is required" })
   }
   
   await db.get("user:"+request.body.username)

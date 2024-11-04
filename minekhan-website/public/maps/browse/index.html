@@ -50,14 +50,14 @@
       let thing = maps[i]
       if(i.startsWith("rp")){
         html += "<div class='card'><a href='maps/rp/?rp="+sanitize(thing.name)+"'>"
-        if(thing.thumbnail) html += `<img src="${sanitize(thing.thumbnail).replace(/"/g,"&quot;")}">`
+        if(thing.thumbnail) html += `<img src="${sanitize(thing.thumbnail).replace(/"/g,"&quot;")}" loading="lazy">`
         html += "<h2>Resource pack: "+sanitize(thing.name)+"</h2></a>"
         if(thing.user) html += "By: "+sanitize(thing.user)
         if(thing.description) html += "<p>"+format(thing.description)+"</p>"
         html += "</div>"
       }else{
         html += "<div class='card'><a href='maps/map/?map="+sanitize(thing.name)+"'>"
-        if(thing.thumbnail) html += `<img src="${sanitize(thing.thumbnail).replace(/"/g,"&quot;")}">`
+        if(thing.thumbnail) html += `<img src="${sanitize(thing.thumbnail).replace(/"/g,"&quot;")}" loading="lazy">`
         html += "<h2>Map: "+sanitize(thing.name)+"</h2></a>"
         if(thing.user) html += "By: "+sanitize(thing.user)
         if(thing.description) html += "<p>"+format(thing.description)+"</p>"
