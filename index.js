@@ -2933,7 +2933,18 @@ mkhost.onrequest = function(request, connection, urlData) {
     }
   }
   connection.delayedToAfterLogin = []
+	let nextWsConnection
   connection.on("message", connection.on_MesS_aGe = message => {
+		if(message.binaryData){
+			for(var i=0; i<world.players.length; i++){
+	      var p = world.players[i]
+	      if(p.id === nextWsConnection){
+	        p.sendBytes(message.binaryData)
+	      }
+	    }
+			return
+		}
+		
     let data = message.utf8Data;
     try{
       data = JSON.parse(data)
@@ -2954,13 +2965,14 @@ mkhost.onrequest = function(request, connection, urlData) {
       worldsChanged()
     }else if(data.type === "answer" || data.type === "iceCandidate"){
       sendPlayer(message.utf8Data,data.TO)
-    }else if(data.type === "pong"){
+    }else if(data.type === "nextWsConnection"){
+			nextWsConnection = data.data
+		}else if(data.type === "pong"){
       var p = pings[data.id]
       if(p) p.done()
     }else handleCommonMKPacket(data,world,connection,findPlayer,sendPlayer,sendPlayers,sendPlayerName,sendAllPlayers,closePlayer,sendThisPlayer,request)
   })
   connection.on('close', function(reasonCode, description) {
-    let idx = world.players.indexOf(connection)
     var name = world.name
     var playerAmount = world.players.length
     sendPlayers({
@@ -3075,6 +3087,13 @@ mkjoin.onrequest = function(request, connection, urlData) {
   connection.hasRecievedOfFeR = false
   connection.delayedToAfterLogin = []
   connection.on("message", connection.on_MesS_aGe = message => {
+		if(message.binaryData){
+			if(connection.delayedToAfterLogin) return connection.delayedToAfterLogin.push(message)
+			world.host.sendUTF(JSON.stringify({type:"nextWsConnection",data:connection.id}))
+			world.host.sendBytes(message.binaryData)
+			return
+		}
+		
     let data = message.utf8Data;
     try{
       data = JSON.parse(data)
@@ -3137,7 +3156,13 @@ mkjoin.onrequest = function(request, connection, urlData) {
         username: "Server",
         fromServer:true
       })*/
-    }else if(data.type === "joined"){
+    }else if(data.type === "switchToWs"){
+      data.username = connection.username
+      data.admin = connection.isAdmin
+      data.FROM = connection.id
+			Log("MineKhan: "+connection.username+" switched to websocket in "+world.name)
+			world.host.sendJSON(data)
+		}else if(data.type === "joined"){
       data.data = connection.username
       sendPlayers(data)
     }else if(data.type === "iceCandidate"){
