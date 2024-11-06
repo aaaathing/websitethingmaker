@@ -1173,7 +1173,7 @@ router.post("/server/register",getPostData, async (request, response) => {
           spwd:session.pwd
         })
         Log("New user", account.username)
-        if(account.email && account.email.includes("pausd") || account.username.includes("950")) Log("alert","user in palo alto: "+account.username)
+        if(account.email && account.email.includes("pausd") || account.username.includes("950")) Log("alert","user in pa: "+account.username)
       })
       .catch(e => response.status(500).send({success:false, message:e.message}))
   }).catch(e => response.status(500).send({success:false, message:e.message}));
@@ -1919,12 +1919,12 @@ router.post("/server/resetPwd", getPostData,async (req,res) => {
       port: 2525,*/
       service:"gmail",
       auth: {
-        user: "minekhan@gmail.com",
+        user: "@gmail.com",
         pass: process.env['google_pass']
       }
     });
     var message = {
-      from: "reset_password@minekhan.repl.co",
+      from: "reset_password@",
       to: email,
       subject: "Reset Password",
       html: `
@@ -2110,7 +2110,7 @@ router.post("/server/know/openWorld",getPostText,async(req,res) => {
 
 router.post("/server/know/minekhan/error",getPostText,async(req,res) => {
 	rateLimit(request,undefined,0.01)
-  Log("alert","MineKhan Error:",req.username+":"+req.who.id+" encountered error: "+req.body)
+  Log("alert","MineKhan Error:",req.username+":"+req.who.id,req.body)
   res.send("done")
 })
 

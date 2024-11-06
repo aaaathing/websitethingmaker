@@ -10,7 +10,7 @@
 	<title>Website</title>
 
 	<style>
-/*@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400&display=swap')*/;
+/*@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400&display=swap');*/
 
 :root {
 	--primary-color: #3a4052;
@@ -291,34 +291,6 @@ body[theme=dark] #links a.no{
 <p id="more-popular">You can do that by sharing the link. If this website is more popular, it will make MineKhan <span style='background:#ff08'>more fun</span> and there may be <span style='background:#ff08'>more updates</span>. There are about 20 users on this website every day and less on weekends.</p>
 <span id="currentUsers"></span>
 <script>addEventListener("load", () => document.querySelector("#currentUsers").innerHTML = "Current amount of users in last 24 hours (on page load): "+userCount)</script>-->
-
-<!--<section class="showcase">
-  <div class="content">
-    <div class="title">
-      <img src="/minekhan/assets/images/minekhan.png">
-    </div>
-    <h3>Play now, online</h3>
-    <a href="/wiki" class="btn">Wiki</a>
-    <span style="width:150px;display:inline-block;"></span>
-      
-    <a href="/play" class="btn">Play</a>
-    <span style="width:150px;display:inline-block;"></span>
-    
-    <a href="/maps/browse" class="btn">Maps</a>
-    <br>
-    <img style="position:absolute;width:100px;bottom:0;left:calc(50% - 50px);" src="/assets/down-arrow.png">
-  </div>
-</section>-->
-  <!--<section id="channel">
-    <div class="content">
-      <img src="https://videos.minekhan.repl.co/assets/favicon.png" width="80">
-
-      <span style="width:20px;display:inline-block;">&nbsp;</span>
-      <h1>Check out the channel</h1>
-      <br><br>
-      <a href="https://www.youtube.com/channel/UCHEaU7t-GJ3XWOBtbbfsyPg" class="btn" target="_blank">View channel</a>
-    </div>
-  </section>-->
   
   <div id="links">
     <script>
@@ -648,136 +620,18 @@ https://minekhan.glitch.me/
     document.getElementById('updates').innerHTML = r.replace(/\n/g,"<br>")
   })*/
 </script>
-	<!--<section class="showcase">
 
-		<div class="content">
-			<div class="title">
-        <img src="https://data.thingmaker.repl.co/images/minekhan.png">
-			</div>
-			<h3>Play now, online</h3>
-      <a href="/wiki" class="btn">Wiki</a>
-			<span style="width:150px;display:inline-block;"></span>
-        
-      <a href="/play" class="btn">Play</a>
-      <span style="width:150px;display:inline-block;"></span>
-      
-			<a href="/maps/browse" class="btn">Maps</a>
-      <br>
-      <img style="position:absolute;width:100px;bottom:0;left:calc(50% - 50px);" src="/assets/down-arrow.png">
-
-      </div>
-		</section>
-    <!--<section id="channel">
-      <div class="content">
-        <img src="https://videos.minekhan.repl.co/assets/favicon.png" width="80">
-
-        <span style="width:20px;display:inline-block;">&nbsp;</span>
-        <h1>Check out the channel</h1>
-        <br><br>
-        <a href="https://www.youtube.com/channel/UCHEaU7t-GJ3XWOBtbbfsyPg" class="btn" target="_blank">View channel</a>
-      </div>
-    </section>
-    <section id="links">
-      <div class="content">
-        <h1>Search the website</h1><br>
-        <div class="search-container">
-          <form action="/search">
-            <input type="text" placeholder="Search..." name="q">
-  <button type="submit"><i class="fa fa-search"></i></button>
-          </form>
-        </div>
-      </div>
-    </section>-->
-
-    <script src="/assets/common.js"></script> <!--This has swal in it-->
-    <script>
-      localforageScript.addEventListener("load", async() => {
-        if (await localforage.getItem("cookieSeen") !== "true") {
-          document.querySelector("#cookie-banner").style.display = ""
-        };
-        document.querySelector("#cookie-banner .close").onclick = () => {
-          document.querySelector("#cookie-banner").style.display = "none"
-          localforage.setItem("cookieSeen","true")
-        }
-      })
-    </script>
-
-<!--
-  Notifications
--->
+<script src="/assets/common.js"></script> <!--This has swal in it-->
 <script>
-  function RequestNotify(){
- {
-    if (!window.Notification) {
-        Swal.fire({
-          title:"Oh no!",
-          text:"It seems that your browser does not support notifications!",
-        })
-    } else {
-        // check if permission is already granted
-        if (Notification.permission === 'granted') {
-            // show notification here
-          
-        } else {
-            // request permission from user
-            Notification.requestPermission().then(function (p) {
-                if (p === 'granted') {
-                    // show notification here
-                    var notify = new Notification('MineKhan', {
-                        body: 'This is what notifications will look like!',
-                        icon: 'https://minekhan.repl.co/play/favicon512.png',
-                    });
-                } else {
-                   Swal.fire({
-                     title:"Notifcations!",
-                     text:"Please consider allowing notifications, so that we can alert you of new maps, and even chat features in the future!",
-                     toast: true,
-                     timer: 3000,
-                     showConfirmButton:false,
-                     position: 'top-right',
-                    
-                   })
-                }
-            }).catch(function (err) {
-                console.error(err);
-            });
-        }
-    }
-}
-}
-function notifyMe() {
-    if (!window.Notification) {
-        console.log('Browser does not support notifications.');
-    } else {
-        // check if permission is already granted
-        if (Notification.permission === 'granted') {
-            // show notification here
-          
-        } else {
-            // request permission from user
-            Notification.requestPermission().then(function (p) {
-                if (p === 'granted') {
-                    // show notification here
-                    var notify = new Notification('MineKhan', {
-                        body: 'Thank you for enabling notifications!',
-                        icon: 'https://minekhan.repl.co/play/favicon512.png',
-                    });
-                } else {
-                  
-                }
-            }).catch(function (err) {
-                console.error(err);
-            });
-        }
-    }
-}
-
-function note(){
- var notify = new Notification('Oops!', {
-                body: 'There seems to be an error there!',
-                icon: 'https://minekhan.repl.co/play/favicon512.png',
-            });
-}
+	//localforageScript.addEventListener("load", async() => {
+	if (localStorage.getItem("cookieSeen") !== "true") {
+		document.querySelector("#cookie-banner").style.display = ""
+	};
+	document.querySelector("#cookie-banner .close").onclick = () => {
+		document.querySelector("#cookie-banner").style.display = "none"
+		localStorage.setItem("cookieSeen","true")
+	}
 </script>
+
 </body>
 </html>

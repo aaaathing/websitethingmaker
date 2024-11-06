@@ -166,7 +166,7 @@ navbar.innerHTML = `
     <div class="dropdown-content">
       <a onclick="setTheme('')">Light</a>
       <a onclick="setTheme('dark')">Dark</a>
-      <a onclick="setTheme('glow')">Glow</a>
+      <a onclick="setTheme('dark,glow')">Glow</a>
     </div>
   </div>
   
@@ -256,7 +256,7 @@ body[theme=dark] .navbar a:hover{
 document.head.appendChild(style)
 
 async function setTheme(theme){
-	await localforage.setItem("theme", theme)
+	localStorage.setItem("theme", theme)
 	updateTheme(theme)
 }
 
@@ -396,16 +396,21 @@ document.head.appendChild(style)
 //=========THEME===========
 var globTheme
 async function updateTheme(theme){
-  theme = theme || (await localforage.getItem("theme"))
-  document.body.setAttribute("theme", theme)
+  theme = theme || (localStorage.getItem("theme"))
+	let themeParsed = theme ? theme.split(",") : []
+	document.body.setAttribute("theme", themeParsed[0]||"")
+  document.body.setAttribute("theme2", themeParsed[1]||"")
+  document.body.setAttribute("themeBg", themeParsed[2]||"plant")
+  /*document.body.setAttribute("theme", theme)
   document.body.setAttribute("theme2", "")
   if(theme === "glow"){
     document.body.setAttribute("theme", "dark")
     document.body.setAttribute("theme2", "glow")
-  }
+  }*/
   globTheme = theme
 }
-localforageScript.addEventListener("load",() => updateTheme())
+updateTheme()
+//localforageScript.addEventListener("load",() => updateTheme())
 
 function timeDiffString(millis){
   const SECOND = 1000

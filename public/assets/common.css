@@ -33,7 +33,21 @@ body[theme=dark] ::selection{
   color:white;
 }
 body[theme2=glow], body[theme2=glow] input, body[theme2=glow] textarea{
-  text-shadow:0 0 8px #fff;
+  text-shadow:0 0 8px currentcolor;
+}
+body[themeBg=plant] #contentBG::before{
+	content:"";
+	position:fixed;
+	top:0;
+	left:0;
+	width:100vw;
+	height:100vh;
+	background:url("/assets/images/plant bg.jpg");
+	background-size:cover;
+	z-index:-1;
+}
+body[themeBg=plant][theme=dark] #contentBG::before{
+	opacity:0.5;
 }
 
 #contentBG{
@@ -44,13 +58,20 @@ body[theme2=glow], body[theme2=glow] input, body[theme2=glow] textarea{
 body[theme=dark] #contentBG{
   background:#222;
 }
+body[themeBg=plant] #contentBG{
+  background:none;
+}
 #content{
-  background:white;
+	--background:white;
+  background:var(--background);
   padding:10px 20px;
   height:100%;
 }
 body[theme=dark] #content{
-  background:#333;
+  --background:#333;
+}
+body[themeBg=plant] #content{
+  background:color-mix(in srgb, var(--background) 80%, transparent);
 }
 h1, h3{
   margin:0px;
@@ -65,9 +86,9 @@ a{
 body[theme=dark] a{
   color:#88f;
 }
-body[theme2=glow] a{
+/*body[theme2=glow] a{
   text-shadow:0 0 8px #00f;
-}
+}*/
 a[disabled]{
   color:gray !important;
 }
