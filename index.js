@@ -1621,9 +1621,9 @@ router.post("/server/editPost/*", getPostData, async(req, res) => {
   if(!canEdit) return res.json({message:"You do not have permission to edit this post."})
   
   if(!req.body.content) return res.json({message:"You need content for the post."})
-  if(req.body.content === post.content) return res.json({message:"You did not change the content."})
 
   post.content = req.body.content
+	post.bg = req.body.bg
   if(post.followers){
     for(var i=0; i<post.followers.length; i++){
       if(post.followers[i] !== req.username){
@@ -1639,7 +1639,7 @@ router.post("/server/editPost/*", getPostData, async(req, res) => {
   sendPostWs({
     type:"edit",
     data:post.content
-  }, id, req.body.userId)
+  }, id)
   res.json({success:true})
   Log("Edited post", "<a href='/post?id="+id+"' target='_blank'>"+post.title.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")+"</a>")
 })
@@ -1732,7 +1732,7 @@ router.post("/server/commentPost/*", getPostData, async(req, res) => {
     sendPostWs({
       type:"comment",
       data:commentData
-    }, id, req.body.userId)
+    }, id)
     Log("New comment at", "<a href='/post?id="+r.id+"#comment"+cid+"' target='_blank'>"+r.title.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")+"</a>")
   })
 })
@@ -1767,7 +1767,7 @@ router.post("/server/deletePostComment/*",getPostData, async(req,res) => {
       sendPostWs({
         type:"deleteComment",
         data: cid
-      }, id, req.body.userId)
+      }, id)
       Log("Deleted comment at", d.title.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"))
     })
   })
@@ -1826,7 +1826,7 @@ router.post("/server/commentUser/*", getPostData,async(req, res) => {
   sendUserWs({
     type:"comment",
     data:commentData
-  }, user, req.body.userId)
+  }, user)
   Log("New comment at profile", "<a href='/user?user="+user+"#comment"+cid+"' target='_blank'>"+user+"</a>")
 })
 router.post("/server/deleteUserComment/*", getPostData,async(req,res) => {
@@ -1860,7 +1860,7 @@ router.post("/server/deleteUserComment/*", getPostData,async(req,res) => {
       sendUserWs({
         type:"deleteComment",
         data: cid
-      }, user, req.body.userId)
+      }, user)
       Log("Deleted comment at profile", user)
     })
   })
@@ -3373,35 +3373,23 @@ externalWs.onrequest = function(req, connection, urlData){
 var postWs = new WebSocketRoom("/postWs")
 postWs.onrequest = function(req, connection, urlData){
   connection.postId = urlData.query.id
-  connection.on("message", function(message){
-    var packet = JSON.parse(message.utf8Data)
-    if(packet.type === "connect"){
-      connection.userId = packet.userId
-    }
-  })
 }
-function sendPostWs(obj, id, fromUserId){
+function sendPostWs(obj, id){
   var str = JSON.stringify(obj)
   for(var i=0; i<postWs.connections.length; i++){
     var con = postWs.connections[i]
-    if(con.postId === id && fromUserId !== con.userId) con.sendUTF(str)
+    if(con.postId === id) con.sendUTF(str)
   }
 }
 var userWs = new WebSocketRoom("/userWs")
 userWs.onrequest = function(req, connection, urlData){
   connection.profile = urlData.query.profile
-  connection.on("message", function(message){
-    var packet = JSON.parse(message.utf8Data)
-    if(packet.type === "connect"){
-      connection.userId = packet.userId
-    }
-  })
 }
-function sendUserWs(obj, profile, fromUserId){
+function sendUserWs(obj, profile){
   var str = JSON.stringify(obj)
   for(var i=0; i<userWs.connections.length; i++){
     var con = userWs.connections[i]
-    if(con.profile === profile && fromUserId !== con.userId) con.sendUTF(str)
+    if(con.profile === profile) con.sendUTF(str)
   }
 }
 

@@ -35,10 +35,6 @@
         background-position: center;
         background-size: cover;
       }
-      #contentBG{
-        padding:0px;
-        background:#f8f8f8;
-      }
       #notExsist{
         padding:10px;
         height:calc(100% - 47px);
@@ -48,7 +44,6 @@
       }
       #content{
         height:100%;
-        background:transparent !important;
       }
       h1{
         margin:10px 0px;
@@ -88,7 +83,7 @@
 </script>
   </head>
   <body>
-    <div id="contentBG">
+    <div id="contentBG" class="fullWidth">
       <div id="BGImg"></div>
       <div id="top">
         <img id="pfp">
@@ -153,6 +148,8 @@
           }
           if(data.bg){
             document.getElementById("BGImg").style.backgroundImage = "url('"+data.bg+"')"
+						document.body.style.setProperty("--bgImg", "url('"+data.bg+"')")
+						document.body.classList.add("bgImg")
           }
           if(data.timestamp){
             document.querySelector("#created").innerHTML = "Account created: "+timeString(data.timestamp+timeOffset)
@@ -240,15 +237,8 @@ ${map.name.replace(/_/g," ")}
         })
       }
       var ws
-      var userId = Date.now()
       function initWs(){
         ws = new WebSocket("wss://"+location.host+"/userWs?profile="+username)
-        ws.onopen = function(){
-          ws.send(JSON.stringify({
-            type: "connect",
-            userId:userId
-          }))
-        }
         ws.onmessage = function(msg){
           let packet = JSON.parse(msg.data)
           if(packet.type === "comment"){
@@ -277,11 +267,11 @@ ${map.name.replace(/_/g," ")}
 
         fetch("/server/commentUser/"+username, {
           method:"POST",
-          body: JSON.stringify({comment: c, userId:userId}),
+          body: JSON.stringify({comment: c}),
           credentials: 'include'
         }).then(r => r.json()).then(r => {
           if(r.success){
-            addComment({id:r.id,username:yourUsername,timestamp:Date.now()-timeOffset,comment:c})
+            //addComment({id:r.id,username:yourUsername,timestamp:Date.now()-timeOffset,comment:c})
             document.querySelector("#commentTextbox .comment-box").value = ""
             document.querySelector("#commentTextbox .comment-previewBox").innerHTML = ""
           }else{
@@ -312,7 +302,7 @@ ${map.name.replace(/_/g," ")}
         fetch("/server/deleteUserComment/"+username, {
           credentials:'include',
           method: 'POST',
-          body: JSON.stringify({cid: cid, userId:userId})
+          body: JSON.stringify({cid: cid})
         }).then(d => d.text()).then(d => {
           if(d === "error") return alert("error")
           c.style.display = "none"

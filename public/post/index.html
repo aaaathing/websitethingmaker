@@ -228,6 +228,10 @@
         document.querySelector("#by").innerHTML = "by <a href='/user?user="+d.username+"'><img src='"+sanitize(user && user.pfp)+"'>"+d.username+"</a>"
         enableUserPopup(document.querySelector("#by a"), d.username)
         if(user) makeVotes(document.querySelector("#vote"),user,myUsername)
+				if(d.bg){
+					document.body.style.setProperty("--bgImg", "url('"+d.bg+"')")
+					document.body.classList.add("bgImg")
+				}
         document.querySelector("#postContent").innerHTML = format(d.content)
 
         let comments = d.comments || []
@@ -283,11 +287,11 @@
 
         fetch("/server/commentPost/"+id, {
           method:"POST",
-          body: JSON.stringify({comment: c, userId:userId}),
+          body: JSON.stringify({comment: c}),
           credentials: 'include'
         }).then(r => r.json()).then(r => {
           if(r.success){
-            addComment({id:r.id,username:myUsername,timestamp:Date.now()-timeOffset,comment:c})
+            //addComment({id:r.id,username:myUsername,timestamp:Date.now()-timeOffset,comment:c})
             commentBox.value = ""
             //previewBox.innerHTML = ""
           }else{
@@ -315,15 +319,8 @@
       }
 
       var ws
-      var userId = Date.now()
       function initWs(){
         ws = new WebSocket("wss://"+location.host+"/postWs?id="+id)
-        ws.onopen = function(){
-          ws.send(JSON.stringify({
-            type: "connect",
-            userId:userId
-          }))
-        }
         ws.onmessage = function(msg){
           let packet = /*msg.data*/JSON.parse(msg.data)
           if(packet.type === "comment"){
@@ -409,7 +406,7 @@
         fetch("/server/deletePostComment/"+id, {
           credentials:'include',
           method: 'POST',
-          body: JSON.stringify({cid, userId:userId})
+          body: JSON.stringify({cid})
         }).then(d => d.text()).then(d => {
           if(d === "error") return alert("error")
           c.style.display = "none"

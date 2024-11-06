@@ -35,19 +35,23 @@ body[theme=dark] ::selection{
 body[theme2=glow], body[theme2=glow] input, body[theme2=glow] textarea{
   text-shadow:0 0 8px currentcolor;
 }
-body[themeBg=plant] #contentBG::before{
+body.bgImg #contentBG::before{
 	content:"";
 	position:fixed;
 	top:0;
 	left:0;
 	width:100vw;
 	height:100vh;
-	background:url("/assets/images/plant bg.jpg");
+	background:var(--bgImg);
 	background-size:cover;
+	background-position: center;
 	z-index:-1;
 }
-body[themeBg=plant][theme=dark] #contentBG::before{
+body.bgImg[theme=dark] #contentBG::before{
 	opacity:0.5;
+}
+body.bgImg[theme=dark] #contentBG.fullWidth::before{
+	opacity:1;
 }
 
 #contentBG{
@@ -55,10 +59,13 @@ body[themeBg=plant][theme=dark] #contentBG::before{
   padding:0px 10%;
   /*min-height:calc(100% - 47px);*/
 }
+#contentBG.fullWidth{
+	padding:0;
+}
 body[theme=dark] #contentBG{
   background:#222;
 }
-body[themeBg=plant] #contentBG{
+body.bgImg #contentBG{
   background:none;
 }
 #content{
@@ -70,8 +77,11 @@ body[themeBg=plant] #contentBG{
 body[theme=dark] #content{
   --background:#333;
 }
-body[themeBg=plant] #content{
+body.bgImg #content{
   background:color-mix(in srgb, var(--background) 80%, transparent);
+}
+body.bgImg[theme=dark] #content{
+  background:color-mix(in srgb, var(--background) 60%, transparent);
 }
 h1, h3{
   margin:0px;

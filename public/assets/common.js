@@ -400,7 +400,6 @@ async function updateTheme(theme){
 	let themeParsed = theme ? theme.split(",") : []
 	document.body.setAttribute("theme", themeParsed[0]||"")
   document.body.setAttribute("theme2", themeParsed[1]||"")
-  document.body.setAttribute("themeBg", themeParsed[2]||"plant")
   /*document.body.setAttribute("theme", theme)
   document.body.setAttribute("theme2", "")
   if(theme === "glow"){
