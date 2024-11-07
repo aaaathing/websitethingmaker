@@ -3160,7 +3160,7 @@ mkjoin.onrequest = function(request, connection, urlData) {
       data.username = connection.username
       data.admin = connection.isAdmin
       data.FROM = connection.id
-			Log("MineKhan: "+connection.username+" switched to websocket in "+world.name)
+			Log("MineKhan: "+connection.username+" switched to websocket")
 			world.host.sendJSON(data)
 		}else if(data.type === "joined"){
       data.data = connection.username
