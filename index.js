@@ -849,6 +849,7 @@ function getVotes(user){
   }
   return votes
 }
+global.getVotes = getVotes
 function getMentions(str){
   return str.match(/(?<=@)[^ \n]*/g) || []
 }
@@ -2071,11 +2072,16 @@ router.delete("/minekhan/saves/:id", async(req,res) => {
   }
   res.json({message:"save doesn't exist"})
 })
-/*router.get("/server/account/:user/mksaves", async(req,res) => {
-  let username = req.params.user
-  var saves = await db.get("saves:"+username)
-  res.json(saves)
-})*/
+router.get("/server/account/:user/mksaves", async(req,res) => {
+	let stream = await db.getStream("saves:"+req.params.user)
+	if(!stream) return res.json(null)
+	stream.pipe(res)
+})
+router.get("/server/account/:user/mksaves/:id", async(req,res) => {
+	let stream = await db.getStream("saves:"+req.params.user+":"+req.params.id)
+	if(!stream) return res.json(null)
+	stream.pipe(res)
+})
 
 router.post("/server/suggest",getPostText,async(req,res) => {
 	rateLimit(request,undefined,0.01)

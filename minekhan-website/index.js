@@ -422,7 +422,7 @@ router.post("/server/wikiPage", getPostData,async function(req,res){
   }
   db.set("wiki/"+req.body.name.replace(/\//g,"."), page)
   res.json({success:true})
-  Log("New wiki page called","<a href='/wiki/page/"+page.name+"' target='_blank'>"+page.name.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")+"</a>")
+  Log("New wiki page called","<a href='"+websiteBase+"/wiki/page/"+page.name+"' target='_blank'>"+page.name.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")+"</a>")
 })
 
 router.get(websiteBase+"/wiki/edit/:name(*)", async function(req,res){
@@ -494,7 +494,7 @@ router.post("/server/editWikiPage/:name(*)",getPostData, async function(req,res)
   page.user = authors.join(", ")
   db.set("wiki/"+name.replace(/\//g,"."), page)
   res.json({success:true})
-  Log("Edited wiki page called","<a href='/wiki/page/"+page.name+"' target='_blank'>"+page.name.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")+"</a>")
+  Log("Edited wiki page called","<a href='"+websiteBase+"/wiki/page/"+page.name+"' target='_blank'>"+page.name.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")+"</a>")
 })
 
 router.post("/server/deleteWikiPage/:name(*)",getPostData, async function(req,res){
@@ -532,7 +532,7 @@ router.post("/server/commentOnWikiPage/:name(*)",getPostData, async function(req
   })
   await db.set("wiki/"+name.replace(/\//g,"."), page)
   res.json({success:true})
-  Log("New comment at wiki page called","<a href='/wiki/page/"+page.name+"' target='_blank'>"+page.name.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")+"</a>")
+  Log("New comment at wiki page called","<a href='"+websiteBase+"/wiki/page/"+page.name+"' target='_blank'>"+page.name.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")+"</a>")
 })
 
 router.post("/server/deleteCommentOnWikiPage/:name(*)",getPostData, async function(req,res){
