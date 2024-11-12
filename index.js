@@ -2965,7 +2965,7 @@ mkhost.onrequest = function(request, connection, urlData) {
     if(data.type !== "login" && connection.delayedToAfterLogin) return connection.delayedToAfterLogin.push(message)
     if(data.type === "init"){
       connection.id = data.id
-      world.name = data.name.substring(0,50)
+      world.name = data.name.substring(0,150)
       world.version = data.version
       Log("MineKhan: "+connection.username+" opened server: "+world.name, worlds.length+" worlds")
       worldsChanged()
