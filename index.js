@@ -431,6 +431,12 @@ setInterval(() => {
   updateRecord("maxWorldOpenTime",Math.floor(maxTime/MINUTE))
 }, MINUTE)
 
+function checkBu(){
+	if(new Date().getDate() === 1) Log("alert","time to backup")
+}
+setInterval(checkBu, HOUR)
+checkBu()
+
 async function adjustThumbnail(data,name){
 	if(data.thumbnail && data.thumbnail.startsWith("data:")){
 		let split = data.thumbnail.split(",")
@@ -566,17 +572,20 @@ function valueToString(v, nf, all){ //for log
   }else if(typeof v === "number"){
     str = "<span style='color:orange'>"+v.toString()+"</span>"
   }else if(typeof v === "string"){
-    if((typeof all[0] === "string") && (all[0].startsWith("MineKhan") || all[0].startsWith("Message"))){
+    if((typeof all[0] === "string") && all[0].startsWith("MineKhan")){
+			v = sanitize(v)
+			if(v.startsWith("Message")){
+				v = v.replace("Message","<span style='font-weight:bold'>Message</span>")
+			}
+			if(v.startsWith("know")){
+				v = v.replace("know","<span style='color:brown'>know</span>")
+			}
+			if(v.startsWith("error")){
+				v = v.replace("error","<span style='color:red'>error</span>")
+			}
       if(v === all[0]){
-        v = sanitize(v)
-        if(v.startsWith("Message")){
-          v = v.replace("Message","<span style='font-weight:bold'>Message</span>")
-        }
-        if(v.startsWith("know")){
-          v = v.replace("know","<span style='color:yellow'>know</span>")
-        }
         v = v.replace("MineKhan","<span style='background:yellow'>MineKhan</span>")
-      }else v = sanitize(v)
+      }
     }else if((typeof all[0] === "string") && all[0].startsWith("Editor:")){
       if(v === all[0]){
         v = sanitize(v)
@@ -2114,9 +2123,9 @@ router.post("/server/know/openWorld",getPostText,async(req,res) => {
 })
 //}
 
-router.post("/server/know/minekhan/error",getPostText,async(req,res) => {
+router.post("/minekhan/know/error",getPostText,async(req,res) => {
 	rateLimit(request,undefined,0.01)
-  Log("alert","MineKhan Error:",req.username+":"+req.who.id,req.body)
+  Log("MineKhan:","error:",req.username+":"+req.who.id,req.body)
   res.send("done")
 })
 
