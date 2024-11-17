@@ -581,7 +581,7 @@ function valueToString(v, nf, all){ //for log
 				v = v.replace("know","<span style='color:brown'>know</span>")
 			}
 			if(v.startsWith("error")){
-				v = v.replace("error","<span style='color:red'>error</span>")
+				v = v.replace("error","<span style='background:red'>error</span>")
 			}
       if(v === all[0]){
         v = v.replace("MineKhan","<span style='background:yellow'>MineKhan</span>")
@@ -632,7 +632,7 @@ function valueToString(v, nf, all){ //for log
       v = v.replace(/\n/g,"<br>")
       v = v.replace(/(added cape|removed cape|got cape called|changed their cape|lost cape|removed their cape)/, "<span style='background:#88f'>$1</span>")
       v = v.replace(/(changed their bio|changed their skin|changed their pfp|changed their background)/, "<span style='background:lightgreen'>$1</span>")
-      v = v.replace(/(invited|voted|tried to vote)/, "<span style='background:red'>$1</span>")
+      v = v.replace(/(invited|voted|tried to vote)/, "<span style='background:pink'>$1</span>")
     }
     if(nf)str = "<span style='color:green;'>'"+v+"'</span>"
     else str = v
@@ -2075,7 +2075,7 @@ router.delete("/minekhan/saves/:id", async(req,res) => {
       await db.set("saves:"+req.username, saves)
 			await db.deleteFile("saves:"+req.username+":"+id)
       res.json({success:true})
-      Log("MineKhan: "+req.username+" deleted world called "+s.name)
+      Log("MineKhan:", req.username+" deleted world called "+s.name)
       return
     }
   }
@@ -2644,7 +2644,7 @@ function handleCommonMKPacket(data,world,connection,findPlayer,sendPlayer,sendPl
       data:data.data+" got banned.",
       fromServer:true
     })
-    Log("MineKhan: "+data.data+" got banned from the server: "+world.name)
+    Log("MineKhan:", data.data+" got banned from the server: "+world.name)
     closePlayer(data.data)
     worldsChanged()
   }else if(data.type === "unban"){
@@ -2675,7 +2675,7 @@ function handleCommonMKPacket(data,world,connection,findPlayer,sendPlayer,sendPl
       data:data.data+" got unbanned.",
       fromServer:true
     })
-    Log("MineKhan: "+data.data+" got unbanned from the server: "+world.name)
+    Log("MineKhan:", data.data+" got unbanned from the server: "+world.name)
     worldsChanged()
   }else if(data.type === "whitelist"){
     if(!(connection === world.host || connection.isAdmin)) return sendThisPlayer({
@@ -2976,7 +2976,7 @@ mkhost.onrequest = function(request, connection, urlData) {
       connection.id = data.id
       world.name = data.name.substring(0,150)
       world.version = data.version
-      Log("MineKhan: "+connection.username+" opened server: "+world.name, worlds.length+" worlds")
+      Log("MineKhan:", connection.username+" opened server: "+world.name, worlds.length+" worlds")
       worldsChanged()
     }else if(data.type === "answer" || data.type === "iceCandidate"){
       sendPlayer(message.utf8Data,data.TO)
@@ -2997,7 +2997,7 @@ mkhost.onrequest = function(request, connection, urlData) {
     closePlayers()
     worlds.splice(worlds.indexOf(world), 1)
     world = {}
-    Log("MineKhan: "+connection.username+" closed server: "+name+" with "+playerAmount+" people", worlds.length+" worlds")
+    Log("MineKhan:", connection.username+" closed server: "+name+" with "+playerAmount+" people", worlds.length+" worlds")
     worldsChanged()
   });
   connection.on("error", function(err){
@@ -3140,7 +3140,7 @@ mkjoin.onrequest = function(request, connection, urlData) {
             data:connection.username+" was banned and tried to join ",
             fromServer:true
           })
-          Log("MineKhan: "+connection.username+" was banned but tried to join "+world.name)
+          Log("MineKhan:", connection.username+" was banned but tried to join "+world.name)
           closeThisPlayer()
           return
         }
@@ -3164,7 +3164,7 @@ mkjoin.onrequest = function(request, connection, urlData) {
 
       world.host.sendJSON(data)
       connection.hasRecievedOfFeR = true
-      Log("MineKhan: "+connection.username+" joined the server: "+world.name)
+      Log("MineKhan:", connection.username+" joined the server: "+world.name)
       /*sendThisPlayer({
         type:"message",
         data: "Please read the multiplayer rules, read them <a href='https://minekhan.repl.co/multiplayerrules.html' target='_blank'>here</a>. They can change at any time.",
@@ -3175,7 +3175,7 @@ mkjoin.onrequest = function(request, connection, urlData) {
       data.username = connection.username
       data.admin = connection.isAdmin
       data.FROM = connection.id
-			Log("MineKhan: "+connection.username+" switched to websocket")
+			Log("MineKhan:", connection.username+" switched to websocket")
 			world.host.sendJSON(data)
 		}else if(data.type === "joined"){
       data.data = connection.username
@@ -3192,7 +3192,7 @@ mkjoin.onrequest = function(request, connection, urlData) {
       data: connection.username,
       id:connection.id
     })
-    Log("MineKhan: "+connection.username+" left the server: "+world.name)
+    Log("MineKhan:", connection.username+" left the server: "+world.name)
     world.players.splice(idx, 1)
     worldsChanged()
   });
@@ -3314,7 +3314,7 @@ serverWs.onrequest = function(req, connection, urlData){
     }else if(data.type === "joined"){
       server.players.push({id:data.id,username:data.username})
       updateWorldRecords()
-      Log("MineKhan: "+data.username+" joined external server: "+server.name)
+      Log("MineKhan:", data.username+" joined external server: "+server.name)
       worldsChanged()
     }else if(data.type === "left"){
       for(let i=0;i<server.players.length;i++){
@@ -3323,7 +3323,7 @@ serverWs.onrequest = function(req, connection, urlData){
           break
         }
       }
-      Log("MineKhan: "+data.username+" left external server: "+server.name)
+      Log("MineKhan:", data.username+" left external server: "+server.name)
       worldsChanged()
     }/*else if(data.SENDTO){
       var sendTo = data.SENDTO.split("\n")

@@ -1,14 +1,13 @@
-/*not used*/
 
 {
   "name": "MineKhan",
   "short_name": "MineKhan",
-  "start_url": "/minekhan",
+  "start_url": "/minekhan/",
   "description": "MineKhan but in an offline app.",
   "display": "fullscreen",
   "background_color": "#000",
   "theme_color": "#fff",
-  "scope": "/",
+  "scope": "/minekhan",
   "orientation": "landscape",
   "icons": [
     {
