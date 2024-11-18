@@ -273,5 +273,17 @@ Many people came back but there were still few people.
 <script src="/assets/common.js"></script>
 <script>
 	let el = document.querySelector("#historycontent")
+
+	function getTimes(str){
+		let times = [], r = /\n[^\n]*?(?<time>(janurary|feburary|march|april|may|june|july|august|september|october|november|december) +?\d+? +?\d+)/ig
+		let match, ret = []
+		while(match = r.exec(str)){
+			ret.push({time:Date.parse(match.groups.time), lineStart:match.index})
+		}
+		return ret
+	}
+	
 	el.innerHTML = format(el.innerHTML)
+
+	// /around/https://drive.google.com/uc?export=download&id=12iM26uX4s2k_bDzH-Ej9D6a3DUe8NLL7
 </script>

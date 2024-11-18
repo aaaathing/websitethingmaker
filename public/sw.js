@@ -6,6 +6,7 @@ const assets = [
   "/minekhan/favicon.ico",
   "/minekhan/maps.json",
   "/minekhan/features.js",
+  "/minekhan/manifest.json",
   "/particleLife",
   "/particleLife/",
   "/grapher",

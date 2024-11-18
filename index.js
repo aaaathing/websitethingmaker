@@ -2294,6 +2294,12 @@ router.get("/server/editorZip/:id", async(req,res) => {
 	else res.status(404).send("not found")
 })
 
+router.get("/around/:what", async(req,res) => {
+	fetch(req.params.what).then(res2 => new Promise((resolve, reject) => {
+    res2.body.pipe(res);
+	})).catch(e => res.send(e.message))
+})
+
 app.use('/minekhan/assets', express.static(__dirname+'/public/minekhan/assets'))
 
 /*
