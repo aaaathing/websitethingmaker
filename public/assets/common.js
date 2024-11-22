@@ -114,7 +114,7 @@ async function mentionNotifications(){
   }else{
     Swal.fire({
       title:"Notifcations!",
-      text:"Please consider allowing notifications, so that we can alert you of new maps, and notifications about your account if you are logged in!",
+      text:"Please consider allowing notifications, to get notified of new things, and other notifications if you are logged in!",
       toast: true,
       denyButtonText:"No thank you!",
       confirmButtonText:"Yes please!",
@@ -125,18 +125,8 @@ async function mentionNotifications(){
       if (result.isConfirmed) {
         await localforage.setItem("notifs", "true")
         await subscribe()
-        Swal.fire({
-          title:"Notifcations!",
-          text: 'Thank you for enabling notifications!' ,
-          icon: 'success',
-        })
       }else if(result.isDenied){
         await localforage.setItem("noNotifs", "true")
-        Swal.fire({
-          title:"Notifcations!",
-          text: "Ok! We respect your privacy, so we will not ask again",
-          icon: 'error',
-        })
       }
     })
   }  
@@ -156,6 +146,9 @@ navbar.innerHTML = `
     </form>
   </div>
 
+	<a onclick="history.back()">◀</a>
+	<a onclick="history.forward()">▶</a>
+	<a onclick="location.reload()">↻</a>
 	<a href="/posts">Posts</a>
 	<a href="/minekhan-website/">MineKhan website</a>
 
@@ -341,11 +334,9 @@ document.body.appendChild(script)
 var div = document.createElement("div")
 div.innerHTML = `
 <div>
-  <b>to contact thingMaker</b>
+  <b>footer</b>
   <ul>
-    <li><a href="https://scratch.mit.edu/users/2-people">Scratch</a></li>
-    <li><a href="https://replit.com/@thingMaker">Replit</a></li>
-    <li><a href="/user?user=2-people">This website</a></li>
+    <li><a href="/">home</a></li>
   </ul>
 </div>
 `

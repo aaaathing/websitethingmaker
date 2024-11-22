@@ -12,10 +12,6 @@
 	<style>
 /*@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400&display=swap');*/
 
-:root {
-	--primary-color: #3a4052;
-}
-
 /*
 * {
 	box-sizing: border-box;
@@ -27,157 +23,6 @@ body {
 	font-family: 'Open Sans', sans-serif;
 	line-height: 1.5;
 }*/
-
-button a {
-	text-decoration: none;
-	color: var(--primary-color);
-}
-
-
-.title {
-	font-weight: 300;
-	font-size: 60px;
-   font-family: 'Aclonica';
-	line-height: 1.2;
-	margin-bottom: 15px;
-}
-
-.showcase {
-	height: 100vh;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	text-align: center;
-	color: #fff;
-	padding: 0 20px;
-  background-image: url("/assets/bg_small.png") ;
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: cover;
-}
-
-.video-container {
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	overflow: hidden;
-	background: var(--primary-color) url('') no-repeat center
-		center/cover;
-}
-
-.video-container video {
-	min-width: 100%;
-	min-height: 100%;
-  position: absolute;
-	top: 50%;
-	left: 50%;
-	transform: translate(-50%, -50%);
-	object-fit: cover;
-}
-
-.video-container:after {
-	content: '';
-	z-index: 1;
-	height: 100%;
-	width: 100%;
-	top: 0;
-	left: 0;
-	background: rgba(0, 0, 0, 0.5);
-	position: absolute;
-}
-
-.content {
-	z-index: 2;
-}
-.content > *{
-  vertical-align: middle;
-}
-
-.btn {
-	display: inline-block;
-	padding: 10px 30px;
-	background: var(--primary-color);
-	color: #fff;
-	border-radius: 5px;
-	border: solid #fff 1px;
-	margin-top: 25px;
-	opacity: 0.8;
-}
-
-.btn:hover {
-	transform: scale(0.90);
-  /*opacity:  ;*/
-}
-
-#about {
-	padding: 40px;
-	text-align: center;
-}
-
-#about p {
-	font-size: 1.2rem;
-	max-width: 600px;
-	margin: auto;
-}
-
-#about h2 {
-	margin: 30px 0;
-	color: var(--primary-color);
-}
-
-.social a {
-	margin: 0 5px;
-}
-
-#channel{
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	text-align: center;
-	color: #fff;
-	padding: 50px 20px;
-  background:darkred;
-}
-#channel h1{
-  font-size:50px;
-  display:inline-block;
-}
-
-/*#links{
-	height: 100vh;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	text-align: center;
-	color: #030;
-	padding: 0 20px;
-  background:lightgray;
-}
-#links h1{
-  font-size:50px;
-  display:inline-block;
-}*/
-/*.search-container button, .search-container input{
-  font-size:25px !important;
-  padding:20px !important;
-}*/
-
-button {
-  display: inline-block;
-  padding: 10px 30px;
-  background: #88f;
-  color: black;
-  border-radius: 5px;
-  border: solid black 1px;
-  cursor: pointer;
-  transition:ease 0.5s;
-}
-button:hover {
-  transform: scale(0.95);
-}
-
 
 .main {   
   -ms-flex: 70%; /* IE10 */
@@ -343,6 +188,24 @@ body[theme=dark] #links a.no{
 			}
 		</script>
 		<p>Also, if you have <b>old worlds</b> from 2022 and before, you should put them <a href="/minekhan-website/maps/new">here</a>.</p>
+		<h2>How to get old worlds</h2>
+<div style="white-space: pre;">
+This only works if you used to go to <b>minekhan.thingmaker.repl.co</b> or <b>play.minekhan.repl.co</b>
+This also requires access to devtools.
+
+Turn off internet connection to prevent redirect.
+Go to minekhan.thingmaker.repl.co or the other one.
+If it still redirects, try turning on Disable cache in network tab in devtools.
+Open devtools by:
+	right clicking and clicking inspect
+	or pressing ctrl+shift+i or similar
+Paste this in console and optionaly check for bad things:
+<textarea>
+let or=indexedDB.open("MineKhan");or.onsuccess = e => { let db = or.result;let trans = db.transaction('worlds', "readonly");let store = trans.objectStore('worlds'); let req = store.getAll(); req.onsuccess=()=>{ for(let i of req.result){ var link = document.createElement("a"); link.download = i.data.name+'.minekhan'; link.href = Object.createObjectURL(new Blob([JSON.stringify(i.data)])); link.click(); Object.revokeObjectURL(link.href); } }}
+</textarea>
+The files should have been downloaded afterwards.
+If it doesn't work, try preventing redirect using proxy or extension and start over.
+</div>
     
     <h2>Websites you may not have even known existed!</h2>
     <a href="https://mordritch.com/">Modritch.com</a><br>

@@ -50,10 +50,7 @@ self.addEventListener("activate", event => {
 })
 self.addEventListener("fetch", event => {
 	//if (event.request.method !== 'GET' || event.request.status >= 300) return // Use default behavior
-	if(event.request.url.startsWith("https://example")){
-		event.respondWith(new Response("123213232121231"))
-	}
-  if(!canCache(event.request.url)) return
+ 	if(!canCache(event.request.url)) return
   event.respondWith((async () => {
     let cache = await caches.open(cacheName)
     /*
@@ -62,7 +59,7 @@ self.addEventListener("fetch", event => {
       let cacheres = await caches.match(event.request)
       if(cacheres) return cacheres
     }*/
-    let fetchRes = await fetch(event.request)
+    let fetchRes = await fetch(event.request).catch(() => ({}))
     if (fetchRes.ok) {
       cache.put(event.request, fetchRes.clone())
     }else{
