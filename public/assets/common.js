@@ -506,7 +506,7 @@ function enableUserPopup(el,user){
       <a href="/user?user=${r.username}"><h3 style="display:inline-block;">
       <img class="pfp" style="width:30px;height:30px;border-radius:100%;border:1px solid gray;vertical-align:middle;">
       ${r.username}</h3></a><div class='popupVotes' style="margin-left:16px;display:inline-block;"></div><br>
-      ${r.bio ? "@"+r.username+" - "+sanitize(r.bio) : ""}<br>
+      ${r.bio ? ""+r.username+" - "+format(r.bio) : ""}<br>
       ${r.lastActive ? "Last active: "+timeString(r.lastActive) : ""}</div>`
       if(r.bg) popupContent.querySelector(".bg").style.backgroundImage = 'url('+r.bg+')'
       popupContent.querySelector(".pfp").src = r.pfp

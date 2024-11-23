@@ -158,7 +158,7 @@
             document.querySelector("#active").innerHTML = "Last active: "+timeString(data.lastActive+timeOffset)
           }
           if(data.bio){
-            document.querySelector("#bio").innerHTML = "<b>@"+username+"</b> - "+data.bio.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+            document.querySelector("#bio").innerHTML = "<b>"+username+"</b> - "+format(data.bio)
           }
   
           if(data.skin){
