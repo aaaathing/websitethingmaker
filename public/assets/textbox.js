@@ -212,19 +212,17 @@ ${buttonText ? `<button onclick="comment()" class="comment-button">${buttonText}
       addToComment("<"+(type || "img")+" src='"+res.url+"'"+(type==="video"?"controls":"")+"/>")
     }else alert(res.message)*/
     let r
-    let formData = new FormData()
-    formData.append('file', new File([d], (new Date(d.lastModified).toLocaleString())+" "+d.name, d))
-    formData.append("upload_preset","ygf5chcy")
     try{
-      r = await (await fetch("https://api.cloudinary.com/v1_1/doooij2qr/auto/upload", {
+      r = await (await fetch("/images/"+encodeURIComponent((new Date(d.lastModified).toLocaleString())+" "+d.name), {
         method:"POST",
-        body:formData
+        body: await d.arrayBuffer()
       })).json()
     }catch(e){
       alert(e.message)
       return
     }
-    addToComment("<"+(type || "img")+" src='"+r.secure_url+"'"+(type==="video"?"controls":"")+"/>")
+		if(!r.success) return alert(r.message)
+    addToComment("<"+(type || "img")+" src='"+r.url+"'"+(type==="video"?"controls":"")+"/>")
   }
 
   function addToComment(str){

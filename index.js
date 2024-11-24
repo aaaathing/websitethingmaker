@@ -1534,6 +1534,37 @@ router.get("/currentMedia", async(req,res) => {
 
   res.json({success:true,url})
 })*/
+const cloudinary = require('cloudinary')
+cloudinary.config({ 
+  cloud_name: 'doooij2qr', 
+  api_key: '525257699528752', 
+  api_secret: process.env['cloudinary_api_secret']
+});
+router.post("/images/:name", getPostBufferHuge, async(req,res) => {console.log("img")
+	let hash = crypto.createHash('md5');
+  hash.setEncoding('hex');
+  hash.write(req.body);
+  hash.end();
+  let realHash = hash.read();
+
+	let duplicates = await cloudinary.v2.api.resources_by_context("hash", realHash)
+	if(duplicates.resources.length){
+		return res.json({success:true,url:duplicates.resources[0].url})
+	}
+	
+	let result = await new Promise((resolve) => {
+    cloudinary.v2.uploader.upload_stream({
+			unique_filename:false,
+			public_id: req.params.name.replace(/\//g,"_"),
+			resource_type:"auto",
+			context: "hash="+realHash
+		}, (error, uploadResult) => {
+			if(error) return res.json({message:error})
+			return resolve(uploadResult);
+    }).end(req.body);
+	})
+	res.json({success:true,url:result.url})
+})
 router.get("/images/*",async(req,res) => {
   var stream = await db.getStream("images/"+req.params[0])
   if(!stream) return res.end()

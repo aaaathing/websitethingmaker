@@ -173,18 +173,16 @@ body[theme=dark] #links a.no{
 		<script>
 			async function uploadit(e){
 				let r
-		    let formData = new FormData()
-		    formData.append('file', new File([e.files[0]], (new Date(e.files[0].lastModified).toLocaleString())+" "+e.files[0].name, e.files[0]))
-		    formData.append('upload_preset','ygf5chcy')
 		    try{
-		      r = await (await fetch('https://api.cloudinary.com/v1_1/doooij2qr/auto/upload', {
+		      r = await (await fetch('/images/'+encodeURIComponent((new Date(e.files[0].lastModified).toLocaleString())+" "+e.files[0].name), {
 		        method:'POST',
-		        body:formData
+		        body: await e.files[0].arrayBuffer()
 		      })).json()
 		    }catch(e){
 		      alert(e.message)
 		      return
 		    }
+				if(!r.success) alert(r.message)
 			}
 		</script>
 		<p>Also, if you have <b>old worlds</b> from 2022 and before, you should put them <a href="/minekhan-website/maps/new">here</a>.</p>
@@ -201,7 +199,7 @@ Open devtools by:
 	or pressing ctrl+shift+i or similar
 Paste this in console and optionaly check for bad things:
 <textarea>
-let or=indexedDB.open("MineKhan");or.onsuccess = e => { let db = or.result;let trans = db.transaction('worlds', "readonly");let store = trans.objectStore('worlds'); let req = store.getAll(); req.onsuccess=()=>{ for(let i of req.result){ var link = document.createElement("a"); link.download = i.data.name+'.minekhan'; link.href = Object.createObjectURL(new Blob([JSON.stringify(i.data)])); link.click(); Object.revokeObjectURL(link.href); } }}
+let or=indexedDB.open("MineKhan");or.onsuccess = e => { let db = or.result;let trans = db.transaction('worlds', "readonly");let store = trans.objectStore('worlds'); let req = store.getAll(); req.onsuccess=()=>{ for(let i of req.result){ var link = document.createElement("a"); link.download = i.data.name+'.minekhan'; link.href = URL.createObjectURL(new Blob([JSON.stringify(i.data)])); link.click(); Object.revokeObjectURL(link.href); } }}
 </textarea>
 The files should have been downloaded afterwards.
 If it doesn't work, try preventing redirect using proxy or extension and start over.
