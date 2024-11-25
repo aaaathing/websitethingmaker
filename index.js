@@ -482,6 +482,8 @@ function generatePassword(){
     .map((x) => wishlist[x % wishlist.length])
     .join('')
 }
+global.generateId = generateId
+global.generatePassword = generatePassword
 const hashCode = function(str) {
   var hash = 0,
     i, chr;
@@ -1540,7 +1542,7 @@ cloudinary.config({
   api_key: '525257699528752', 
   api_secret: process.env['cloudinary_api_secret']
 });
-router.post("/images/:name", getPostBufferHuge, async(req,res) => {console.log("img")
+router.post("/images/:name", getPostBufferHuge, async(req,res) => {
 	let hash = crypto.createHash('md5');
   hash.setEncoding('hex');
   hash.write(req.body);
@@ -1549,12 +1551,12 @@ router.post("/images/:name", getPostBufferHuge, async(req,res) => {console.log("
 
 	let duplicates = await cloudinary.v2.api.resources_by_context("hash", realHash)
 	if(duplicates.resources.length){
+		Log("Image reuse: "+duplicates.resources[0].public_id)
 		return res.json({success:true,url:duplicates.resources[0].url})
 	}
 	
 	let result = await new Promise((resolve) => {
     cloudinary.v2.uploader.upload_stream({
-			unique_filename:false,
 			public_id: req.params.name.replace(/\//g,"_"),
 			resource_type:"auto",
 			context: "hash="+realHash
@@ -1563,6 +1565,7 @@ router.post("/images/:name", getPostBufferHuge, async(req,res) => {console.log("
 			return resolve(uploadResult);
     }).end(req.body);
 	})
+	Log("Image: "+result.public_id)
 	res.json({success:true,url:result.url})
 })
 router.get("/images/*",async(req,res) => {
