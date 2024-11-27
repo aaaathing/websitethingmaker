@@ -43,7 +43,7 @@ chooseEl.onchange = function(e){
 var inp = document.getElementById("input"), c = document.getElementById("c"), ctx = c.getContext("2d"), scaleInp = document.getElementById('scale')
 inp.value = options[optionNames[0]]
 var currentFrame = null
-var func, x, y, scale
+var func, x, y, scale, heatmap
 function startDraw(){
   try{
     func = Function("x","y",inp.value)
@@ -53,6 +53,7 @@ function startDraw(){
   if(currentFrame !== null) cancelAnimationFrame(currentFrame)
   x = y = 0
   scale = parseFloat(scaleInp.value) || 1
+	heatmap = document.querySelector("#heatmap").checked
   //ctx.clearRect(0, 0, c.width, c.height)
   ctx.fillStyle = "#0004"
   ctx.fillRect(0, 0, c.width, c.height)
@@ -80,8 +81,15 @@ function draw(){
     }
     if(pix === true) pix = "black"
     else if(typeof pix === "number"){
-      pix = -Math.abs(pix)
-      pix = `rgb(${(pix>>16)&255},${(pix>>8)&255},${pix&255})`
+			if(heatmap){
+				let c = HSVtoRGB(pix,1,1)
+				let w=0
+				if(pix>1) w=(pix-1)*255
+	      pix = `rgb(${w+c.r*pix},${w+c.g*pix},${w+c.b*pix})`
+			}else{
+	      pix = -Math.abs(pix)
+	      pix = `rgb(${(pix>>16)&255},${(pix>>8)&255},${pix&255})`
+			}
     }else if(!pix) pix = "white"
     ctx.fillStyle = pix
     ctx.fillRect(x,y,1,1)

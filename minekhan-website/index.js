@@ -117,7 +117,7 @@ Log('done')
 router.get("/server/mapCategories",(req,res) => {
   res.json(mapCategories)
 })
-router.post("/server/map", getPostData,async function(req, res){
+router.post("/server/map", getPostDataHuge,async function(req, res){
   rateLimit(req)
   if(!req.body.name){
     return res.json({message:"It needs a name."})

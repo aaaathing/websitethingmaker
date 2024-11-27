@@ -772,7 +772,7 @@ function formatElcb(el){
       let notcode = el.getAttribute("notcode")
       if(!lang) lang = "javascript"
       if(Prism.languages[lang] && notcode === null){
-        el.innerHTML = Prism.highlight(el.innerHTML, Prism.languages[lang], lang)
+        el.innerHTML = Prism.highlight(el.textContent, Prism.languages[lang], lang)
       }
     }
     return true
@@ -977,11 +977,11 @@ function sanitize(text) {
   return sanitizer.innerHTML
 }
 
-var prismVersion = "1.24.1"
+var prismVersion = "9000.0.1"
 
 var script = document.createElement("script")
 script.src = "https://cdnjs.cloudflare.com/ajax/libs/prism/"+prismVersion+"/prism.min.js"
-document.head.appendChild(script)
+document.currentScript.appendChild(script)
 
 var prismTheme = localStorage.getItem("theme") === "dark" ? "prism-dark" : "prism"
 var link = document.createElement("link")

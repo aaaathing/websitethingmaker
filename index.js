@@ -690,6 +690,9 @@ global.getPostData = function getPostData(req,res,next,limit=10000){
 global.getPostDataLarge = function getPostDataLarge(req,res,next,limit=100000){
   getPostBuffer(req,res,next,"json",limit)
 }
+global.getPostDataHuge = function getPostDataHuge(req,res,next){
+  getPostBuffer(req,res,next,"json",10000000)
+}
 function resizeThumbnail(data){
   let img = new Image()
   img.src = data
@@ -1557,6 +1560,7 @@ router.post("/images/:name", getPostBufferHuge, async(req,res) => {
 	
 	let result = await new Promise((resolve) => {
     cloudinary.v2.uploader.upload_stream({
+			unique_filename:true,
 			public_id: req.params.name.replace(/\//g,"_"),
 			resource_type:"auto",
 			context: "hash="+realHash
