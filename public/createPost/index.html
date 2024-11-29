@@ -7,12 +7,6 @@
 		<meta name="robots" content="noindex">
     <link rel="stylesheet" href="/assets/common.css">
     <style>
-      #contentBG{
-        height:calc(100% - 47px);
-      }
-      #content{
-        height:100%;
-      }
       h1{
         font-size:50px;
         margin:0px;
@@ -48,9 +42,13 @@
         <br><br>
         <!--<textarea id="postContent" placeholder="Content of post..."></textarea>-->
         <script src="/assets/textbox.js" textboxId="postContentTextbox" textboxPlaceholder="Content of post..."></script>
+				<br>
+				Background image address: <input id="bgInput">
+        <br>
         <pre id="error" style="color:red;"></pre>
 
         <button onclick="post()" id="createBtn">Create post</button>
+				<!-- if you change this, change editPost -->
       </div>
     </div>
     <script src="/assets/common.js"></script>
@@ -63,7 +61,11 @@
         fetch("/server/post",{
           method: "POST",
           credentials: 'include',
-          body: JSON.stringify({title:title, content:content})
+          body: JSON.stringify({
+						title:title,
+						content:content,
+						bg: document.querySelector("#bgInput").value || undefined
+					})
         }).then(res => res.json()).then(res => {
           if(res.success){
             location.href = res.redirect

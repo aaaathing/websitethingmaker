@@ -1578,7 +1578,7 @@ router.get("/images/*",async(req,res) => {
   res.header("Content-Type", mime.lookup(req.params[0]))
   stream.pipe(res)
 })
-// user makes a post/blog
+// user makes a post
 router.post("/server/post", getPostData, async(request, response) => {
   rateLimit(request)
   if(!request.username){
@@ -1594,10 +1594,11 @@ router.post("/server/post", getPostData, async(request, response) => {
     "type": "blog",
     "username": request.username,
     id:uniqueId,
+    "followers":[request.username],
+    "timestamp": Date.now(),
     "title": request.body.title,
     "content": request.body.content,
-    "followers":[request.username],
-    "timestamp": Date.now()
+		bg: request.body.bg
   }
   await db.set("post:"+uniqueId, post)
   response.json({
