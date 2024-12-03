@@ -43,11 +43,8 @@
   "Python interpreter":{"url":"/code%20editor/pythoninterpreter.html", "interesting":true},
 	"Grapher":{"url":"/grapher", "interesting":true, "time":"February 6, 2023"},
 	"Bitmap font generator":{"url":"/bitmap-font-generator.html"},
-	"Fake game":{"url":"/stuff/2020andbefore/fake game.html", "time":"November 16, 2020"},
-	"life":{"url":"/stuff/2020andbefore/life.html", "interesting":true},
-	"Pointer lock":{"url":"/stuff/2020andbefore/Locker.html", "time":"November 16, 2020"},
-	"Text editor":{"url":"/stuff/2020andbefore/textbox.html"},
-	"Unfinished tower defense":{"url":"/stuff/2020andbefore/towerDefense.html", "time":"January 15, 2021"},
-	"Random videos":{"url":"/stuff/2020andbefore/TvGuys.html", "interesting":true},
+	"Fake game":{"url":"/stuff/2021andbefore/fake game.html", "time":"November 16, 2020"},
+	"life":{"url":"/stuff/2021andbefore/life.html", "interesting":true},
+	"Pointer lock":{"url":"/stuff/2021andbefore/Locker.html", "time":"November 16, 2020"},
 	"Stuff":{"url":"/stuff", "interesting":true}
 }
