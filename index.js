@@ -495,6 +495,11 @@ const hashCode = function(str) {
   }
   return hash;
 }
+// limit length of string
+function cap(str, l=150){
+	return str.length > l ? str.substring(0,l)+"..." : str
+}
+global.cap = cap
 
 function timeString(millis) {
   if (millis > 300000000000 || !millis) {
@@ -1078,7 +1083,7 @@ function sendNotifTo(msg, subscription, fromUser = null, actions){
         if(fromUser && fromUser.subscriptions){
           fromUser.subscriptions.splice(fromUser.subscriptions.indexOf(subscription),1)
           db.set("user:"+fromUser.username, fromUser)
-          Log("removed subscription "+fromUser.username,subscription)
+          Log("removed subscription "+fromUser.username)
         }
       }else console.warn(error)
     });
@@ -1596,7 +1601,7 @@ router.post("/server/post", getPostData, async(request, response) => {
     id:uniqueId,
     "followers":[request.username],
     "timestamp": Date.now(),
-    "title": request.body.title,
+    "title": cap(request.body.title),
     "content": request.body.content,
 		bg: request.body.bg
   }
@@ -2114,7 +2119,7 @@ router.delete("/minekhan/saves/:id", async(req,res) => {
       await db.set("saves:"+req.username, saves)
 			await db.deleteFile("saves:"+req.username+":"+id)
       res.json({success:true})
-      Log("MineKhan:", req.username+" deleted world called "+s.name)
+      Log("MineKhan:","know", req.username+" deleted world called "+cap(s.name))
       return
     }
   }
@@ -2131,11 +2136,11 @@ router.get("/server/account/:user/mksaves/:id", async(req,res) => {
 	stream.pipe(res)
 })
 
-router.post("/server/suggest",getPostText,async(req,res) => {
+/*router.post("/server/suggest",getPostText,async(req,res) => {
 	rateLimit(request,undefined,0.01)
   Log(req.username+":"+req.who.id+" suggest: "+req.body)
   res.send("done")
-})
+})*/
 function where(req){
 	let thing = req.headers.referer||req.headers.referrer||req.headers.origin
 	return (thing!=="https://"+theHost&&thing!=="https://"+theHost+"/minekhan/")&&(thing+""!=="null")?"from "+thing:""
@@ -2143,7 +2148,7 @@ function where(req){
 router.post("/minekhan/know",getPostText,async(req,res) => {
 	rateLimit(request,undefined,0.01)
   setOnline(req.username, req.body,request.clientIp)
-  Log("MineKhan:", "know ", req.username+":"+req.who.id, where(req), req.body)
+  Log("MineKhan:", "know ", cap(req.username+":"+req.who.id), where(req), req.body)
   res.send("done")
 })
 
@@ -2151,20 +2156,20 @@ router.post("/minekhan/know",getPostText,async(req,res) => {
 router.post("/server/know/newWorld",getPostText,async(req,res) => {
 	rateLimit(request,undefined,0.01)
   setOnline(req.username,"new world: "+req.body,request.clientIp)
-  Log("MineKhan:","know old", req.username+":"+req.who.id,where(req)," created new world "+req.body)
+  Log("MineKhan:","know old", req.username+":"+req.who.id,where(req)," created new world "+cap(req.body))
   res.send("done")
 })
 router.post("/server/know/openWorld",getPostText,async(req,res) => {
 	rateLimit(request,undefined,0.01)
   setOnline(req.username,"play world: "+req.body,request.clientIp)
-  Log("MineKhan:","know old", req.username+":"+req.who.id,where(req)," played world "+req.body)
+  Log("MineKhan:","know old", req.username+":"+req.who.id,where(req)," opened world "+cap(req.body))
   res.send("done")
 })
 //}
 
 router.post("/minekhan/know/error",getPostText,async(req,res) => {
 	rateLimit(request,undefined,0.01)
-  Log("MineKhan:","error:",req.username+":"+req.who.id,req.body)
+  Log("MineKhan:","error:",req.username+":"+req.who.id,cap(req.body,500))
   res.send("done")
 })
 
@@ -3019,7 +3024,7 @@ mkhost.onrequest = function(request, connection, urlData) {
     if(data.type !== "login" && connection.delayedToAfterLogin) return connection.delayedToAfterLogin.push(message)
     if(data.type === "init"){
       connection.id = data.id
-      world.name = data.name.substring(0,150)
+      world.name = cap(data.name)
       world.version = data.version
       Log("MineKhan:", connection.username+" opened server: "+world.name, worlds.length+" worlds")
       worldsChanged()
@@ -3345,7 +3350,7 @@ serverWs.onrequest = function(req, connection, urlData){
   connection.on("message", function(message){
     var data = JSON.parse(message.utf8Data)
     if(data.type === "init"){
-      server.name = ""+data.name
+      server.name = cap(""+data.name)
       server.description = data.description
       server.thumbnail = data.thumbnail
       server.version = data.version

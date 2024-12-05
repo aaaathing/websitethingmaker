@@ -126,12 +126,15 @@ router.post("/server/map", getPostDataHuge,async function(req, res){
   if(codeOrFile !== 1){
     return res.json({message:codeOrFile === 0 ? "It needs a code or a file." : "It can only have a code or a file."})
   }
+	if(req.body.name.length > 100){
+		return res.json({message:"Name too long"})
+	}
+  if(req.body.name.match(/[^-_\p{L}\p{N}]/ug)){
+    return res.json({message:"Name can only contain: letters, numbers, - and _"})
+  }
   var map = await db.get("map:"+req.body.name)
   if(map){
     return res.json({message:"That name is already taken."})
-  }
-  if(req.body.name.match(/[^a-zA-Z0-9\-_]/)){
-    return res.json({message:"Name can only contain: A-Z, a-z, 0-9, - and _"})
   }
   map = {
     name: req.body.name,
@@ -211,12 +214,16 @@ router.post("/server/rp", getPostDataLarge, async function(req, res){
     return res.json({message:"It needs a name."})
   }
   if(!req.body.file) return res.json({message:"File needed"})
+	
+	if(req.body.name.length > 100){
+		return res.json({message:"Name too long"})
+	}
+  if(req.body.name.match(/[^-_\p{L}\p{N}]/ug)){
+    return res.json({message:"Name can only contain: letters, numbers, - and _"})
+  }
   var rp = await db.get("rp:"+req.body.name)
   if(rp){
     return res.json({message:"That name is already taken."})
-  }
-  if(req.body.name.match(/[^a-zA-Z0-9\-_]/)){
-    return res.json({message:"Name can only contain: A-Z, a-z, 0-9, - and _"})
   }
   try{
     JSON.parse(req.body.file)
@@ -408,11 +415,14 @@ router.post("/server/wikiPage", getPostData,async function(req,res){
   /*if(!req.body.pwd){
     return res.json({message:"You need to provide a password for deleting and stuff."})
   }*/
+	if(req.body.name.length > 100){
+		return res.json({message:"Name too long"})
+	}
+  if(req.body.name.match(/[^-_\p{L}\p{N}]/ug)){
+    return res.json({message:"Name can only contain: letters, numbers, - and _"})
+  }
   const exist = !!db.get("wiki/"+req.body.name.replace(/\//g,"."))
   if(exist) return res.json({message:"That name is already taken"})
-  if(req.body.name.match(/[^a-zA-Z0-9\-_\/]/)){
-    return res.json({message:"Name can only contain: A-Z, a-z, 0-9, -, _, and /"})
-  }
   page = {
     name: req.body.name,
     user: req.username || null,
