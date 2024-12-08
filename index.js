@@ -2169,7 +2169,7 @@ router.post("/server/know/openWorld",getPostText,async(req,res) => {
 
 router.post("/minekhan/know/error",getPostText,async(req,res) => {
 	rateLimit(request,undefined,0.01)
-  Log("MineKhan:","error:",req.username+":"+req.who.id,cap(req.body,500))
+  Log("MineKhan:","error:",req.username+":"+req.who.id,cap(req.body,800))
   res.send("done")
 })
 
@@ -3222,6 +3222,7 @@ mkjoin.onrequest = function(request, connection, urlData) {
         fromServer:true
       })*/
     }else if(data.type === "switchToWs"){
+			data.id = connection.id
       data.username = connection.username
       data.admin = connection.isAdmin
       data.FROM = connection.id
