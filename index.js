@@ -3644,17 +3644,13 @@ router.get("/server/testPurposes/dmTom", function(res) {
   res.send('done');
 })
 
-router.get("/server/admin/tools/*/*", function(req,res) {
-  if(req.params[0] && req.params[1]) {
-    if(req.params[0] === "pwd" && req.params[1] === process.env['passKey']) {
-      res.sendFile(__dirname+"/tools.html")
-    } else {
-      res.sendFile(__dirname+"/server.html")
-    }
-  } else {
-    res.sendFile(__dirname+"/server.html")
-  }
-  res.sendFile(__dirname+"/server.html")
+router.get("/server/admin/tools", auth, function(req,res) {
+	res.sendFile(__dirname+"/tools.html")
+})
+router.get("/server/db/:k", auth, async function(req,res) {
+	let s = (await db.getStream(req.params.k))
+	if(s) s.pipe(res)
+	else res.send("no thing")
 })
 
 router.get("/server/checkPwd/*", function(req, res) {
