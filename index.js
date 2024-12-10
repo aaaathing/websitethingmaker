@@ -3681,16 +3681,19 @@ app.use(async (req, res, next) => {
 	}
 	res.write("<style>a>*{vertical-align:middle;}.item{display:inline-block;width:16px;height:16px;box-sizing:border-box;}.file{border:1px solid black;background:white;}.folder{background:linear-gradient(0,yellow,brown);}</style>")
 	res.write("<h1>Index of "+sanitize(path)+"</h1><hr>")
-	let list = ""
+	let list = []
 	for await(const dirent of dir){
 		let folder = dirent.isDirectory()
-		list += "<tr><td><a href='"+sanitize(dirent.name)+(folder?"/":"")+"'><div class='item "+(folder?"folder":"file")+"'></div> <span>"+sanitize(dirent.name)+"</span></a></td></tr>"
+		list.push({name:dirent.name, str: "<tr><td><a href='"+sanitize(dirent.name)+(folder?"/":"")+"'><div class='item "+(folder?"folder":"file")+"'></div> <span>"+sanitize(dirent.name)+"</span></a></td></tr>" })
 		if(!folder && dirent.name.toLowerCase().startsWith("readme")){
 			res.write("<h2>"+sanitize(dirent.name)+"</h2>"+await fs.promises.readFile(__dirname+"/public"+path+dirent.name)+"<hr>")
 		}
 	}
 	res.write("<table><thead><tr><th>Name</th></tr></thead><tbody>")
-	res.write(list)
+	list.sort((a,b) => a.name>b.name?1:a.name<b.name?-1:0)
+	for(let i of list){
+		res.write(i.str)
+	}
 	res.write("</tbody></table>")
 	res.end()
 })
