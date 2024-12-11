@@ -1,3 +1,4 @@
+// by thingmaker. https://thingmaker.us.eu.org
 (function(){
   var newStyle = document.createElement("style")
   newStyle.innerHTML = `

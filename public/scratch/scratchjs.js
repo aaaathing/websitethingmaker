@@ -1,3 +1,4 @@
+// by thingmaker. https://thingmaker.us.eu.org
 var Trigger = {
   triggers:[],
   generators:[],

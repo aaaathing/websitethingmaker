@@ -1,3 +1,4 @@
+// by thingmaker. https://thingmaker.us.eu.org
 var url = document.querySelector("#url")
 var sendWhat = document.querySelector("#sendWhat")
 var logElement = document.querySelector("#log")

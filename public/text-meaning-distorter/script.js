@@ -1,3 +1,4 @@
+// by thingmaker. https://thingmaker.us.eu.org
 var input = document.getElementById("input")
 var button = document.getElementById("button")
 var num = document.getElementById("num")

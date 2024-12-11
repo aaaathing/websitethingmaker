@@ -1,3 +1,4 @@
+// by thingmaker. https://thingmaker.us.eu.org
 function parseV3(data){
   var hatTypes = [
     ["event_whenflagclicked", "green_flag"],

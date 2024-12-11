@@ -1,3 +1,4 @@
+// by thingmaker. https://thingmaker.us.eu.org
 var infoEl = document.getElementById("info"), info = "<h1>Available functions and variables</h1>"
 for(let i of mathProps){
   info += i+": "+(typeof window[i])+"<br>"

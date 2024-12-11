@@ -1,3 +1,4 @@
+// by thingmaker. https://thingmaker.us.eu.org
 var players = {};
 var you = document.querySelector("#you")
 
