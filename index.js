@@ -1589,7 +1589,7 @@ router.post("/server/post", getPostData, async(request, response) => {
   if(!request.username){
     return response.status(401).json({message:"You need to login to create posts. Login is at the top right."})
   }
-  if(!request.body.title) {
+  if(!request.body.title || !request.body.title.trim()) {
     return response.status(401).json({ "message": "A `title` is required" })
   } else if(!request.body.content) {
     return response.status(401).json({ "message": "A `content` is required" })
