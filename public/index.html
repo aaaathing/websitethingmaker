@@ -192,9 +192,8 @@ body[theme=dark] #links a.no{
 This only works if you used to go to <b>minekhan.thingmaker.repl.co</b> or <b>play.minekhan.repl.co</b>
 This also requires access to devtools.
 
-Turn off internet connection to prevent redirect.
 Go to minekhan.thingmaker.repl.co or the other one.
-If it still redirects, try turning on Disable cache in network tab in devtools.
+Use proxy or extension to make it not have error.
 Open devtools by:
 	right clicking and clicking inspect
 	or pressing ctrl+shift+i or similar
@@ -203,7 +202,6 @@ Paste this in console and optionaly check for bad things:
 let or=indexedDB.open("MineKhan");or.onsuccess = e => { let db = or.result;let trans = db.transaction('worlds', "readonly");let store = trans.objectStore('worlds'); let req = store.getAll(); req.onsuccess=()=>{ for(let i of req.result){ var link = document.createElement("a"); link.download = i.data.name+'.minekhan'; link.href = URL.createObjectURL(new Blob([JSON.stringify(i.data)])); link.click(); Object.revokeObjectURL(link.href); } }}
 </textarea>
 The files should have been downloaded afterwards.
-If it doesn't work, try preventing redirect using proxy or extension and start over.
 </div>
     
     <h2>Websites and things you may not have even known existed!</h2>

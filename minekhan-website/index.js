@@ -8,6 +8,45 @@ const Transform = require('stream').Transform;
 const newLineStream = require('new-line');
 const fs = require("fs")
 
+async function adjustThumbnail(data,name){
+	if(data.thumbnail && data.thumbnail.startsWith("data:")){
+		let split = data.thumbnail.split(",")
+		let b = Buffer.from(split[1],"base64")
+		let type = split[0].substring(split[0].indexOf(":")+1, split[0].indexOf(";"))
+		let fname = name+"."+mime.extension(type)
+		await db.setFile("images/"+fname, b)
+		data.thumbnail = "/images/"+fname
+		data.thumbnailKey = "images/"+fname //in db
+	}
+}
+async function deleteMap(name){
+  let map = await db.get("map:"+name)
+  if(!map) return Log("Map doesn't exist: "+name)
+  await db.delete("map:"+name)
+  if(map.thumnailKey) await db.delete(map.thumbnailKey)
+  let all = await db.get("maps")
+  delete all["map:"+name]
+  await db.set("maps",all)
+  if(mapCategories.includes(map.category)){
+    let all = await db.get("mapsCategory:"+map.category)
+    delete all["map:"+name]
+    await db.set("mapsCategory:"+map.category,all)
+  }
+  Log("Deleted map "+name)
+}
+global.deleteMap = deleteMap
+async function deleteRP(name){
+  let map = await db.get("rp:"+name)
+  if(!map) return Log("Resource pack doesn't exist: "+name)
+  await db.delete("rp:"+name)
+  if(map.thumnailKey) await db.delete(map.thumbnailKey)
+  let all = await db.get("maps")
+  delete all["rp:"+name]
+  await db.set("maps",all)
+  Log("Deleted resource pack "+name)
+}
+global.deleteRP = deleteRP
+
 function getMapTitle(m){
   m = Object.assign({},m)
   m.bytes = m.file ? m.file.length : m.code.length
