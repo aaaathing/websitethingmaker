@@ -2311,7 +2311,7 @@ router.get("/around/:what", async(req,res) => {
 	})).catch(e => res.send(e.message))
 })
 
-app.use('/minekhan/assets', express.static(__dirname+'/public/minekhan/assets'))
+//app.use('/minekhan/assets', express.static(__dirname+'/public/minekhan/assets'))
 
 /*
 const assets = db.storage.bucket("assets-thingmaker-minekhan")

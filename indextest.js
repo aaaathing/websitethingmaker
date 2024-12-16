@@ -1,14 +1,14 @@
-if(1){
+if(0){
   require("./editor/updatefiles.js")
   return
 }
 
 
-const db=require("./db.js")
+const express = require('express');
+const app = express();
+app.use(express.static(__dirname + "/public"))
+app.listen(80)
 
-;(async function(){
-  
-})()
 
 /*function wait(x){return new Promise(r=>setTimeout(r,x))}
 var unzipper = require('unzipper');
