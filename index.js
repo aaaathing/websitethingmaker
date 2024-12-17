@@ -2110,7 +2110,7 @@ router.get("/server/account/:user/mksaves/:id", async(req,res) => {
 })*/
 function where(req){
 	let thing = req.headers.referer||req.headers.referrer||req.headers.origin
-	return (thing!=="https://"+theHost&&thing!=="https://"+theHost+"/minekhan/")&&(thing+""!=="null")?"from "+thing:""
+	return (thing!=="https://"+theHost&&thing!=="https://"+theHost+"/minekhan/")?"from "+thing:""
 }
 router.post("/minekhan/know",getPostText,async(req,res) => {
 	rateLimit(request,undefined,0.01)
