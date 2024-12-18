@@ -6,6 +6,10 @@ if(0){
 
 const express = require('express');
 const app = express();
+const cors = require('cors');
+app.use(cors({
+  origin: "*",
+}))
 app.use(express.static(__dirname + "/public"))
 app.listen(80)
 
