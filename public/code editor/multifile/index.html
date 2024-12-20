@@ -96,6 +96,10 @@
 				button.textContent = "Click to open folder "+(params.has("import") ? "| Please create new folder for the import" : "")
 				button.onclick = async () => {
 					fshandle = await showDirectoryPicker({mode:"readwrite"})
+					for await(let f of fshandle.entries()){
+						alert("Folder is not empty")
+						return
+					}
 					for(let i of params.getAll("import")){
 						let name = i.split("/").pop()
 						try{
