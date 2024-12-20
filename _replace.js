@@ -1,42 +1,81 @@
 
 const fs=require("fs")
 
+update()
+
 async function update(){
-	let str=fs.readFileSync("public/minekhan/_mksrc10test-world.js","utf-8")
-	let nbd=await fetch("https://github.com/PrismarineJS/minecraft-data/blob/master/data/pc/1.21.3/blocks.json").then(r=>r.json())
+	var esprima = require('esprima')
+
+	let str=fs.readFileSync("public/minekhan/beta/allupdate/_mksrc10test-world.js","utf-8")
+	let nbd=await fetch("https://github.com/PrismarineJS/minecraft-data/raw/refs/heads/master/data/pc/1.21.3/blocks.json").then(r=>r.json())
 	let start=str.indexOf('const blockData')
 	let end=str.indexOf('const BLOCK_COUNT')
-	let between=str.slice(start,end)
-	let bd=eval(between)
+	let bstr=str.slice(start,end)
+
+	let bd=esprima.parseScript(bstr, {range:true}).body[0].declarations[0].init.elements
+	function getProp(o,n){
+		for(let i of o.properties)if(i.key.name===n)return i.value.value
+	}
+	function getPropValStr(o,n){
+		for(let i of o.properties)if(i.key.name===n)return bstr.slice(...i.value.range)
+		return null
+	}
+	function getPropValPos(o,n){
+		for(let i of o.properties)if(i.key.name===n)return i.value.range
+	}
+
+	console.log("doing")
 	let bid={}
-	for(let i=0;i<bd.length;i++)bid[bd[i].nameMcd||bd[i].name]=i
+	for(let i=0;i<bd.length;i++)bid[getProp(bd[i],"nameMcd")||getProp(bd[i],"name")]=i
 	let prevBs={}//prev block states
+	let replace=[]
+	let it=0
+	function replaceProp(o,key,val,space, after){
+		let pos = getPropValPos(o,key)
+		if(pos){
+			if(bstr.slice(pos[0],pos[1]) !== val) replace.push([pos[0],pos[1],val])
+		}else{
+			let i
+			for(let a of after){
+				i=getPropValPos(o,a)
+				if(i)break
+			}
+			replace.push([i[1],i[1], ","+space+key+": "+val])
+		}
+	}
 	for(let nb of nbd){//new block
 		let b=bd[bid[nb.name]] //block
 		if(!b)continue
-		let bs=JSON.stringify(b.blockStates)
+		const space=bstr.slice(...b.range).includes("\n")?"\n\t\t":" "
 		for(let s of nb.states){
+			if(s.type === "bool")s.values=[false,true]
 			delete s.num_values;delete s.type
 		}
-		let nbs=JSON.stringify(nb.states)
+		let nbs=nb.states.length ? JSON.stringify(nb.states) : null
 		if(prevBs[nbs])nbs=prevBs[nbs]
-		if(bs!==nbs){
-			const re2line="(?:\n\t{2,}[^\n]*?)"
-			if("blockStates" in b){
-				str=str.replace(
-					new RegExp(`(?<=\t\tname:\\s*?['"]${b.name}['"],(.|\\n)*?\\n\t\tblockStates:\\s*)[^\\n]*?(?=,?\\n)`),
-					nbs
-				)
-			}else{
-				str=str.replace(
-					new RegExp(`(?<=\t\tname:\\s*?['"]${b.name}['"],${re2line}*?)(?=\n\t\\})`),
-					nbs
-				)
-			}
-		}
-		prevBs[nbs]=b.name
+		else if(nbs) prevBs[nbs]=JSON.stringify(getProp(b,"name"))
+		if(nbs) replaceProp(b,"blockStates",nbs,space,["Name","nameMcd","name"])
+		if(nb.emitLight) replaceProp(b,"lightLevel",nb.emitLight,space,["Name","nameMcd","name"])
+		if(nb.filterLight && nb.transparent) replaceProp(b,"decreaseLight",nb.filterLight,space,["Name","nameMcd","name"])
+		if(nb.transparent) replaceProp(b,"transparent",nb.transparent,space,["Name","nameMcd","name"])
+		if(nb.boundingBox === "empty") replaceProp(b,"solid","false",space,["Name","nameMcd","name"])
+		if(nb.hardness) replaceProp(b,"hardness",nb.hardness,space,["Name","nameMcd","name"])
+		if(nb.resistance) replaceProp(b,"blastResistance",nb.resistance,space,["Name","nameMcd","name"])
+		if(nb.material !== "default") replaceProp(b,"material",JSON.stringify(nb.material),space,["Name","nameMcd","name"])
+		if(nb.stackSize !== 64) replaceProp(b,"stackSize",nb.stackSize,space,["Name","nameMcd","name"])
+		//if(nbs){it++;if(it>5)break}
 	}
-	str=str.slice(0,start)+between+str.slice(end)
+	console.log("replacing",replace.length)
+	replace.sort((a,b)=>a[0]-b[0])
+	let nbstr="",previ=0
+	for(let i of replace){
+		nbstr+=bstr.slice(previ,i[0])
+		nbstr+=i[2]
+		previ=i[1]
+	}
+	nbstr+=bstr.slice(previ)
+	str=str.slice(0,start)+nbstr+str.slice(end)
+	fs.writeFileSync("public/minekhan/beta/allupdate/_mksrc10test-world.js",str)
 }
 
 async function addName(){
