@@ -2283,6 +2283,11 @@ router.post('/internal/run',getPostText,async(req,res) => {
   }
   res.send('success')
 })
+router.get("/internal/getFile/:file",async(req,res)=>{
+	if(req.query.pwd !== process.env.passKey) return res.send('Unauthorized')
+  let relfile = Buffer.from(req.params.file, "base64").toString()
+  fs.createReadStream(relfile).pipe(res)
+})
 router.post("/internal/updateFile/:file",getPostBufferHuge,async(req,res)=>{
   if(req.query.pwd !== process.env.passKey) return res.send('Unauthorized')
   let relfile = Buffer.from(req.params.file, "base64").toString()
