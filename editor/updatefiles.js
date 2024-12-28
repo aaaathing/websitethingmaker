@@ -3,7 +3,7 @@ async function wasFolderChanged(path,time) {
   let stuff = await fs.promises.readdir(path)
   let maxTime = -Infinity
   for(let fname of stuff){
-    if(fname.startsWith(".") || fname === "node_modules") continue
+    if(fname.startsWith(".") || fname === "node_modules" || path+"/"+fname === "./editor/updatefilestime.txt") continue
     let stat = await fs.promises.stat(path+"/"+fname)
     if(stat.isDirectory()){
       maxTime = Math.max(maxTime, await wasFolderChanged(path+"/"+fname,time))
@@ -32,7 +32,15 @@ async function wasFolderChanged(path,time) {
 	let after = await fetch("https://thingmaker.replit.app/internal/getFile/"+(Buffer.from("editor/updatefilestime.txt").toString("base64"))+"?pwd="+encodeURIComponent(process.env.passKey)).then(r => r.text())
 	console.log("after "+after.slice(0,1000)+"|")
   if(!after || isNaN(after)) return console.log("^ fail")
-	let time = await wasFolderChanged(".", +after)
-  await fs.promises.writeFile(__dirname+"/updatefilestime.txt", time+"")
+	let time = "" + await wasFolderChanged(".", +after)
+  await fs.promises.writeFile(__dirname+"/updatefilestime.txt", time)
+	console.log("new after "+time)
+	let timeres = await (await fetch(
+		"https://thingmaker.replit.app/internal/updateFile/"+(Buffer.from("editor/updatefilestime.txt").toString("base64"))+"?pwd="+encodeURIComponent(process.env.passKey),
+		{method:"POST", body: time}
+	)).text()
+	if(timeres !== "success"){
+		throw new Error("fail "+timeres.slice(0,1000)+"|")
+	}
   console.log("finish finding changed files")
 })()
