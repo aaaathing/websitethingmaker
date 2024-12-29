@@ -265,7 +265,7 @@
           let r = userInfo
           if(!r) return
           myUsername = r.username
-          if(d.username === myUsername || r.admin){
+          if(d.username === myUsername || r.admin || r.enoughVotes){
             document.querySelector("#options").innerHTML = `
   <a href="/editPost?id=${window.id}">Edit</a>&nbsp;&nbsp;
   <a onclick="deletePost()">Delete</a>
@@ -348,7 +348,7 @@
       initWs()
 
       function deletePost(){
-        if(!confirm("Are you sure you want to delete this post?")) return
+        if(!confirm("Are you sure you want to delete this post? Don't delete too many useless but safe posts.")) return
         fetch("/server/deletePost/"+id, {
           method:"DELETE",
           credentials:'include'

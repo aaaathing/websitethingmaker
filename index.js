@@ -74,8 +74,7 @@ const alertStrs = ["don"+"gwei","alertthis"]
 if(!process.env.REPLIT_DEPLOYMENT){
   console.log('not deployment')
   
-  require("./indextest.js")
-  return
+  if(! require("./indextest.js") . run) return
 }
 process.on('unhandledRejection', (reason, p) => {
   //console.error('Unhandled Rejection at: Promise', p, 'reason:', reason);
@@ -826,11 +825,13 @@ async function notif(data, username, actions, sendWebPush = true){
   if(sendWebPush) sendNotifToUser(data,u,actions)
 }
 function getVotes(user){
-  let votes = 0
+  let votes = 0, voteCount = 0
   if(user && user.votes) for(let i in user.votes){
     votes += user.votes[i]
+		voteCount++
   }
-  return votes
+	let votePercent = votes/voteCount
+  return {votePercent, voteCount, enoughVotes: voteCount>=10 && votePercent>0.7}
 }
 global.getVotes = getVotes
 function getMentions(str){
@@ -905,7 +906,8 @@ router.get("/assets/common.js", (req,res) => {
       username:req.user.username,
       admin:req.user.admin,
       profanityFilter:req.user.profanityFilter,
-      notifs:req.user.notifs
+      notifs:req.user.notifs,
+			...getVotes(req.user)
     }
   }
   let user = JSON.stringify(userInfo).replace(/</g,"\\<").replace(/>/g,"\\>")
@@ -1209,6 +1211,7 @@ router.get("/server/account", async (request, response) => {
   delete request.user.comments
   delete request.user.password
   delete request.user.bio
+	Object.assign(request.user, getVotes(request.user))
   delete request.user.votes
   response.json(request.user)
 })
@@ -1263,23 +1266,18 @@ router.get("/server/getSession", async (req,res) => {
 router.get("/server/account/*", async (request, response, next) => {
   let username = request.params[0]
   if(username.includes("/")) return next()
-  try {
-    await db.get("user:"+username)
-      .then(result => {
-        if(result){
-          delete result.ip
-          delete result.notifs
-          delete result.password
-          delete result.subscriptions
-          delete result.email
-        } 
-        
-        response.json(result)
-      })
-      .catch((e) => response.status(500).send(e))
-  } catch (e) {
-    console.error(e.message)
-  }
+	let result = await db.get("user:"+username)
+	if(result){
+		delete result.ip
+		delete result.notifs
+		delete result.password
+		delete result.subscriptions
+		delete result.email
+		Object.assign(result, getVotes(result))
+		result.yourVote = result.votes ? result.votes[request.username] : undefined
+		delete result.votes
+	}
+	response.json(result)
 })
 router.get("/server/admin/accounts/*/*", async (request, response, next) => {
   let password = request.params[0]
@@ -1590,8 +1588,7 @@ router.post("/server/post", getPostData, async(request, response) => {
 })
 router.delete("/server/deletePost/*", async(req, res) => {
   let id = req.url.split("/").pop()
-  var canDelete = false
-  var adminDelete = false
+  var canDelete = false, deleteOwn = false
   var title
   var author
   await db.get("post:"+id).then(async r => {
@@ -1599,12 +1596,13 @@ router.delete("/server/deletePost/*", async(req, res) => {
     author = r.username
     if(req.username === r.username){
       canDelete = true
+			deleteOwn = true
     }else{
       await db.get("user:"+req.username).then(u => {
         if(u.admin){
           canDelete = true
-          adminDelete = true
         }
+				if(getVotes(u).enoughVotes) canDelete = true
       }).catch(() => res.send("error"))
     }
   }).catch(() => res.send("error"))
@@ -1615,7 +1613,7 @@ router.delete("/server/deletePost/*", async(req, res) => {
   let idx = all.findIndex(o => o.id === id)
   all.splice(idx,1)
   await db.set("posts",all)
-  if(adminDelete) await notif(req.username+" deleted your post: "+title, author)
+  if(!deleteOwn) await notif(req.username+" deleted your post: "+title, author)
   res.send("ok")
   Log("Deleted post", title.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"))
 })
@@ -1902,7 +1900,7 @@ router.post("/server/voteUser/*", getPostData,async(req,res) => {
   if(req.body.vote) data.votes[req.username] = req.body.vote
   else delete data.votes[req.username]
   await db.set("user:"+user,data)
-  res.send({success:true})
+  res.send({success:true, ...getVotes(data)})
   Log(req.username+" voted "+user+" "+req.body.vote)
 })
 router.get("/server/getLocalTime/", (req,res) => {
