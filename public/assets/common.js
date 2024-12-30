@@ -535,25 +535,23 @@ function makeVotes(el,data,yourUsername){
 		<button class="vote_1 small">+1</button>
 		<button class="vote_0 small">0</button>
 		<button class="vote_-1 small">-1</button>
-		If a user has 10 or more votes, they can create and edit wiki pages.
+		<br>
+		If a user has 10 or more votes and 70% or more were +1, they can create and edit wiki pages and delete some things.<br>
+		<span class="voteInfo"></span>
 	</span>
 </div>
 </div>`
   let voteEl = el.querySelector(".allVotes")
-  let otherVotes = 0, yourVote = 0
-  let votes = 0
-  if(data.votes){
-    for(let i in data.votes){
-      votes += data.votes[i]
-      if(i !== yourUsername) otherVotes += data.votes[i]
-      else yourVote = data.votes[i]
-    }
+  let voteInfo = el.querySelector(".voteInfo")
+	let yourVote = data.yourVote || 0
+	let votePercent, voteCount
+  function updateVotes(data){
+		({votePercent,voteCount} = data)
+    voteEl.textContent = data.enoughVotes ? Math.round(votePercent*100)+"%" : "votes" // + (votes >= 10 ? " ✅" : "")
+    voteEl.style.color = data.enoughVotes ? "green" : (votePercent < 0 ? "red" : "")
+		voteInfo.textContent = voteCount+" voted | "+Math.round((votePercent*0.5+0.5)*voteCount)+" positive | "+Math.round((0.5-votePercent*0.5)*voteCount)+" negative"
   }
-  function updateVotes(){
-    voteEl.textContent = votes// + (votes >= 10 ? " ✅" : "")
-    voteEl.style.color = votes >= 10 ? "green" : (votes < 0 ? "red" : "")
-  }
-  updateVotes()
+  updateVotes(data)
   el.querySelector(".vote_"+yourVote).classList.add("selected")
   function vote(amount){
     fetch("/server/voteUser/"+username, {
@@ -563,9 +561,8 @@ function makeVotes(el,data,yourUsername){
     }).then(d => d.json()).then(d => {
       if(d.success){
         el.querySelector(".vote_"+yourVote).classList.remove("selected")
-        yourVote = amount
-        votes = otherVotes+yourVote
-        updateVotes()
+				yourVote = amount
+        updateVotes(d)
         el.querySelector(".vote_"+yourVote).classList.add("selected")
       }else{
         alert(d.message)

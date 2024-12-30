@@ -444,7 +444,7 @@ router.get("/server/wikiPage/:name(*)", async function(req,res){
 })
 router.post("/server/wikiPage", getPostData,async function(req,res){
   rateLimit(req)
-  if(!req.isAdmin && getVotes(req.user) < 10) return res.json({message:"You need 10 or more votes to make a wiki page."})
+  if(!req.isAdmin && !getVotes(req.user).enoughVotes) return res.json({message:"You need 10 or more votes to make a wiki page."})
   if(!req.body.name){
     return res.json({message:"It needs a name"})
   }
@@ -525,7 +525,7 @@ router.get(websiteBase+"/wiki/previousVersions/:name(*)", async function(req,res
 })
 router.post("/server/editWikiPage/:name(*)",getPostData, async function(req,res){
   rateLimit(req)
-  if(!req.username || !req.isAdmin && getVotes(req.user) < 10) return res.json({message:"You need 10 or more votes to edit a wiki page."})
+  if(!req.username || !req.isAdmin && !getVotes(req.user).enoughVotes) return res.json({message:"You need 10 or more votes to edit a wiki page."})
   //var pwd = process.env['passKey']
   var name = req.params.name, page = await getWikiPage(name)
   if(!page){

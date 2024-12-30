@@ -2,6 +2,7 @@ if(1){
   require("./editor/updatefiles.js")
   return
 }
+if(0) {module.exports.run=true;return}
 
 
 const express = require('express');
