@@ -535,9 +535,10 @@ function makeVotes(el,data,yourUsername){
 		<button class="vote_1 small">+1</button>
 		<button class="vote_0 small">0</button>
 		<button class="vote_-1 small">-1</button>
-		<br>
-		If a user has 10 or more votes and 70% or more were +1, they can create and edit wiki pages and delete some things.<br>
+		<br><br>
 		<span class="voteInfo"></span>
+		<br><br>
+		<span style="color:gray;">If a user has 10 or more votes and 70% or more positive, they can create and edit wiki pages and delete some things.</span>
 	</span>
 </div>
 </div>`
@@ -547,9 +548,10 @@ function makeVotes(el,data,yourUsername){
 	let votePercent, voteCount
   function updateVotes(data){
 		({votePercent,voteCount} = data)
-    voteEl.textContent = data.enoughVotes ? Math.round(votePercent*100)+"%" : "votes" // + (votes >= 10 ? " ✅" : "")
+    voteEl.innerHTML = Math.round(votePercent*voteCount) // + (votes >= 10 ? " ✅" : "")
     voteEl.style.color = data.enoughVotes ? "green" : (votePercent < 0 ? "red" : "")
-		voteInfo.textContent = voteCount+" voted | "+Math.round((votePercent*0.5+0.5)*voteCount)+" positive | "+Math.round((0.5-votePercent*0.5)*voteCount)+" negative"
+		voteInfo.textContent = Math.round(votePercent*100)+"% positive | "+voteCount+" voted"
+		voteInfo.style.color = voteEl.style.color
   }
   updateVotes(data)
   el.querySelector(".vote_"+yourVote).classList.add("selected")
