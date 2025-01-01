@@ -1,4 +1,4 @@
-if(1){
+if(0){
   require("./editor/updatefiles.js")
   return
 }
