@@ -1,10 +1,8 @@
-if(0){
-  require("./editor/updatefiles.js")
-  return
-}
-if(0) {module.exports.run=true;return}
+let arg=process.argv[2]
+if(arg==="runall") {module.exports.run=true;return}
 
 
+if(arg==="static"){
 const express = require('express');
 const app = express();
 const cors = require('cors');
@@ -13,6 +11,11 @@ app.use(cors({
 }))
 app.use(express.static(__dirname + "/public"))
 app.listen(80)
+return
+}
+
+
+require("./editor/updatefiles.js")
 
 
 /*function wait(x){return new Promise(r=>setTimeout(r,x))}

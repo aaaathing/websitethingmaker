@@ -30,7 +30,11 @@ document.body.style.filter = "grayscale("+(1-(userCount/50))+")"*/
   document.body.insertAdjacentHTML("beforeend",'<svg style="display:none;"><filter id="wavy2"><feTurbulence x="0" y="0" baseFrequency="0.01" numOctaves="5" seed="1" /><feDisplacementMap in="SourceGraphic" scale="'+desertedness+'" /></filter></svg>')
   document.body.style.filter += "url(#wavy2)"
 }*/
-const userInfo = USERDATA
+let luserInfo
+try{
+luserInfo = USERDATA
+}catch{}
+const userInfo = luserInfo
 
 function urlBase64ToUint8Array(base64String) {
   const padding = '='.repeat((4 - base64String.length % 4) % 4);
@@ -702,7 +706,7 @@ const HTMLEvalAttributes = new Set(["onclick","onmousemove","onmousedown","onmou
 let safeTemplate = document.createElement("template")
 function makeHTMLSafeElement(el,attrcb,elcb){
   if(elcb && elcb(el)) return
-  for(let c of el.children){
+  for(let c of Array.from(el.children)){
     if(!HTMLSafeElements.has(c.tagName.toLowerCase())){
       c.remove()
       continue
