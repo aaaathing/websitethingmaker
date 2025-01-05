@@ -7,8 +7,9 @@
 			"Offline download":{"url":"/minekhan/offdown.html"},
 			"MineKhan history":{"url":"/minekhan/history","interesting":true},
  	 		"MineKhan mods":{"url":"/stuff/ka/mk-mods"},
+ 	 		"MineKhan test: all update":{"url":"/minekhan/beta/allupdate/_mksrc10test.html"},
   		"MineKhan Servers":{"url":"/minekhan/live-servers.html","description":"A live list of servers on MineKhan."},
-			"Suggest edits":{"url":"/code%20editor/multifile/?import=%2Fminekhan%2Fminekhan.html&import=%2Fminekhan%2Fminekhan-world.js"}
+			"Editor":{"url":"/code%20editor/multifile/?import=%2Fminekhan%2Fminekhan.html&import=%2Fminekhan%2Fminekhan-world.js"}
 		}
 	},
   "MineKhan Maps":{
