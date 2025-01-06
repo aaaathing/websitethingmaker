@@ -48,16 +48,19 @@
         <button onclick="load()">Reload</button><br><br>
         Run code: <br><textarea id="runWhat"></textarea> <button onclick="runCode()">Run</button><br>
         <button onclick="restart()">Restart server</button>
+        <button onclick="clearLog()">Clear log</button>
       </div>
     </div>
     <script src="/assets/common.js"></script>
     <script>
       var log = document.querySelector("#log")
+			let lastTime
       function load(){
         var options = "?time="+(new Date().getTimezoneOffset())
         if(!document.querySelector("#minekhan").checked) options += "&nominekhan=true"
         fetch("/log"+options).then(r=>r.text()).then(r => {
           log.innerHTML = r
+					lastTime = +r.match(/time:(\d*?)(\D|$)/)[1]
         }).catch(e => {
           log.append(document.createElement("br"),e)
         })
@@ -66,16 +69,19 @@
 
       {
 			async function getPwd(){
-				if(pwd) return
-				pwd = (await Swal.fire({title:"password",input:"password"})).value
+				if(auth) return
+				let thepwd = (await Swal.fire({title:"password",input:"password"})).value
+				auth = "Basic "+btoa(":"+thepwd)
 			}
-      let pwd
+      let auth
       async function runCode(){
         let value = document.querySelector("#runWhat").value
         await getPwd()
-        fetch("/internal/run?pwd="+pwd,{
+				load()
+        fetch("/internal/run",{
           method:"POST",
-          body:value
+          body:value,
+					headers:{Authorization:auth}
         }).then(r => r.text()).then(r => {
           if(r !== "success") log.append(document.createElement("br"),r)
         })
@@ -84,8 +90,18 @@
 
       window.restart = async function restart(){
         await getPwd()
-        let r = await fetch("/internal/restart?pwd="+pwd).then(r => r.text()).catch(e => e)
+        let r = await fetch("/internal/restart",{headers:{Authorization:auth}}).then(r => r.text()).catch(e => e)
         if(r !== "success") log.append(document.createElement("br"),r)
+      }
+			window.clearLog = async function restart(){
+        await getPwd()
+        fetch("/internal/run",{
+          method:"POST",
+          body: "clearLog("+JSON.stringify(lastTime)+")",
+					headers:{Authorization:auth}
+        }).then(r => r.text()).then(r => {
+          if(r !== "success") log.append(document.createElement("br"),r)
+        })
       }
       }
     </script>

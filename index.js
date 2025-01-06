@@ -848,6 +848,7 @@ router.get("/test", function(req,res){
 
 router.get('/log', async(req,res,next) => {
   if(!req.isAdmin) return next()
+	let now = Date.now()
   let time = ((new Date().getTimezoneOffset()-parseInt(req.query.time)))*MINUTE
   let str = ""
   if(!log || !log.length){
@@ -886,13 +887,13 @@ router.get('/log', async(req,res,next) => {
     }
   }
   str += "<br>Banned: "+banned.size+" | Cached: "+Object.keys(db.timeouts).length
-  str += "<br> Time "+(new Date(Date.now()+time).toLocaleDateString(undefined, {
+  str += "<br> Time: "+(new Date(now+time).toLocaleDateString(undefined, {
     month: "short",
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
     second:"2-digit"
-  }))
+  }))+" | time:"+(now+time)
   res.send(str)
 })
 router.get("/banned", (req,res) => {
@@ -2256,14 +2257,12 @@ router.post("/admin/giveCape/*", getPostData,async(req,res) => {
     else Log(str)
   });
 }*/
-router.get('/internal/restart',async(req,res) => {
-  if(req.query.pwd !== process.env.passKey) return res.send('Unauthorized')
+router.get('/internal/restart',auth,async(req,res) => {
   res.send('success')
   waitToRestart()
 })
 let runBy = null
-router.post('/internal/run',getPostText,async(req,res) => {
-  if(req.query.pwd !== process.env.passKey) return res.send('Unauthorized')
+router.post('/internal/run',auth,getPostText,async(req,res) => {
   Log("%> "+req.body)
   runBy = req.username
   let res2
