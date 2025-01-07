@@ -1526,7 +1526,7 @@ router.post("/images/:name", getPostBufferHuge, async(req,res) => {
 	let duplicates = await cloudinary.v2.api.resources_by_context("hash", realHash)
 	if(duplicates.resources.length){
 		Log("Image reuse: "+duplicates.resources[0].public_id, "uploaded name: "+req.params.name)
-		return res.json({success:true,url:duplicates.resources[0].url})
+		return res.json({success:true,url:duplicates.resources[0].secure_url})
 	}
 	
 	let result = await new Promise((resolve) => {
@@ -1541,7 +1541,7 @@ router.post("/images/:name", getPostBufferHuge, async(req,res) => {
     }).end(req.body);
 	})
 	Log("Image: "+result.public_id, "uploaded name: "+req.params.name)
-	res.json({success:true,url:result.url})
+	res.json({success:true,url:result.secure_url})
 })
 router.get("/images/*",async(req,res) => {
   var stream = await db.getStream("images/"+req.params[0])

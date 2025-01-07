@@ -699,8 +699,7 @@ function formatGetAttributeArr(e,a){
     if(i[0] === a) return i
   }
 }*/
-const mcAssetsUrl = "https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.20.0/assets/minecraft/textures/"
-const HTMLSafeElements = new Set(["h1","h2","h3","h4","h5","h6","p","img","video","audio","a","ul","ol","li","pre","code","br","b","i","big","center","small","span","strike","strong","sub","sup","table","tbody","td","tfoot","th","thead","tr","hr","button","details","summary","div"])
+const HTMLSafeElements = new Set(["h1","h2","h3","h4","h5","h6","p","img","video","audio","a","ul","ol","li","pre","code","br","b","i","big","center","small","span","strike","strong","sub","sup","table","tbody","td","tfoot","th","thead","tr","hr","button","details","summary","div","blockquote","q"])
 const HTMLSafeAttributes = new Set(["align","alt","width","height","href","src","media","title","style","target","controls","loop"])
 const HTMLEvalAttributes = new Set(["onclick","onmousemove","onmousedown","onmouseup","onmouseover","onmouseout","onmouseenter","onmouseleave","onmousewheel","onwheel"])
 let safeTemplate = document.createElement("template")
@@ -757,6 +756,7 @@ let notLetterRegex = /[^a-zA-Z]+/g, headingNames = new Set(["h1","h2","h3","h4",
   }
   return str.substring(0,str.length-1).replace(notLetterRegex,"-")
 }*/
+const mcAssetsUrl = "https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.20.0/assets/minecraft/textures/"
 let replaceWithEl = document.createElement("span")
 function formatElcb(el){
   let name = el.tagName ? el.tagName.toLowerCase() : ""
@@ -826,8 +826,6 @@ function formatElcb(el){
 HTMLSafeElements.add("image-recipe")
 HTMLSafeElements.add("iframe")
 HTMLSafeElements.add("source")
-HTMLSafeElements.add("blockquote")
-HTMLSafeElements.add("q")
 HTMLSafeAttributes.add("codetype")
 HTMLSafeAttributes.add("notcode")
 HTMLSafeAttributes.add("inline")
