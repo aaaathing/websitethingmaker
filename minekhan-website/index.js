@@ -471,7 +471,7 @@ router.post("/server/wikiPage", getPostData,async function(req,res){
   }
   db.set("wiki/"+req.body.name.replace(/\//g,"."), page)
   res.json({success:true})
-  Log("New wiki page called","<a href='"+websiteBase+"/wiki/page/"+page.name+"' target='_blank'>"+page.name.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")+"</a>")
+  Log("New wiki page called","<a href='"+websiteBase+"/wiki/page/"+sanitize(page.name)+"' target='_blank'>"+sanitize(page.name)+"</a>")
 })
 
 router.get(websiteBase+"/wiki/edit/:name(*)", async function(req,res){
@@ -543,7 +543,7 @@ router.post("/server/editWikiPage/:name(*)",getPostData, async function(req,res)
   page.user = authors.join(", ")
   db.set("wiki/"+name.replace(/\//g,"."), page)
   res.json({success:true})
-  Log("Edited wiki page called","<a href='"+websiteBase+"/wiki/page/"+page.name+"' target='_blank'>"+page.name.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")+"</a>")
+  Log("Edited wiki page called","<a href='"+websiteBase+"/wiki/page/"+sanitize(page.name)+"' target='_blank'>"+sanitize(page.name)+"</a>")
 })
 
 router.post("/server/deleteWikiPage/:name(*)",getPostData, async function(req,res){
@@ -554,7 +554,7 @@ router.post("/server/deleteWikiPage/:name(*)",getPostData, async function(req,re
   if(req.isAdmin || req.body.pwd === pwd || page.pwd && req.body.pwd === page.pwd){
     await db.delete("wiki/"+name.replace(/\//g,"."))
     res.json({success:true})
-    Log("Deleted wiki page called "+page.name.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"))
+    Log("Deleted wiki page called "+sanitize(page.name))
   }else{
     res.json({message:"", noAccess:true})
   }
@@ -581,7 +581,7 @@ router.post("/server/commentOnWikiPage/:name(*)",getPostData, async function(req
   })
   await db.set("wiki/"+name.replace(/\//g,"."), page)
   res.json({success:true})
-  Log("New comment at wiki page called","<a href='"+websiteBase+"/wiki/page/"+page.name+"' target='_blank'>"+page.name.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")+"</a>")
+  Log("New comment at wiki page called","<a href='"+websiteBase+"/wiki/page/"+page.name+"' target='_blank'>"+sanitize(page.name)+"</a>")
 })
 
 router.post("/server/deleteCommentOnWikiPage/:name(*)",getPostData, async function(req,res){
@@ -611,7 +611,7 @@ router.post("/server/deleteCommentOnWikiPage/:name(*)",getPostData, async functi
   c.splice(i,1)
   await db.set("wiki/"+name.replace(/\//g,"."), page)
   res.json({success:true})
-  Log("Deleted comment at wiki page called",name.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"))
+  Log("Deleted comment at wiki page called",sanitize(name))
 })
 router.get(websiteBase+"/wiki/search",async function(req,res){
   let q = req.query.q || ""

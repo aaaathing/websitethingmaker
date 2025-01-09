@@ -515,8 +515,11 @@ function sanitize(v){
   v = v.replace(/&/g,"&amp;")
   v = v.replace(/</g,"&lt;")
   v = v.replace(/>/g,"&gt;")
+  v = v.replace(/"/g,"&quot;")
+  v = v.replace(/'/g,"&apos;")
   return v
 }
+global.sanitize = sanitize
 function valueToString(v, nf, all){ //for log
   var str = ""
   if(v === undefined || v === null){
@@ -563,24 +566,24 @@ function valueToString(v, nf, all){ //for log
       }
     }else if((typeof all[0] === "string") && all[0].startsWith("New comment")){
       if(v === all[0]){
-        v = v.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+        v = sanitize(v)
         v = v.replace("comment","<span style='background:orange'>comment</span>")
       }
     }else if((typeof all[0] === "string") && (all[0].startsWith("New post") || all[0].startsWith("Edited post"))){
       if(v === all[0]) v = v.replace("post","<span style='background:orange'>post</span>")
     }else if((typeof all[0] === "string") && (all[0].startsWith("New wiki") || all[0].startsWith("Edited wiki"))){
       if(v === all[0]){
-        v = v.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+        v = sanitize(v)
         v = v.replace("wiki","<span style='background:orange'>wiki</span>")
       }
     }else if((typeof all[0] === "string") && (all[0].startsWith("New map") || all[0].startsWith("New resource pack") || all[0].startsWith("Edited resource pack"))){
       if(v === all[0]){
-        v = v.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+        v = sanitize(v)
         v = v.replace(/(map|resource pack)/,"<span style='background:orange'>$1</span>")
       }
     }else if((typeof all[0] === "string") && all[0].startsWith("Deleted wiki")){
       if(v === all[0]){
-        v = v.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+        v = sanitize(v)
         v = v.replace("wiki","<span style='background:orange'>wiki</span>")
       }
     }else if((typeof all[0] === "string") && all[0].startsWith("Deleted post")){
@@ -1585,7 +1588,7 @@ router.post("/server/post", getPostData, async(request, response) => {
   for(let u of mentions){
     notif(request.username+" mentioned you at "+post.title, u, [{action:"open:/post?id="+post.id,title:"Open"}]).catch(e => {})
   }
-  Log("New post", "<a href='/post?id="+post.id+"' target='_blank'>"+post.title.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")+"</a>")
+  Log("New post", "<a href='/post?id="+post.id+"' target='_blank'>"+sanitize(post.title)+"</a>")
 })
 router.delete("/server/deletePost/*", async(req, res) => {
   let id = req.url.split("/").pop()
@@ -1616,7 +1619,7 @@ router.delete("/server/deletePost/*", async(req, res) => {
   await db.set("posts",all)
   if(!deleteOwn) await notif(req.username+" deleted your post: "+title, author)
   res.send("ok")
-  Log("Deleted post", title.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"))
+  Log("Deleted post", sanitize(title), "Done by", req.username)
 })
 async function deletePostNoNotify(id){
   await db.delete("post:"+id)
@@ -1661,7 +1664,7 @@ router.post("/server/editPost/*", getPostData, async(req, res) => {
     data:post.content
   }, id)
   res.json({success:true})
-  Log("Edited post", "<a href='/post?id="+id+"' target='_blank'>"+post.title.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")+"</a>")
+  Log("Edited post", "<a href='/post?id="+id+"' target='_blank'>"+sanitize(post.title)+"</a>", "Done by", req.username)
 })
 //get a post by its id
 router.get("/server/post/*", (request, res) => {
@@ -1753,7 +1756,7 @@ router.post("/server/commentPost/*", getPostData, async(req, res) => {
       type:"comment",
       data:commentData
     }, id)
-    Log("New comment at", "<a href='/post?id="+r.id+"#comment"+cid+"' target='_blank'>"+r.title.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")+"</a>")
+    Log("New comment at", "<a href='/post?id="+r.id+"#comment"+cid+"' target='_blank'>"+sanitize(r.title)+"</a>")
   })
 })
 router.post("/server/deletePostComment/*",getPostData, async(req,res) => {
@@ -1788,7 +1791,7 @@ router.post("/server/deletePostComment/*",getPostData, async(req,res) => {
         type:"deleteComment",
         data: cid
       }, id)
-      Log("Deleted comment at", d.title.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"))
+      Log("Deleted comment at", sanitize(d.title), "Done by", req.username)
     })
   })
 })
@@ -1881,7 +1884,7 @@ router.post("/server/deleteUserComment/*", getPostData,async(req,res) => {
         type:"deleteComment",
         data: cid
       }, user)
-      Log("Deleted comment at profile", user)
+      Log("Deleted comment at profile", user, "Done by", req.username)
     })
   })
 })
