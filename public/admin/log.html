@@ -95,6 +95,7 @@
       }
 			window.clearLog = async function restart(){
         await getPwd()
+				load()
         fetch("/internal/run",{
           method:"POST",
           body: "clearLog("+JSON.stringify(lastTime)+")",
