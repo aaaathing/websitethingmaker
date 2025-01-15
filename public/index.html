@@ -136,7 +136,7 @@ body[theme=dark] #links a.no{
 <p id="more-popular">You can do that by sharing the link. If this website is more popular, it will make MineKhan <span style='background:#ff08'>more fun</span> and there may be <span style='background:#ff08'>more updates</span>. There are about 20 users on this website every day and less on weekends.</p>
 <span id="currentUsers"></span>
 <script>addEventListener("load", () => document.querySelector("#currentUsers").innerHTML = "Current amount of users in last 24 hours (on page load): "+userCount)</script>-->
-  
+	
   <div id="links">
     <script>
 			function addlinks(r,container){
@@ -165,44 +165,6 @@ body[theme=dark] #links a.no{
   <div class="main">
     <h2>Website</h2>
     <p>This is the home page of this website. You can find many things like interesting stuff and useful tools in the links above. Green background means it may be interesting.</p>
-		
-		<br><br><br>
-		<h1>Put old stuff here</h1>
-		<P>If you have screenshots of <b>MineKhan</b> from <b>2022 and before</b>, it would be helpful to put them in the upload below so more history can be found.</P>
-		<input type="file" onchange="uploadit(this)">
-		<script>
-			async function uploadit(e){
-				let r
-		    try{
-		      r = await (await fetch('/images/'+encodeURIComponent((new Date(e.files[0].lastModified).toLocaleString())+" "+e.files[0].name), {
-		        method:'POST',
-		        body: await e.files[0].arrayBuffer()
-		      })).json()
-		    }catch(e){
-		      alert(e.message)
-		      return
-		    }
-				if(!r.success) alert(r.message)
-			}
-		</script>
-		<p>Also, if you have <b>old worlds</b> from 2022 and before, you should put them <a href="/minekhan-website/maps/new">here</a>.</p>
-		<p>Lastly, if you have stories/memories that can be added to the history page, put them or a link to them in <a href="/posts">posts</a>.</p>
-		<h2>How to get old worlds</h2>
-<div style="white-space: pre;">
-This only works if you used to go to <b>minekhan.thingmaker.repl.co</b> or <b>play.minekhan.repl.co</b>
-This also requires access to devtools.
-
-Go to minekhan.thingmaker.repl.co or the other one.
-Use proxy or extension to make it not have error.
-Open devtools by:
-	right clicking and clicking inspect
-	or pressing ctrl+shift+i or similar
-Paste this in console and optionaly check for bad things:
-<textarea>
-let or=indexedDB.open("MineKhan");or.onsuccess = e => { let db = or.result;let trans = db.transaction('worlds', "readonly");let store = trans.objectStore('worlds'); let req = store.getAll(); req.onsuccess=()=>{ for(let i of req.result){ var link = document.createElement("a"); link.download = i.data.name+'.minekhan'; link.href = URL.createObjectURL(new Blob([JSON.stringify(i.data)])); link.click(); Object.revokeObjectURL(link.href); } }}
-</textarea>
-The files should have been downloaded afterwards.
-</div>
     
     <h2>Websites and things you may not have even known existed!</h2>
     <a href="https://mordritch.com/">Modritch.com</a><br>
@@ -218,6 +180,46 @@ The files should have been downloaded afterwards.
     <a href="https://github.com/Shawnlandis/eaglercraft/blob/main/index.html">eaglercraft for khan acadmy</a><br>
 		<a href="https://github.com/emer/emergent">emergent</a> | can be used to make AI with perception, memory, language, possibly ability to think<br>
 
+		<br><br><br>
+	<h1>Put old stuff here</h1>
+	<i>2-people aka thingmaker want to see what it was like then again</i>
+	<P>If you have screenshots of <b>MineKhan</b> from <b>2022 and before</b>, it would be helpful to put them in the upload below so more history can be found.</P>
+	<input type="file" onchange="uploadit(this)">
+	<script>
+		async function uploadit(e){
+			let r
+			try{
+				r = await (await fetch('/images/'+encodeURIComponent((new Date(e.files[0].lastModified).toLocaleString())+" "+e.files[0].name), {
+					method:'POST',
+					body: await e.files[0].arrayBuffer()
+				})).json()
+			}catch(e){
+				alert(e.message)
+				return
+			}
+			if(!r.success) alert(r.message)
+		}
+	</script>
+	<p>Also, if you have <b>old worlds</b> from 2022 and before, you should put them <a href="/minekhan-website/maps/new">here</a>.</p>
+	<p>If you have stories/memories that can be added to the history page, put them or a link to them in <a href="/posts">posts</a>.</p>
+	<h2>How to get old worlds</h2>
+<div style="white-space: pre;">
+This only works if you used to go to <b>minekhan.thingmaker.repl.co</b> or <b>play.minekhan.repl.co</b>
+This also requires access to devtools.
+
+Go to minekhan.thingmaker.repl.co or the other one.
+Use proxy or extension to make it not have error.
+Open devtools by:
+	right clicking and clicking inspect
+	or pressing ctrl+shift+i or similar
+Paste this in console and optionaly check for bad things:
+<textarea>
+let or=indexedDB.open("MineKhan");or.onsuccess = e => { let db = or.result;let trans = db.transaction('worlds', "readonly");let store = trans.objectStore('worlds'); let req = store.getAll(); req.onsuccess=()=>{ for(let i of req.result){ var link = document.createElement("a"); link.download = i.data.name+'.minekhan'; link.href = URL.createObjectURL(new Blob([JSON.stringify(i.data)])); link.click(); Object.revokeObjectURL(link.href); } }}
+</textarea>
+The files should have been downloaded afterwards.
+</div>
+
+		
 		<h2>links</h2>
 <pre>
 https://minecraft1123.glitch.me/
