@@ -19,10 +19,10 @@
   <body>
     <h1>Live list of people online</h1>
     <input type="checkbox" id="showIfUsername"><label for="showIfUsername">Show only if has username</label><br>
+    <div id="userEvents" style="display: flex;flex-direction: column-reverse;"></div>
+    <br><br>
     <b>There are <span id="onlineCount"></span> users in the last 24 hours.</b>
     <div id="online" style='white-space:pre;'></div>
-    <br><br>
-    <div id="userEvents" style="display: flex;flex-direction: column-reverse;"></div>
 
     <script>
       var online = document.querySelector("#online"), onlineCount = document.querySelector("#onlineCount")
@@ -128,9 +128,9 @@
       }
       const theu = location.hash.replace("#",""), userEventsEl = document.querySelector("#userEvents")
       function userEvent(u){
-        if(u === theu){
+        if(theu && u.username && u.username.includes(theu)){
           let el = document.createElement("span")
-          el.textContent = u+" | "+users[u].path+" | "+timeString3(users[u].time)
+          el.textContent = u.username.join(", ")+" | "+u.path+" | "+timeString3(u.time)
           userEventsEl.appendChild(el)
         }
       }
