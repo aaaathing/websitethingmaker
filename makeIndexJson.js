@@ -14,7 +14,20 @@ const rl = readline.createInterface({
 function question(str){
 	return new Promise(resolve => rl.question(str, resolve))
 }
-;(async function() {
+if(process.argv[3] === "auto"){
+	for(let f of files){
+		let s
+		try{
+		s = fs.readFileSync(process.argv[2]+"/"+f, "utf-8")
+		}catch{continue}
+		let c = [...s.matchAll(/<!--\s*(.*?)\s*-->|\/\/\s*(.*?)\n/g)].map(r => r[1]||r[2]).filter(r => Date.parse(r.substring(0,20)))
+		index[f] = {
+			created:c[0],
+			lastModified:c[1]
+		}
+	}
+	done()
+}else (async function() {
 for(let f of files){
 	let o = index[f] || {}
 	let a=await question(f+" created? ")
@@ -24,6 +37,11 @@ for(let f of files){
 	if(a) o.lastModified = a
 	index[f] = o
 }
-index = Object.fromEntries(Object.entries(index).sort((a,b) => Date.parse(b[1].created)-Date.parse(a[1].created)))
-fs.writeFileSync(process.argv[2]+"/index.json", JSON.stringify(index,null,"\t"))
+	done()
 })()
+function done(){
+	index = Object.fromEntries(Object.entries(index).sort((a,b) => Date.parse(b[1].created)-Date.parse(a[1].created)))
+	fs.writeFileSync(process.argv[2]+"/index.json", JSON.stringify(index,null,"\t"))
+	
+	console.log("done")
+}

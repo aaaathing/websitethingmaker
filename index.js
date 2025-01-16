@@ -3653,8 +3653,8 @@ app.use(async (req, res, next) => {
 	}
   let index
   try{
-    index = JSON.parse(fs.promises.readFile(__dirname+"/public"+path+"index.json"))
-  }catch{
+    index = JSON.parse(await fs.promises.readFile(__dirname+"/public"+path+"index.json"))
+  }catch(e){
     index = {}
   }
 	res.write("<style>a>*{vertical-align:middle;}.item{display:inline-block;width:16px;height:16px;box-sizing:border-box;}.file{border:1px solid black;background:white;}.folder{background:linear-gradient(0,yellow,brown);}</style>")
@@ -3662,13 +3662,14 @@ app.use(async (req, res, next) => {
 	let list = []
 	for await(const dirent of dir){
 		let folder = dirent.isDirectory()
-		list.push({name:dirent.name, str: "<tr><td><a href='"+sanitize(dirent.name)+(folder?"/":"")+"'><div class='item "+(folder?"folder":"file")+"'></div> <span>"+sanitize(dirent.name)+"</span></a></td></tr>" })
+		let ii = index[dirent.name]
+		list.push({name:dirent.name, str: "<tr><td><a href='"+sanitize(dirent.name)+(folder?"/":"")+"'><div class='item "+(folder?"folder":"file")+"'></div> <span>"+sanitize(dirent.name)+"</span></a></td><td>"+(ii&&ii.created||"")+"</td><td>"+(ii&&ii.lastModified||"")+"</td></tr>" })
 		if(!folder && dirent.name.toLowerCase().startsWith("readme")){
 			res.write("<h2>"+sanitize(dirent.name)+"</h2>"+await fs.promises.readFile(__dirname+"/public"+path+dirent.name)+"<hr>")
 		}
 	}
-	res.write("<table><thead><tr><th>Name</th></tr></thead><tbody>")
-	list.sort((a,b) => (index[a.name]?Date.parse(index[a.name].created):-Infinity) - (index[b.name]?Date.parse(index[b.name].created):-Infinity) || 0)
+	res.write("<table><thead><tr><th>Name</th><th>Created</th><th>Last modified</th></tr></thead><tbody>")
+	list.sort((a,b) => (index[b.name]?Date.parse(index[b.name].created):Infinity) - (index[a.name]?Date.parse(index[a.name].created):Infinity) || 0)
 	for(let i of list){
 		res.write(i.str)
 	}
