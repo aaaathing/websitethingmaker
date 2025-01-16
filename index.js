@@ -3651,6 +3651,12 @@ app.use(async (req, res, next) => {
 		next()
 		return
 	}
+  let index
+  try{
+    index = JSON.parse(fs.promises.readFile(__dirname+"/public"+path+"index.json"))
+  }catch{
+    index = {}
+  }
 	res.write("<style>a>*{vertical-align:middle;}.item{display:inline-block;width:16px;height:16px;box-sizing:border-box;}.file{border:1px solid black;background:white;}.folder{background:linear-gradient(0,yellow,brown);}</style>")
 	res.write("<h1>Index of "+sanitize(path)+"</h1><hr>")
 	let list = []
@@ -3662,7 +3668,7 @@ app.use(async (req, res, next) => {
 		}
 	}
 	res.write("<table><thead><tr><th>Name</th></tr></thead><tbody>")
-	list.sort((a,b) => a.name>b.name?1:a.name<b.name?-1:0)
+	list.sort((a,b) => (index[a.name]?Date.parse(index[a.name].created):-Infinity) - (index[b.name]?Date.parse(index[b.name].created):-Infinity) || 0)
 	for(let i of list){
 		res.write(i.str)
 	}
