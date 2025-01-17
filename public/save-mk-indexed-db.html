@@ -9,19 +9,19 @@
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 This tool may not get all worlds but it should get most of them<br>
 <br>
-Open zip with indexed db: <input type="file" onchange="doit(this)"><br>
-Big endian: <input type="checkbox" id="bigEndian" checked> Change if time or something looks wrong<br>
+Open zip with indexed db: <input type="file" onchange="doit()" id="thefile"><br>
+Big endian: <input type="checkbox" id="bigEndian" onchange="doit()"> Change if time or something looks wrong<br>
 <br>
 <div id="status"></div>
 <!--You can see the server side code used <a href="open-indexed-db.js">here</a><br>-->
 <div id="res"></div>
 <script>
 let allData
-async function doit(input){
+async function doit(){
 	res.innerHTML = "<button onclick='saveit()'>Save to minekhan on this website</button>"
 	bigEndian = document.querySelector("#bigEndian").checked
 	allData = []
-	let zipData = await input.files[0].arrayBuffer()
+	let zipData = await (document.querySelector('#thefile').files[0]).arrayBuffer()
 	let zip = await JSZip.loadAsync(zipData)
 	zip.forEach((path, file) => {
 		console.log(path,file)
