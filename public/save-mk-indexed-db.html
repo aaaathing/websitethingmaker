@@ -7,11 +7,20 @@
 	}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+This tool may not get all worlds but it should get most of them<br>
+<br>
 Open zip with indexed db: <input type="file" onchange="doit(this)"><br>
-You can see the server side code used <a href="open-indexed-db.js">here</a><br>
+Big endian: <input type="checkbox" id="bigEndian" checked> Change if time or something looks wrong<br>
+<br>
+<div id="status"></div>
+<!--You can see the server side code used <a href="open-indexed-db.js">here</a><br>-->
 <div id="res"></div>
 <script>
+let allData
 async function doit(input){
+	res.innerHTML = "<button onclick='saveit()'>Save to minekhan on this website</button>"
+	bigEndian = document.querySelector("#bigEndian").checked
+	allData = []
 	let zipData = await input.files[0].arrayBuffer()
 	let zip = await JSZip.loadAsync(zipData)
 	zip.forEach((path, file) => {
@@ -25,9 +34,20 @@ async function doit(input){
 					reportError(e)
 				}
 			})
-		}else if(path.endsWith(".leveldb/")){
-			fetch("/open-indexed-db?path="+encodeURIComponent(path), {method:"POST",body:zipData})
-			/*file.async("arraybuffer").then(r => {
+		}else if(path.includes(".leveldb/") && !path.endsWith("/")){
+			/*let ws = new WebSocket(location.origin+"/open-indexed-db")
+			ws.onopen = function(){
+				ws.send(path)
+				ws.send(zipData)
+			}
+			let lastKey
+			ws.onmessage = function(e){
+				if(typeof e.data === "string") lastKey = e.data
+				else{
+					console.log(lastKey,e.data)
+				}
+			}*/
+			file.async("arraybuffer").then(r => {
 				let arr = new Uint8Array(r)
 				let i = 0
 				while((i = arr.indexOf(255,i)) !== -1){ //find pattern
@@ -42,7 +62,7 @@ async function doit(input){
 						reportError(e)
 					}
 				}
-			})*/
+			})
 		}
 	})
 }
@@ -63,6 +83,67 @@ function addRes(r, info){
 			${info}
 		</div>
 	`)
+	allData.push(r)
+}
+const status=document.querySelector("#status")
+async function saveit(){
+	async function createDatabase() {
+		return await new Promise(async (resolve, reject) => {
+			let request = window.indexedDB.open("MineKhan")
+
+			request.onsuccess = function(e) {
+				resolve(request.result)
+			}
+
+			request.onerror = function(e) {
+				reject(request.error || new Error("indexed db open error"))
+			}
+		})
+	}
+	async function loadFromDB(id, storeName = "worlds") {
+		return await new Promise(async (resolve, reject) => {
+			let db = await createDatabase()
+			let trans = db.transaction(storeName, "readwrite")
+			let store = trans.objectStore(storeName)
+			let req = id ? store.get(id) : store.getAll()
+			req.onsuccess = function(e) {
+				resolve(req.result)
+				db.close()
+			}
+			req.onerror = function(e) { 
+				resolve(null)
+				db.close()
+			}
+		})
+	}
+	async function saveToDB(id, data, storeName = "worlds") {
+		return new Promise(async (resolve, reject) => {
+			let db = await createDatabase()
+			let trans = db.transaction(storeName, "readwrite")
+			let store = trans.objectStore(storeName)
+			let req = store.put({ id: id, data: data })
+			req.onsuccess = function() {
+				resolve(req.result)
+			}
+			req.onerror = function(e) {
+				reject(req.error)
+			}
+		})
+	}
+
+	status.textContent = "saving..."
+	let a=0, i=0
+	for(let r of allData){
+		try{
+			if(!await loadFromDB(r.id)) {
+				await saveToDB(r.id, r)
+				a++
+			}
+		}catch(e){alert(e)}
+		status.textContent = i+" / "+allData.length
+		i++
+	}
+	status.innerHTML = "saved "+a+" out of "+allData.length+" worlds. they should show up in <a href='/minekhan/'>minekhan</a>"
 }
 
 
