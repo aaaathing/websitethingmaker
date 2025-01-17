@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+Open zip with indexed db: <input type="file" onchange="doit(this)">
+<script>
+async function doit(input){
+	let zip = await JSZip.loadAsync(await input.files[0].arrayBuffer())
+	let i=0
+	zip.forEach((path, file) => {
+		console.log(path,file)
+		if(path.includes(".blob/") && !path.endsWith("/")){
+			if(!i)file.async("arraybuffer").then(r => new reader(r))
+			i++
+		}
+	})
+}
+const utf8 = new TextDecoder(), ascii = new TextDecoder("ascii"), utf16 = new TextDecoder("utf-16")
+class reader{
+	constructor(data){
+		this.data = new DataView(data)
+		this.dataU8 = new Uint8Array(data)
+		this.idx = 0
+
+		let o = {}
+		while(this.idx<this.data.byteLength){
+			let v = this.read()
+			console.log(v)
+		}
+		this.result = o
+	}
+	get peek(){return this.data.getUint8(this.idx)}
+	next(){return this.data.getUint8(this.idx++)}
+	get peekU32(){return this.data.getUint32(this.idx)}
+	nextU32(){return this.data.getUint32(this.idx++)}
+	read(){
+		while(this.peek === 0) this.next()
+		let tag = this.next()
+		switch(tag){
+			case 0xff:
+				this.varint()
+				break
+			case "o".charCodeAt(0):
+				let o = {}
+				debugger
+				while(this.peek !== 0x7b){
+					o[this.read()] = this.read()
+				}
+				return o
+			case '"'.charCodeAt(0):{
+				let len = Number(this.varint())
+				return ascii.decode(this.dataU8.slice(this.idx,this.idx+=len))
+			}
+			case 'c'.charCodeAt(0):{
+				let len = Number(this.varint())/2
+				return utf16.decode(this.dataU8.slice(this.idx,this.idx+=len))
+			}
+			case 'S'.charCodeAt(0):{
+				let len = Number(this.varint())
+				return utf8.decode(this.dataU8.slice(this.idx,this.idx+=len))
+			}
+			case '_'.charCodeAt(0): return undefined
+			case '0'.charCodeAt(0): return null
+			case 'T'.charCodeAt(0): return true
+			case 'F'.charCodeAt(0): return false
+			case 'U'.charCodeAt(0): return this.varint()
+			case 'I'.charCodeAt(0):{
+				let n = this.varint()
+				return ((n+1n)>>1n) * ((n&1n) ? -1n : 1n)
+			}
+			case 'N'.charCodeAt(0): return this.data.getFloat64((this.idx+=8)-8, true)
+			case 'B'.charCodeAt(0):{ //array buffer view
+				let type = this.varint(), offset = this.varint(), len = this.varint()
+				let buffer = this.read() // should be "V"
+				switch(type){
+					case "B".charCodeAt(0): return new Uint8Array(buffer,offset,len)
+				}
+			}
+			case 'V'.charCodeAt(0):{ //array buffer
+				let len = this.varint()
+				return this.data.buffer.slice(this.idx,this.idx+=len)
+			}
+			case 'a'.charCodeAt(0):{
+				let len = this.varint()
+				let arr = []
+				let k = 0
+				while(this.peek !== 0x40){
+					arr[this.read()] = this.read()
+					k++
+				}
+				if(this.read() !== k) throw new Error("incorrect number of keys")
+				if(this.read() !== len) throw new Error("incorrect length")
+				return arr
+			}
+			case 'A'.charCodeAt(0):{
+				let len = this.varint()
+				let arr = []
+				for(let i=0; i<len; i++){
+					arr.push(this.read())
+				}
+				let k = 0
+				while(this.peek !== 0x2f){
+					arr[this.read()] = this.read()
+					k++
+				}
+				if(this.read() !== k) throw new Error("incorrect number of keys")
+				if(this.read() !== len) throw new Error("incorrect length")
+				return arr
+			}
+			default:
+				throw new Error("unknown tag "+tag)
+		}
+	}
+	varint(){
+		let r = 0n
+		while(this.peek&0x80){
+			r = r<<7n | BigInt(this.next())&0x7fn
+		}
+		return r<<7n | BigInt(this.next())&0x7fn
+	}
+}
+</script>
