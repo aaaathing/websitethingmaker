@@ -1,31 +1,83 @@
 <!DOCTYPE html>
+<style>
+	#res > div{
+		border:1px solid black;
+		padding: 16px;
+		margin:16px;
+	}
+</style>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-Open zip with indexed db: <input type="file" onchange="doit(this)">
+Open zip with indexed db: <input type="file" onchange="doit(this)"><br>
+You can see the server side code used <a href="open-indexed-db.js">here</a><br>
+<div id="res"></div>
 <script>
 async function doit(input){
-	let zip = await JSZip.loadAsync(await input.files[0].arrayBuffer())
-	let i=0
+	let zipData = await input.files[0].arrayBuffer()
+	let zip = await JSZip.loadAsync(zipData)
 	zip.forEach((path, file) => {
 		console.log(path,file)
 		if(path.includes(".blob/") && !path.endsWith("/")){
-			if(!i)file.async("arraybuffer").then(r => new reader(r))
-			i++
+			file.async("arraybuffer").then(r => {
+				try{
+					addRes(new reader(r).result, "from .blob")
+				}catch(e){
+					res.insertAdjacentHTML("beforeend", "<div>unable to read: "+sanitize(e)+"</div>")
+					reportError(e)
+				}
+			})
+		}else if(path.endsWith(".leveldb/")){
+			fetch("/open-indexed-db?path="+encodeURIComponent(path), {method:"POST",body:zipData})
+			/*file.async("arraybuffer").then(r => {
+				let arr = new Uint8Array(r)
+				let i = 0
+				while((i = arr.indexOf(255,i)) !== -1){ //find pattern
+					let oi = i
+					while(arr[i]&0b10000000) i++
+					i++
+					if(arr[i++] !== 255) continue
+					try{
+						addRes(new reader(arr.subarray(oi)).result, "from .leveldb")
+					}catch(e){
+						res.insertAdjacentHTML("beforeend", "<div>unable to read: "+sanitize(e.message)+" <br> found at "+i+"</div>")
+						reportError(e)
+					}
+				}
+			})*/
 		}
 	})
 }
-const utf8 = new TextDecoder(), ascii = new TextDecoder("ascii"), utf16 = new TextDecoder("utf-16")
+const sanitizer = document.createElement('div')
+function sanitize(text) {
+  sanitizer.textContent = text
+  return sanitizer.innerHTML
+}
+let res = document.querySelector("#res")
+function addRes(r, info){
+	r = r.data
+	res.insertAdjacentHTML("beforeend", `
+		<div>
+			<img src="${r.thumbnail}"><br>
+			${r.name}<br>
+			${(new Date(r.edited)).toLocaleString()}<br>
+			${r.code.length||r.code.byteLength} bytes<br>
+			${info}
+		</div>
+	`)
+}
+
+
+
+let bigEndian = false
+const utf8 = new TextDecoder(), ascii = new TextDecoder("ascii"), utf16 = new TextDecoder(bigEndian?"utf-16be":"utf-16")
 class reader{
 	constructor(data){
-		this.data = new DataView(data)
-		this.dataU8 = new Uint8Array(data)
+		this.data = new DataView(data.buffer||data, data.byteOffset,data.byteLength)
+		this.dataU8 = new Uint8Array(data.buffer||data, data.byteOffset,data.byteLength)
 		this.idx = 0
 
-		let o = {}
-		while(this.idx<this.data.byteLength){
-			let v = this.read()
-			console.log(v)
-		}
-		this.result = o
+		while(this.peek === 0xff) this.varint()
+		this.result = this.read()
+		console.log(this.result)
 	}
 	get peek(){return this.data.getUint8(this.idx)}
 	next(){return this.data.getUint8(this.idx++)}
@@ -35,22 +87,22 @@ class reader{
 		while(this.peek === 0) this.next()
 		let tag = this.next()
 		switch(tag){
-			case 0xff:
-				this.varint()
-				break
 			case "o".charCodeAt(0):
 				let o = {}
-				debugger
+				let k = 0n
 				while(this.peek !== 0x7b){
 					o[this.read()] = this.read()
+					k++
 				}
+				this.next() //end tag
+				if(this.varint() !== k) throw new Error("incorrect number of keys")
 				return o
 			case '"'.charCodeAt(0):{
 				let len = Number(this.varint())
 				return ascii.decode(this.dataU8.slice(this.idx,this.idx+=len))
 			}
 			case 'c'.charCodeAt(0):{
-				let len = Number(this.varint())/2
+				let len = Number(this.varint())
 				return utf16.decode(this.dataU8.slice(this.idx,this.idx+=len))
 			}
 			case 'S'.charCodeAt(0):{
@@ -61,12 +113,12 @@ class reader{
 			case '0'.charCodeAt(0): return null
 			case 'T'.charCodeAt(0): return true
 			case 'F'.charCodeAt(0): return false
-			case 'U'.charCodeAt(0): return this.varint()
+			case 'U'.charCodeAt(0): return Number(this.varint())
 			case 'I'.charCodeAt(0):{
 				let n = this.varint()
-				return ((n+1n)>>1n) * ((n&1n) ? -1n : 1n)
+				return Number(((n+1n)>>1n) * ((n&1n) ? -1n : 1n))
 			}
-			case 'N'.charCodeAt(0): return this.data.getFloat64((this.idx+=8)-8, true)
+			case 'N'.charCodeAt(0): return this.data.getFloat64((this.idx+=8)-8, !bigEndian)
 			case 'B'.charCodeAt(0):{ //array buffer view
 				let type = this.varint(), offset = this.varint(), len = this.varint()
 				let buffer = this.read() // should be "V"
@@ -81,13 +133,14 @@ class reader{
 			case 'a'.charCodeAt(0):{
 				let len = this.varint()
 				let arr = []
-				let k = 0
+				let k = 0n
 				while(this.peek !== 0x40){
 					arr[this.read()] = this.read()
 					k++
 				}
-				if(this.read() !== k) throw new Error("incorrect number of keys")
-				if(this.read() !== len) throw new Error("incorrect length")
+				this.next() //end tag
+				if(this.varint() !== k) throw new Error("incorrect number of keys")
+				if(this.varint() !== len) throw new Error("incorrect length")
 				return arr
 			}
 			case 'A'.charCodeAt(0):{
@@ -96,13 +149,14 @@ class reader{
 				for(let i=0; i<len; i++){
 					arr.push(this.read())
 				}
-				let k = 0
-				while(this.peek !== 0x2f){
+				let k = 0n
+				while(this.peek !== 0x24){
 					arr[this.read()] = this.read()
 					k++
 				}
-				if(this.read() !== k) throw new Error("incorrect number of keys")
-				if(this.read() !== len) throw new Error("incorrect length")
+				this.next() //end tag
+				if(this.varint() !== k) throw new Error("incorrect number of keys")
+				if(this.varint() !== len) throw new Error("incorrect length")
 				return arr
 			}
 			default:
@@ -110,11 +164,12 @@ class reader{
 		}
 	}
 	varint(){
-		let r = 0n
-		while(this.peek&0x80){
-			r = r<<7n | BigInt(this.next())&0x7fn
+		let r = 0n, sh = 0n
+		while(this.peek&0b10000000){
+			r = r | BigInt(this.next()&0b01111111)<<sh
+			sh += 7n
 		}
-		return r<<7n | BigInt(this.next())&0x7fn
+		return r | BigInt(this.next()&0b01111111)<<sh
 	}
 }
 </script>
