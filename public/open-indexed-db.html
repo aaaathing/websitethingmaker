@@ -7,42 +7,72 @@
 	}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-Open zip with indexed db: <input type="file" onchange="doit(this)"><br>
-You can see the server side code used <a href="open-indexed-db.js">here</a><br>
+This tool may not get all worlds but it should get most of them<br>
+<br>
+Open zip with indexed db: <input type="file" onchange="doit()" id="thefile"><br>
+Big endian: <input type="checkbox" id="bigEndian" onchange="doit()"> Change if time or something looks wrong<br>
+<br>
+<div id="status"></div>
+<!--You can see the server side code used <a href="open-indexed-db.js">here</a><br>-->
 <div id="res"></div>
 <script>
-async function doit(input){
-	let zipData = await input.files[0].arrayBuffer()
+let allData
+async function doit(){
+	res.innerHTML = "<button onclick='saveit()'>Save to minekhan on this website</button>"
+	bigEndian = document.querySelector("#bigEndian").checked
+	allData = []
+	let zipData = await (document.querySelector('#thefile').files[0]).arrayBuffer()
 	let zip = await JSZip.loadAsync(zipData)
 	zip.forEach((path, file) => {
 		console.log(path,file)
 		if(path.includes(".blob/") && !path.endsWith("/")){
 			file.async("arraybuffer").then(r => {
 				try{
-					addRes(new reader(r).result, "from .blob")
+					addRes(new serializedObjectReader(r).readObject(), "from .blob")
 				}catch(e){
 					res.insertAdjacentHTML("beforeend", "<div>unable to read: "+sanitize(e)+"</div>")
 					reportError(e)
 				}
 			})
-		}else if(path.endsWith(".leveldb/")){
-			fetch("/open-indexed-db?path="+encodeURIComponent(path), {method:"POST",body:zipData})
-			/*file.async("arraybuffer").then(r => {
+		}else if(path.endsWith(".ldb")){
+			/*let ws = new WebSocket(location.origin+"/open-indexed-db")
+			ws.onopen = function(){
+				ws.send(path)
+				ws.send(zipData)
+			}
+			let lastKey
+			ws.onmessage = function(e){
+				if(typeof e.data === "string") lastKey = e.data
+				else{
+					console.log(lastKey,e.data)
+				}
+			}*/
+			file.async("arraybuffer").then(r => {
+				/*let reader = new LevelDBReader(r)
+				while(reader.hasNext){
+					let e = reader.nextEntry()
+					let k = readIDBKey(e.key)
+					if(k[0] === 0n || k[1] === 0n || k[2] === 0n) continue // metadata
+					let sr = new serializedObjectReader(e.value)
+					sr.varint() // skip backing store version
+					console.log(sr.readObject())
+					debugger
+				}*/
 				let arr = new Uint8Array(r)
 				let i = 0
-				while((i = arr.indexOf(255,i)) !== -1){ //find pattern
-					let oi = i
-					while(arr[i]&0b10000000) i++
-					i++
-					if(arr[i++] !== 255) continue
+				while((i = arr.indexOf(255,i+1)) !== -1){ //find pattern
+					let ci = i
+					while((arr[ci]&0b10000000) && ci-i<8/*integer shouldn't be longer than 8*/) ci++
+					ci++
+					if(arr[ci++] !== 255) continue
 					try{
-						addRes(new reader(arr.subarray(oi)).result, "from .leveldb")
+						addRes(new serializedObjectReader(arr.subarray(i)).readObject(), "from .leveldb")
 					}catch(e){
-						res.insertAdjacentHTML("beforeend", "<div>unable to read: "+sanitize(e.message)+" <br> found at "+i+"</div>")
+						res.insertAdjacentHTML("beforeend", "<div>unable to read: "+sanitize(e.message)+" <br> found at "+ci+"</div>")
 						reportError(e)
 					}
 				}
-			})*/
+			})
 		}
 	})
 }
@@ -63,20 +93,82 @@ function addRes(r, info){
 			${info}
 		</div>
 	`)
+	allData.push(r)
+}
+const status=document.querySelector("#status")
+async function saveit(){
+	async function createDatabase() {
+		return await new Promise(async (resolve, reject) => {
+			let request = window.indexedDB.open("MineKhan")
+
+			request.onsuccess = function(e) {
+				resolve(request.result)
+			}
+
+			request.onerror = function(e) {
+				reject(request.error || new Error("indexed db open error"))
+			}
+		})
+	}
+	async function loadFromDB(id, storeName = "worlds") {
+		return await new Promise(async (resolve, reject) => {
+			let db = await createDatabase()
+			let trans = db.transaction(storeName, "readwrite")
+			let store = trans.objectStore(storeName)
+			let req = id ? store.get(id) : store.getAll()
+			req.onsuccess = function(e) {
+				resolve(req.result)
+				db.close()
+			}
+			req.onerror = function(e) { 
+				resolve(null)
+				db.close()
+			}
+		})
+	}
+	async function saveToDB(id, data, storeName = "worlds") {
+		return new Promise(async (resolve, reject) => {
+			let db = await createDatabase()
+			let trans = db.transaction(storeName, "readwrite")
+			let store = trans.objectStore(storeName)
+			let req = store.put({ id: id, data: data })
+			req.onsuccess = function() {
+				resolve(req.result)
+			}
+			req.onerror = function(e) {
+				reject(req.error)
+			}
+		})
+	}
+
+	status.textContent = "saving..."
+	let a=0, i=0
+	for(let r of allData){
+		try{
+			if(!await loadFromDB(r.id)) {
+				await saveToDB(r.id, r)
+				a++
+			}
+		}catch(e){alert(e)}
+		status.textContent = i+" / "+allData.length
+		i++
+	}
+	status.innerHTML = "saved "+a+" out of "+allData.length+" worlds. they should show up in <a href='/minekhan/'>minekhan</a>"
 }
 
 
 
+// https://www.cclsolutionsgroup.com/post/indexeddb-on-chromium
 let bigEndian = false
-const utf8 = new TextDecoder(), ascii = new TextDecoder("ascii"), utf16 = new TextDecoder(bigEndian?"utf-16be":"utf-16")
-class reader{
+class serializedObjectReader{
 	constructor(data){
 		this.data = new DataView(data.buffer||data, data.byteOffset,data.byteLength)
 		this.dataU8 = new Uint8Array(data.buffer||data, data.byteOffset,data.byteLength)
 		this.idx = 0
-
+	}
+	readObject(){
 		while(this.peek === 0xff) this.varint()
-		this.result = this.read()
+		return this.read()
 		console.log(this.result)
 	}
 	get peek(){return this.data.getUint8(this.idx)}
@@ -99,15 +191,15 @@ class reader{
 				return o
 			case '"'.charCodeAt(0):{
 				let len = Number(this.varint())
-				return ascii.decode(this.dataU8.slice(this.idx,this.idx+=len))
+				return new TextDecoder("ascii").decode(this.dataU8.slice(this.idx,this.idx+=len))
 			}
 			case 'c'.charCodeAt(0):{
 				let len = Number(this.varint())
-				return utf16.decode(this.dataU8.slice(this.idx,this.idx+=len))
+				return new TextDecoder(bigEndian?"utf-16be":"utf-16").decode(this.dataU8.slice(this.idx,this.idx+=len))
 			}
 			case 'S'.charCodeAt(0):{
 				let len = Number(this.varint())
-				return utf8.decode(this.dataU8.slice(this.idx,this.idx+=len))
+				return new TextDecoder("utf-8").decode(this.dataU8.slice(this.idx,this.idx+=len))
 			}
 			case '_'.charCodeAt(0): return undefined
 			case '0'.charCodeAt(0): return null
@@ -172,4 +264,45 @@ class reader{
 		return r | BigInt(this.next()&0b01111111)<<sh
 	}
 }
+function arrToInt(arr){
+	let n = 0n
+	for(let i=0; i<arr.length; i++){
+		n = n | BigInt(arr[i])<<(BigInt(i)*8n)
+	}
+	return n
+}
+/*function readIDBKey(arr){
+	let idx = 0
+	let l = arr[idx++]
+	return [arrToInt(arr.slice(idx,idx+=1+(l&0b11100000))), arrToInt(arr.slice(idx,idx+=1+(l&0b11100))), arrToInt(arr.slice(idx,idx+=1+(l&0b11)))]
+}
+// based on https://github.com/google/leveldb/blob/main/table/block.cc
+class LevelDBReader{
+	constructor(data){
+		this.data = new DataView(data.buffer||data, data.byteOffset,data.byteLength)
+		this.dataU8 = new Uint8Array(data.buffer||data, data.byteOffset,data.byteLength)
+		this.current = 0
+		this.key = []
+	}
+	get peek(){return this.data.getUint8(this.current)}
+	next(){return this.data.getUint8(this.current++)}
+	get hasNext(){return this.current<this.data.byteLength}
+	varint(){
+		let r = 0n, sh = 0n
+		while(this.peek&0b10000000){
+			r = r | BigInt(this.next()&0b01111111)<<sh
+			sh += 7n
+		}
+		return r | BigInt(this.next()&0b01111111)<<sh
+	}
+	nextEntry(){
+		if(this.current>=24835)debugger
+		let shared = this.varint(), nonshared = this.varint(), valueLength = this.varint()
+		if(valueLength>100)debugger
+		let append = this.dataU8.subarray(this.current,this.current+=Number(nonshared))
+		this.key = this.key.slice(0,Number(shared)).concat(Array.from(append))
+		let value = this.dataU8.subarray(this.current,this.current+=Number(valueLength))
+		return {key:this.key,value}
+	}
+}*/
 </script>
