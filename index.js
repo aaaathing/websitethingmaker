@@ -2416,6 +2416,8 @@ function setPassword(username,pwd){
   })
 }
 
+//require("./public/save-mk-indexed-db")
+
 let serverPort = app.listen(8080, '0.0.0.0', function(){
   Log("Server running");
 	console.log("server running")
@@ -2460,7 +2462,7 @@ class WebSocketRoom{
         var idx = room.connections.indexOf(connection)
         room.connections.splice(idx,1)
       })
-    }else request.reject()
+    }//else request.reject()
   }
 }
 const wsServer = new WebSocketServer({

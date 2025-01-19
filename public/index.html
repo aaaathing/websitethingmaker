@@ -204,7 +204,13 @@ body[theme=dark] #links a.no{
 	<p>If you have stories/memories that can be added to the history page, put them or a link to them in <a href="/posts">posts</a>.</p>
 	<h2>How to get old worlds</h2>
 <div style="white-space: pre;">
-This only works if you used to go to <b>minekhan.thingmaker.repl.co</b> or <b>play.minekhan.repl.co</b>
+If you used chrome, go to <b>chrome://indexeddb-internals/#minekhan.thingmaker.repl.co</b> or <b>chrome://indexeddb-internals/#play.minekhan.repl.co</b>
+Wait for it to load
+Click download (at the bottom of the list)
+Use <a href="/save-mk-indexed-db.html">this tool</a> to get and save the worlds
+Or unzip the zip file
+
+<!--This only works if you used to go to <b>minekhan.thingmaker.repl.co</b> or <b>play.minekhan.repl.co</b>
 This also requires access to devtools.
 
 Go to minekhan.thingmaker.repl.co or the other one.
@@ -216,7 +222,7 @@ Paste this in console and optionaly check for bad things:
 <textarea>
 let or=indexedDB.open("MineKhan");or.onsuccess = e => { let db = or.result;let trans = db.transaction('worlds', "readonly");let store = trans.objectStore('worlds'); let req = store.getAll(); req.onsuccess=()=>{ for(let i of req.result){ var link = document.createElement("a"); link.download = i.data.name+'.minekhan'; link.href = URL.createObjectURL(new Blob([JSON.stringify(i.data)])); link.click(); Object.revokeObjectURL(link.href); } }}
 </textarea>
-The files should have been downloaded afterwards.
+The files should have been downloaded afterwards.-->
 </div>
 
 		
