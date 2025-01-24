@@ -30,6 +30,7 @@ if(process.argv[3] === "auto"){
 }else (async function() {
 for(let f of files){
 	let o = index[f] || {}
+	if(index[f])continue
 	let a=await question(f+" created? ")
 	if(a) o.created = a
 	else continue
