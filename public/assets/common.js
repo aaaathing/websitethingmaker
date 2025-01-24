@@ -2,7 +2,7 @@
 /*
 This script is used in most pages of this website
 
-It also contains code that used to be used when there was login but is not used now
+Most code here is by thingmaker (thingmaker.us.eu.org)
 */
 
 /*const origin = "https://aaaathing.github.io"
@@ -142,7 +142,7 @@ var navbar = document.createElement("div");
 navbar.className = "navbar navbarStick"
 
 navbar.innerHTML = `
-  <a class="logo" href="/">My website</a>
+  <a class="logo" href="/"><span style="font-size:50%;transform:scaleY(2);display:inline-block;">Many things website</span></a>
   <div class="search-container">
     <form action="/search">
       <input type="text" placeholder="Search..." name="q">

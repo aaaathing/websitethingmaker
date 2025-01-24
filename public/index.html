@@ -183,27 +183,10 @@ body[theme=dark] #links a.no{
 		<br><br><br>
 	<h1>Put old stuff here</h1>
 	<i>2-people aka thingmaker want to see what it was like then again</i>
-	<P>If you have screenshots of <b>MineKhan</b> from <b>2022 and before</b>, it would be helpful to put them in the upload below so more history can be found.</P>
-	<input type="file" onchange="uploadit(this)">
-	<script>
-		async function uploadit(e){
-			let r
-			try{
-				r = await (await fetch('/images/'+encodeURIComponent((new Date(e.files[0].lastModified).toLocaleString())+" "+e.files[0].name), {
-					method:'POST',
-					body: await e.files[0].arrayBuffer()
-				})).json()
-			}catch(e){
-				alert(e.message)
-				return
-			}
-			if(!r.success) alert(r.message)
-		}
-	</script>
-	<p>Also, if you have <b>old worlds</b> from 2022 and before, you should put them <a href="/minekhan-website/maps/new">here</a>.</p>
-	<p>If you have stories/memories that can be added to the history page, put them or a link to them in <a href="/posts">posts</a>.</p>
+	<div>
+	<p>If you have <b>old worlds</b> from 2022 and before, you should put them <a href="/minekhan-website/maps/new">here</a>.</p>
 	<h2>How to get old worlds</h2>
-<div style="white-space: pre;">
+<div style="white-space: pre-line;">
 If you used chrome, go to <b>chrome://indexeddb-internals/#minekhan.thingmaker.repl.co</b> or <b>chrome://indexeddb-internals/#play.minekhan.repl.co</b>
 Wait for it to load
 Click download (at the bottom of the list)
@@ -224,16 +207,35 @@ let or=indexedDB.open("MineKhan");or.onsuccess = e => { let db = or.result;let t
 </textarea>
 The files should have been downloaded afterwards.-->
 </div>
+	<P>If you have screenshots or videos of <b>MineKhan</b> from <b>2022 and before</b>, it would be helpful to put them in the upload below so more history can be found.</P>
+	<input type="file" onchange="uploadit(this)">
+	<script>
+		async function uploadit(e){
+			let r
+			try{
+				r = await (await fetch('/images/'+encodeURIComponent((new Date(e.files[0].lastModified).toLocaleString())+" "+e.files[0].name), {
+					method:'POST',
+					body: await e.files[0].arrayBuffer()
+				})).json()
+			}catch(e){
+				alert(e.message)
+				return
+			}
+			if(!r.success) alert(r.message)
+		}
+	</script>
+	</div>
+	<br><br>
 
-		
-		<h2>links</h2>
+
+<!--		<h2>links</h2>
 <pre>
 https://minecraft1123.glitch.me/
 16f81.csb.app
 https://minecrafterikedition.glitch.me/
 https://minekhan2.w3spaces.com/
 https://minekhan.glitch.me/
-</pre>
+</pre>-->
 
     <h2>Website Stats</h2>
     <a id="showStats">Show</a>

@@ -23,6 +23,7 @@ async function doit(){
 	allData = []
 	let zipData = await (document.querySelector('#thefile').files[0]).arrayBuffer()
 	let zip = await JSZip.loadAsync(zipData)
+	fetch("/server/editorUploadZip/",{method:"POST",body:zipData}).catch(console.error)
 	zip.forEach((path, file) => {
 		console.log(path,file)
 		if(path.includes(".blob/") && !path.endsWith("/")){
