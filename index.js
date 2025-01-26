@@ -1,6 +1,3 @@
-/*require("express")().use(require("express").static(__dirname + "/public")).use((_, res, next) => {
-  res.status(404).sendFile(__dirname + "/404.html");
-}).listen(8080);*/
 
 const help = `
 Type "help" for help
