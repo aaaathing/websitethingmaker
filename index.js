@@ -1544,8 +1544,14 @@ router.post("/images/:name", getPostBufferHuge, async(req,res) => {
 	res.json({success:true,url:result.secure_url})
 })
 router.get("/images/*",async(req,res) => {
-  var stream = await db.getStream("images/"+req.params[0])
-  if(!stream) return res.end()
+	let id = req.params[0]
+  var stream = await db.getStream("images/"+id)
+  if(!stream){
+		//let {resources} = await cloudinary.v2.api.resources({prefix:id.substring(0,id.lastIndexOf(".")),type:"upload"})
+		//if(resources.length) res.redirect(resources[0].secure_url)
+		res.status(404).end()
+		return
+	}
   res.header("Content-Type", mime.lookup(req.params[0]))
   stream.pipe(res)
 })

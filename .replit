@@ -30,3 +30,14 @@ externalPort = 3001
 [[ports]]
 localPort = 8080
 externalPort = 80
+
+[workflows]
+
+[[workflows.workflow]]
+name = "run all"
+mode = "sequential"
+author = 7458955
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "node index.js runall"

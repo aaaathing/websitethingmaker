@@ -1,0 +1,276 @@
+<!--
+by thingmaker. https://thingmaker.us.eu.org
+
+Feb 9, 2025, 4:36 pm:
+Basic things like setAttribute and getAttribute and terrain and ball and objects move
+
+Feb 10, 2025, 6pm:
+Add collide and collideBalls
+7:50 pm:
+Fix objects keep moving right
+
+Feb 11, 2025, 4 pm:
+Added bad water, player
+Changed sky color, friction and gravity
+Make terrain a circle
+-->
+<!doctype html>
+<style>
+	body{margin:0;}
+	canvas{display:block;}
+	.hidden{display:none;}
+</style>
+<button style="position:absolute;top:16px;left:0;" onclick="document.querySelector('#how').classList.toggle('hidden')">How</button>
+<div style="position:absolute;top:25%;left:25%;width:50%;height:50%;background:#fff8;padding:16px;" class="hidden" id="how">
+Press arrow keys to move<br>
+Click 'How' to close this<br>
+<br><br><br>
+I would like to make a 3d game using small voxels with realistic physics. minekhan does not count because it has big blocks and is unrealistic. I probably should not do it all by myself. I already tried 3 times since 2024. who can help me do it? I would like to make something like this: https://www.youtube.com/watch?v=1R5WFZk86kE
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.2/p5.min.js" integrity="sha512-1YMgn4j8cIL91s14ByDGmHtBU6+F8bWOMcF47S0cRO3QNm8SKPNexy4s3OCim9fABUtO++nJMtcpWbINWjMSzQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script type="module">
+	import * as bvh from "https://cdn.jsdelivr.net/npm/bvh.js@0.0.13/+esm"
+	class PObject{
+		// attribute functions (engine) should be seperated from connection functions (game)
+		chunks = new Map()
+		x = 0
+		y = 0
+		minX = Infinity // doesn't change when deleting yet
+		minY = Infinity
+		maxX = -Infinity
+		maxY = -Infinity
+		velx = 0
+		vely = 0
+		connections = []
+		setAttribute(x,y,name,value){
+			let chunk = this.chunks.get(`${x>>4},${y>>4}`)
+			if(!chunk){
+				this.chunks.set(`${x>>4},${y>>4}`, chunk = {})
+				chunk.x = x&~15, chunk.y = y&~15
+			}
+			if(!chunk[name]) chunk[name] = new Array(256)
+			chunk[name][(x&15)<<4 | (y&15)] = value
+
+			if(x<this.minX) this.minX = x
+			if(y<this.minY) this.minY = y
+			if(x>this.maxX) this.maxX = x
+			if(y>this.maxY) this.maxY = y
+		}
+		getAttribute(x,y,name){
+			let chunk = this.chunks.get(`${x>>4},${y>>4}`)
+			return chunk?.[name]?.[(x&15)<<4 | (y&15)]
+		}
+		connect(x,y,otherObject,otherX,otherY){
+			for(let i=0; i<this.connections.length; i++){
+				if(this.connections[i].x === x && this.connections[i].y === y){
+					this.connections[i] = {x,y,otherObject,otherX,otherY}
+					break
+				}
+			}
+			this.connections.push({x,y,otherObject,otherX,otherY})
+		}
+		disconnect(x,y){
+			for(let i=0; i<this.connections.length; i++){
+				if(this.connections[i].x === x && this.connections[i].y === y){
+					this.connections.splice(i,1)
+					break
+				}
+			}
+		}
+		move(){
+			this.vely -= 0.05
+			this.velx *= 0.95
+			this.vely *= 0.95
+			this.x += this.velx
+			this.y += this.vely
+		}
+	}
+	function collideBalls(x1,y1, x2,y2, o1,o2){
+		let dx = x2-x1, dy = y2-y1
+		const curR = 0.5, otherR = 0.5
+		let sqdist = dx*dx+dy*dy, minSqDist = (curR+otherR)**2
+		if(sqdist<minSqDist && sqdist){
+			let mag = Math.sqrt(sqdist)
+			const nx = dx/mag, ny = dy/mag
+			const curMass = o1.noMove?Infinity:curR*curR, otherMass = o2.noMove?Infinity:otherR*otherR
+			let curMassAmount = o1.noMove ? 1 : curMass/(curMass+otherMass)
+			let otherMassAmount = o2.noMove ? 1 : otherMass/(curMass+otherMass)
+			o1.x -= (nx-dx)*otherMassAmount||0
+			o1.y -= (ny-dy)*otherMassAmount||0
+			o2.x += (nx-dx)*curMassAmount||0
+			o2.y += (ny-dy)*curMassAmount||0
+			let curDot = o1.velx*nx+o1.vely*ny
+			let otherDot = o2.velx*nx+o2.vely*ny
+			let dx2 = nx*(curDot-otherDot), dy2 = ny*(curDot-otherDot)
+			o1.velx -= dx2*otherMassAmount||0, o1.vely -= dy2*otherMassAmount||0
+			o2.velx += dx2*curMassAmount||0, o2.vely += dy2*curMassAmount||0
+		}
+	}
+	function collide(o1, o2){
+		if(o1.chunks.size > o2.chunks.size){
+			let t = o1
+			o1 = o2, o2 = t
+		}
+		for(let [i, chunk] of o1.chunks){
+			for(let x=0; x<16; x++) for(let y=0; y<16; y++) {
+				let x2 = Math.floor(x+chunk.x + o1.x - o2.x)
+				let y2 = Math.floor(y+chunk.y + o1.y - o2.y)
+				if(o1.getAttribute(x+chunk.x,y+chunk.y,"solid")){
+					if(o2.getAttribute(x2,y2,"solid")) collideBalls(x+chunk.x+o1.x,y+chunk.y+o1.y, x2+o2.x,y2+o2.y, o1,o2)
+					if(o2.getAttribute(x2+1,y2,"solid")) collideBalls(x+chunk.x+o1.x,y+chunk.y+o1.y, x2+o2.x+1,y2+o2.y, o1,o2)
+					if(o2.getAttribute(x2,y2+1,"solid")) collideBalls(x+chunk.x+o1.x,y+chunk.y+o1.y, x2+o2.x,y2+o2.y+1, o1,o2)
+					if(o2.getAttribute(x2+1,y2+1,"solid")) collideBalls(x+chunk.x+o1.x,y+chunk.y+o1.y, x2+o2.x+1,y2+o2.y+1, o1,o2)
+				}
+			}
+		}
+	}
+
+	function makeTerrain(){
+		noiseDetail(4)
+		noiseSeed()
+		let o = new PObject()
+		o.noMove = true
+		for(let x=-128; x<128; x++){
+			let maxY
+			for(let y=-128; y<128; y++){
+				if(noise(x/16,y/16) + (x/128)**2+(y/128)**2 < 1){
+					o.setAttribute(x,y,"stone",1)
+					let stonecolor = noise(x/4,y/4)
+					o.setAttribute(x,y,"color",color(stonecolor*80+120,stonecolor*60+120,stonecolor*100+120))
+					o.setAttribute(x,y,"solid",1)
+					maxY = y
+				}
+			}
+			if(maxY){
+				let ghb = maxY+1
+				let gh = ghb+random()*4
+				let gc = random(), gc1 = color(100,gc*30+200,100), gc2 = color(98,gc*30+180,45)
+				for(let y=ghb; y<gh; y++){
+					o.setAttribute(x,y,"grass",1)
+					o.setAttribute(x,y,"color", lerpColor(gc1,gc2,map(y,ghb,gh,0,1)))
+				}
+			}
+		}
+		return o
+	}
+	function makeBall(x,y,r){
+		let o = new PObject()
+		noiseSeed()
+		noiseDetail(1)
+		o.x = x, o.y = y
+		for(let x=-r; x<r; x++){
+			for(let y=-r; y<r; y++){
+				if(x*x+y*y < r*r){
+					o.setAttribute(x,y,"wood",1)
+					let woodcolor = noise(y*2 + noise(x/2,y/2)*8)
+					o.setAttribute(x,y,"color", lerpColor(color(200,150,50), color(255,220,180), woodcolor))
+					o.setAttribute(x,y,"solid",1)
+				}
+			}
+		}
+		return o
+	}
+	function makeWater(x,y){
+		let o = new PObject()
+		o.setAttribute(0,0,"water",1)
+		o.setAttribute(0,0,"color", color(50,50,random(230,255)))
+		o.setAttribute(0,0,"solid",1)
+		o.x = x, o.y = y
+		return o
+	}
+	function makePlayer(x,y){
+		let o = new PObject()
+		o.x = x, o.y = y
+		for(let x=-2; x<2; x++){
+			for(let y=-2; y<2; y++){
+				o.setAttribute(x,y,"color", color(255,160,160))
+				o.setAttribute(x,y,"solid",1)
+			}
+		}
+		return o
+	}
+	let player
+	function initObjects(){
+		addObject(makeTerrain())
+		player = makePlayer(10,150)
+		cx = player.x, cy = player.y
+		addObject(player)
+		addObject(makeBall(-40.1,150,4))
+		addObject(makeBall(-37.1,160,5))
+		addObject(makeBall(40,150,5))
+		addObject(makeBall(40,160,2))
+		for(let i=0; i<100; i++) addObject(makeWater(random(-50,0),random(160,170)))
+	}
+
+	function drawObject(o){
+		noStroke()
+		translate(o.x, o.y)
+		for(let x=max(o.minX,floor(drawMinX-o.x)); x<=min(o.maxX,ceil(drawMaxX-o.x)); x++)
+		for(let y=max(o.minY,floor(drawMinY-o.y)); y<=min(o.maxY,ceil(drawMaxY-o.y)); y++) {
+			let c = o.getAttribute(x,y,"color")
+			if(c){
+				fill(c)
+				rect(x, y, 1,1)
+			}
+		}
+		translate(-o.x, -o.y)
+	}
+	let objects = [], objectsBvh = new bvh.BVH(new bvh.HybridBuilder())
+	window.objects = objects, window.objectsBvh = objectsBvh
+	function addObject(o){
+		objects.push(o)
+		o.bvhNode = objectsBvh.insert(o, [o.x+o.minX,o.x+o.maxX,o.y+o.minY,o.y+o.maxY,0,0], 1)
+	}
+	function moveObject(o){
+		o.bvhNode.box[0] = o.x+o.minX, o.bvhNode.box[1] = o.x+o.maxX, o.bvhNode.box[2] = o.y+o.minY, o.bvhNode.box[3] = o.y+o.maxY
+		objectsBvh.move(o.bvhNode, 1)
+	}
+	function collideAllObject(o1){
+		objectsBvh.intersectsBox(o1.bvhNode.box, o2 => {
+			if(o1 !== o2) collide(o1,o2)
+		})
+	}
+
+	onresize = function(){
+		resizeCanvas(innerWidth,innerHeight)
+	}
+	window.setup = function(){
+		onresize()
+		initObjects()
+	}
+	let cx = 0, cy = 0, cscale = 16, drawMinX, drawMinY, drawMaxX, drawMaxY
+	let lastTime = 0, lastFps = 0, lastFrame = 0
+	window.draw = function(){
+		background(180,220,255)
+
+		if(keyIsDown(LEFT_ARROW)) player.velx -= 0.05
+		if(keyIsDown(RIGHT_ARROW)) player.velx += 0.05
+		if(keyIsDown(UP_ARROW)) player.vely += 0.1
+		if(keyIsDown(DOWN_ARROW)) player.vely -= 0.05
+		cx += (player.x-cx)*0.1
+		cy += (player.y-cy)*0.1
+		drawMinX = cx - width/2/cscale
+		drawMinY = cy - height/2/cscale
+		drawMaxX = cx + width/2/cscale
+		drawMaxY = cy + height/2/cscale
+
+		translate(width/2,height/2)
+		scale(cscale,-cscale)
+		translate(-cx,-cy)
+		for(let o of objects){
+			if(!o.noMove) o.move(), moveObject(o)
+		}
+		for(let o of objects) collideAllObject(o)
+		for(let o of objects) drawObject(o)
+
+		resetMatrix()
+		let now = millis()
+		if(now-lastTime > 500){
+			lastFps = (frameCount-lastFrame)*1000/(now-lastTime)
+			lastTime = now
+			lastFrame = frameCount
+		}
+		fill(0)
+		text("fps: "+lastFps, 10,10)
+	}
+</script>

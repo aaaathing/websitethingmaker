@@ -45,5 +45,6 @@
 	"Grapher":{"url":"/grapher", "interesting":true},
 	"Bitmap font generator":{"url":"/bitmap-font-generator.html"},
 	"life":{"url":"/stuff/life.html", "interesting":true},
-	"Stuff":{"url":"/stuff", "interesting":true}
+	"Stuff":{"url":"/stuff", "interesting":true},
+	"bending pixels":{"url":"/stuff/bending pixels.html", "interesting":true}
 }
