@@ -2141,7 +2141,7 @@ router.post("/server/know/openWorld",getPostText,async(req,res) => {
 
 router.post("/minekhan/know/error",getPostText,async(req,res) => {
 	rateLimit(request,undefined,0.01)
-  Log("MineKhan:","error:",req.username+":"+req.who.id,cap(req.body,800))
+  Log("MineKhan:","error:",req.username+":"+req.who.id,where(req),cap(req.body,800))
   res.send("done")
 })
 
