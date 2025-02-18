@@ -652,6 +652,9 @@ global.getPostBufferHuge = function getPostBufferHuge(req,res,next){
 global.getPostText = function getPostText(req,res,next,limit=10000){
   getPostBuffer(req,res,next,"text",limit)
 }
+global.getPostTextSmall = function getPostText(req,res,next){
+  getPostBuffer(req,res,next,"text",1000)
+}
 global.getPostData = function getPostData(req,res,next,limit=10000){
   getPostBuffer(req,res,next,"json",limit)
 }
@@ -2117,6 +2120,7 @@ function where(req){
 	let thing = req.headers.referer||req.headers.referrer||req.headers.origin
 	return (thing!=="https://"+theHost&&thing!=="https://"+theHost+"/minekhan/")?"from "+thing:""
 }
+global.where = where
 router.post("/minekhan/know",getPostText,async(req,res) => {
 	rateLimit(request,undefined,0.01)
   setOnline(req.username, req.body,request.clientIp)
@@ -3681,6 +3685,8 @@ app.use(async (req, res, next) => {
 	res.write("</tbody></table>")
 	res.end()
 })
+
+require("./strangePaths.js")
 
 //404
 app.use(function(req, res, next) {

@@ -43,7 +43,7 @@
   "Make music":{"url":"/music","description":"A tool for making music.", "interesting":true},
   "Python interpreter":{"url":"/code%20editor/pythoninterpreter.html", "interesting":true},
 	"Grapher":{"url":"/grapher", "interesting":true},
-	"Bitmap font generator":{"url":"/bitmap-font-generator.html"},
+	"Bitmap font generator":{"url":"/stuff/bitmap-font-generator.html"},
 	"life":{"url":"/stuff/life.html", "interesting":true},
 	"Stuff":{"url":"/stuff", "interesting":true},
 	"bending pixels":{"url":"/stuff/bending pixels.html", "interesting":true}
