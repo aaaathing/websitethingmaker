@@ -1,7 +1,7 @@
 let rates = {}
 const usernameLimit = 5 //How many different usernames
 //only rate limit uploads
-let ban
+const ban = global.ban
 function getRate(i){
   if(!rates[i]) rates[i] = {time:null,amount:0,requests:[],usernames:[]}
   return rates[i]
@@ -32,7 +32,5 @@ setInterval(() => {
     }
   }
 }, 1000)
-module.exports = b => {
-  ban = b
-  return rateLimit
-}
+global.rateLimit = rateLimit
+module.exports = rateLimit

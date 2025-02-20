@@ -109,7 +109,7 @@ app.use(requestIp.mw())
 const mime = require('mime-types')
 const crypto = require("crypto")
 const fetch = require('@replit/node-fetch')
-const rateLimit = require("./rateLimit.js")(ban); global.rateLimit = rateLimit
+const rateLimit = require("./rateLimit.js")
 const { createCanvas, Image } = require('canvas')
 //const nocache = require('nocache')
 const { request } = require("http")
@@ -305,6 +305,7 @@ async function ban(username, reason, unbanTime, ip, mode){
 	banned.add(who)
 	Log(username+" was banned.")
 }
+global.ban = ban
 async function unban(username){
 	let who = lastOnlineCategories.u.get(username)
 	if(!who.banned) return Log(username+" not banned")
@@ -1653,6 +1654,8 @@ router.post("/server/editPost/*", getPostData, async(req, res) => {
 
   post.content = req.body.content
 	post.bg = req.body.bg
+	if(!post.editTimestamp) post.editTimestamp = []
+	post.editTimestamp.push(Date.now())
   if(post.followers){
     for(var i=0; i<post.followers.length; i++){
       if(post.followers[i] !== req.username){
