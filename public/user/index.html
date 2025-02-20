@@ -129,9 +129,8 @@
       var username = urlParams.get("user")
       var commentEl = document.querySelector("#comments")
       var commentBox = document.querySelector("#commentTextbox .comment-box")
-      let timeOffset, yourUsername, you, allComments = [], timeInterval
+      let yourUsername, you, allComments = [], timeInterval
       async function fetchUser(){
-        timeOffset = await getLocalTime()
         yourUsername = userInfo && userInfo.username
         you = userInfo
         fetch('/server/account/'+escape(unescape(username)),{
@@ -152,10 +151,10 @@
 						document.body.classList.add("bgImg")
           }
           if(data.timestamp){
-            document.querySelector("#created").innerHTML = "Account created: "+timeString(data.timestamp+timeOffset)
+            document.querySelector("#created").innerHTML = "Account created: "+timeString(data.timestamp)
           }
           if(data.lastActive){
-            document.querySelector("#active").innerHTML = "Last active: "+timeString(data.lastActive+timeOffset)
+            document.querySelector("#active").innerHTML = "Last active: "+timeString(data.lastActive)
           }
           if(data.bio){
             document.querySelector("#bio").innerHTML = "<b>"+username+"</b> - "+format(data.bio)
@@ -182,13 +181,13 @@
           if(timeInterval !== undefined) clearInterval(timeInterval)
           timeInterval = setInterval(() => {
             if(data.timestamp){
-              document.querySelector("#created").innerHTML = "Account created: "+timeString(data.timestamp+timeOffset)
+              document.querySelector("#created").innerHTML = "Account created: "+timeString(data.timestamp)
             }
             if(data.lastActive){
-              document.querySelector("#active").innerHTML = "Last active: "+timeString(data.lastActive+timeOffset)
+              document.querySelector("#active").innerHTML = "Last active: "+timeString(data.lastActive)
             }
             for(let c of allComments){
-              let time = document.querySelector("#comment"+c.id+" .time").innerHTML = timeString(c.timestamp+timeOffset)
+              let time = document.querySelector("#comment"+c.id+" .time").innerHTML = timeString(c.timestamp)
             }
           },10000)
 
@@ -271,7 +270,7 @@ ${map.name.replace(/_/g," ")}
           credentials: 'include'
         }).then(r => r.json()).then(r => {
           if(r.success){
-            //addComment({id:r.id,username:yourUsername,timestamp:Date.now()-timeOffset,comment:c})
+            //addComment({id:r.id,username:yourUsername,timestamp:Date.now(),comment:c})
             document.querySelector("#commentTextbox .comment-box").value = ""
             document.querySelector("#commentTextbox .comment-previewBox").innerHTML = ""
           }else{
@@ -289,7 +288,7 @@ ${map.name.replace(/_/g," ")}
         "<div class='top'><a class='user' href='user?user="+c.username+"'>"
         +"<img class='pfp' src='/server/pfp/"+c.username+"' loading='lazy'>"
         +"<span class='username'>"+c.username+"</span></a>"
-        +"<span class='right time' style='padding:0 8px;'>"+timeString(c.timestamp+timeOffset)+"</span>"
+        +"<span class='right time' style='padding:0 8px;'>"+timeString(c.timestamp)+"</span>"
         +(yourUsername === c.username || yourUsername === username || you && you.admin ? "<a class='right' onclick='deleteComment(\""+c.id+"\")'>Delete</a>" : "")
         +"</div>"
         +"<div class='commentCotent format'>"+format(c.comment)+"</div>"

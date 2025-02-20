@@ -208,9 +208,8 @@
         follow(!following)
       }
 
-      let timeOffset, allComments = [], timeInterval
+      let allComments = [], timeInterval
       async function fetchPost(){
-        timeOffset = await getLocalTime()
       fetch("/server/post/"+id).then(r =>  r.json()).then(async d => {
         if(!d) return location.href = "/posts"
         myUsername = userInfo && userInfo.username
@@ -224,7 +223,7 @@
 
         document.title = "Post: "+d.title
         document.querySelector("#title").innerHTML = sanitize(d.title)
-        document.querySelector("#timestamp").innerHTML = timeString(d.timestamp+timeOffset)
+        document.querySelector("#timestamp").innerHTML = timeString(d.timestamp)
         document.querySelector("#by").innerHTML = "by <a href='/user?user="+d.username+"'><img src='"+sanitize(user && user.pfp)+"'>"+d.username+"</a>"
         enableUserPopup(document.querySelector("#by a"), d.username)
         if(user) makeVotes(document.querySelector("#vote"),user,myUsername)
@@ -244,10 +243,10 @@
         }
         if(timeInterval !== undefined) clearInterval(timeInterval)
         timeInterval = setInterval(() => {
-          document.querySelector("#timestamp").innerHTML = timeString(d.timestamp+timeOffset)
+          document.querySelector("#timestamp").innerHTML = timeString(d.timestamp)
           for(let c of allComments){
             if(!c.timestamp) continue
-            let time = document.querySelector("#comment"+c.id+" .time").innerHTML = timeString(c.timestamp+timeOffset)
+            let time = document.querySelector("#comment"+c.id+" .time").innerHTML = timeString(c.timestamp)
           }
         },10000)
 
@@ -291,7 +290,7 @@
           credentials: 'include'
         }).then(r => r.json()).then(r => {
           if(r.success){
-            //addComment({id:r.id,username:myUsername,timestamp:Date.now()-timeOffset,comment:c})
+            //addComment({id:r.id,username:myUsername,timestamp:Date.now(),comment:c})
             commentBox.value = ""
             //previewBox.innerHTML = ""
           }else{
@@ -309,7 +308,7 @@
         "<div class='top'><a class='user' href='user?user="+c.username+"'>"
         +"<img class='pfp' src='/server/pfp/"+c.username+"' loading='lazy'>"
         +"<span class='username'>"+c.username+"</span></a>"
-        +"<span class='right time' style='padding:0 8px;'>"+(c.timestamp ? timeString(c.timestamp+timeOffset) : "")+"</span>"
+        +"<span class='right time' style='padding:0 8px;'>"+(c.timestamp ? timeString(c.timestamp) : "")+"</span>"
         +(myUsername === c.username || myUsername === postUsername || userInfo && userInfo.admin ? "<a class='right' onclick='deleteComment(\""+c.id+"\")'>Delete</a>" : "")
         +"</div>"
         +"<div class='commentCotent format'>"+format(c.comment)+"</div>"

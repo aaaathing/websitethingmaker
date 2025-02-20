@@ -56,7 +56,7 @@
       var log = document.querySelector("#log")
 			let lastTime
       function load(){
-        var options = "?time="+(new Date().getTimezoneOffset())
+        var options = "?timeZone="+encodeURIComponent(Intl.DateTimeFormat().resolvedOptions().timeZone)
         if(!document.querySelector("#minekhan").checked) options += "&nominekhan=true"
         fetch("/log"+options).then(r=>r.text()).then(r => {
           log.innerHTML = r

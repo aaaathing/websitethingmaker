@@ -853,10 +853,16 @@ router.get("/test", function(req,res){
 router.get('/log', async(req,res,next) => {
   if(!req.isAdmin) return next()
 	let now = Date.now()
-  let time = ((new Date().getTimezoneOffset()-parseInt(req.query.time)))*MINUTE
-  let str = ""
+  let format = new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    second:"2-digit",
+    timeZone: req.query.timeZone
+  })
   if(!log || !log.length){
-    str += "Empty"
+    res.write("Empty")
   }else{
     let temptime = ""
     for(let v of log){
@@ -866,13 +872,7 @@ router.get('/log', async(req,res,next) => {
         continue
       }
       if(typeof v === "number"){
-        temptime += (new Date(v+time).toLocaleDateString(undefined, {
-          month: "short",
-          day: "numeric",
-          hour: "numeric",
-          minute: "2-digit",
-          second:"2-digit"
-        }))
+        temptime += format.format(v)
       }else{
         /*v.forEach((r,i) => {
           if(!i){
@@ -885,20 +885,14 @@ router.get('/log', async(req,res,next) => {
             }))+" |"
           }else str += " "+valueToString(r,undefined,v)
         })*/
-        str += temptime+v+"<br>"
+        res.write(temptime+v+"<br>")
         temptime = ""
       }
     }
   }
-  str += "<br>Banned: "+banned.size+" | Cached: "+Object.keys(db.timeouts).length
-  str += "<br> Time: "+(new Date(now+time).toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-    second:"2-digit"
-  }))+" | time:"+(now+time)
-  res.send(str)
+  res.write("<br>Banned: "+banned.size+" | Cached: "+Object.keys(db.timeouts).length)
+  res.write("<br> Time: "+format.format(now)+" | time:"+now)
+  res.end()
 })
 router.get("/banned", (req,res) => {
   res.send("People banned:<br>"+getBanned().replace(/\n/g,"<br>").replace(/\t/g,"&nbsp;&nbsp;&nbsp;&nbsp;"))
