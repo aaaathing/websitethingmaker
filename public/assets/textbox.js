@@ -159,6 +159,7 @@ ${buttonText ? `<button onclick="comment()" class="comment-button">${buttonText}
   addFormatButton("Link", () => addToComment(`<a href='${prompt("URL for link")}'>Link</a>`))
   addFormatButton("Code", () => addToComment(`<code codeType="javascript">//Code here</code>`))
   addFormatButton("Inline code", () => addToComment(`<code codeType="javascript" inline>//Code here</code>`))
+  addFormatButton("Blocks", () => addToComment(`<scratchblocks data-style="scratch3" data-scale="1">\nCode here\nwait(10)seconds\n</code>`))
 
   if(me.parentNode){
     me.parentNode.insertBefore(el,me)

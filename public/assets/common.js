@@ -780,6 +780,16 @@ function formatElcb(el){
     }
     return true
   }
+	if(name === "scratchblocks"){
+		if(window.scratchblocks){
+			let code = el.textContent
+			let options = el.dataset
+			let doc = scratchblocks.parse(code, options)
+			let svg = scratchblocks.render(doc, options)
+			el.replaceChildren(svg)
+		}
+		return true
+	}
 	/*if(name === "panorama"){
 		createPanorama(el,el.getAttribute("panoramaShape"),el.getAttribute("src"))
 		return true
@@ -831,6 +841,10 @@ HTMLSafeAttributes.add("notcode")
 HTMLSafeAttributes.add("inline")
 HTMLSafeAttributes.add("loading")
 HTMLSafeAttributes.add("preload")
+HTMLSafeElements.add("scratchblocks")
+HTMLSafeAttributes.add("data-style")
+HTMLSafeAttributes.add("data-scale")
+HTMLSafeAttributes.add("data-inline")
 
 let remove = (function(){ //wow, this is a really advanced filter
   var arr = [//if you update this, also update one on website
@@ -982,13 +996,17 @@ var prismVersion = "9000.0.1"
 
 var script = document.createElement("script")
 script.src = "https://cdnjs.cloudflare.com/ajax/libs/prism/"+prismVersion+"/prism.min.js"
-document.currentScript.appendChild(script)
+document.body.appendChild(script)
 
 var prismTheme = localStorage.getItem("theme") === "dark" ? "prism-dark" : "prism"
 var link = document.createElement("link")
 link.rel = "stylesheet"
 link.href = "https://cdnjs.cloudflare.com/ajax/libs/prism/"+prismVersion+"/themes/"+prismTheme+".min.css"
 document.head.appendChild(link)
+
+var script = document.createElement("script")
+script.src = "https://cdn.jsdelivr.net/npm/scratchblocks@3.6.4/build/scratchblocks.min.js"
+document.body.appendChild(script)
 
 var style = document.createElement('style')
 style.innerHTML = `
