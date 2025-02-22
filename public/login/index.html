@@ -79,11 +79,11 @@
           <input id="username" type="username" class="round">
           <button onclick="randomUsername()" id="randomBtn" type="button">Random</button>
           <br><br>
-          <div id="emailContainer">
+          <!--<div id="emailContainer">
             <label for="email">Email (optional, for password reset)</label><br>
             <input id="email" type="email" class="round">
             <br><br>
-          </div>
+          </div>-->
           <label for="password"></label><br>
           <input id="password" type="password" class="round" autocomplete="current-password">
           <br><br>
@@ -125,7 +125,7 @@
         if(type === "login"){
           document.querySelector("#loginBtn").classList.remove("hidden")
           document.querySelector("#createBtn").classList.add("hidden")
-          document.querySelector("#emailContainer").classList.add("hidden")
+          //document.querySelector("#emailContainer").classList.add("hidden")
           document.querySelector("#randomBtn").classList.add('hidden')
           document.querySelector("label[for=username]").textContent = "Username"
           document.querySelector("label[for=password]").textContent = "Password"
@@ -134,7 +134,7 @@
         }else if(type === "register"){
           document.querySelector("#loginBtn").classList.add("hidden")
           document.querySelector("#createBtn").classList.remove("hidden")
-          document.querySelector("#emailContainer").classList.remove("hidden")
+          //document.querySelector("#emailContainer").classList.remove("hidden")
           document.querySelector("#randomBtn").classList.remove('hidden')
           document.querySelector("label[for=username]").textContent = "Create Username"
           document.querySelector("label[for=password]").textContent = "Create Password"

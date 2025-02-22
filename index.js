@@ -182,8 +182,10 @@ function waitToRestart(){
 	console.log("waiting to restart")
   serverPort.close()
 	updateOnline()
+	let j=0
   setInterval(() => {
-    for(let i in db.timeouts){
+		j++
+    if(j<20) for(let i in db.timeouts){
       if(db.timeouts[i].operation) return
     }
 		console.log("restarting")

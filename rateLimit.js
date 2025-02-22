@@ -1,7 +1,6 @@
 let rates = {}
 const usernameLimit = 5 //How many different usernames
 //only rate limit uploads
-const ban = global.ban
 function getRate(i){
   if(!rates[i]) rates[i] = {time:null,amount:0,requests:[],usernames:[]}
   return rates[i]
