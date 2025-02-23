@@ -1525,14 +1525,15 @@ router.post("/images/:name", getPostBufferHuge, async(req,res) => {
 
 	let duplicates = await cloudinary.v2.api.resources_by_context("hash", realHash)
 	if(duplicates.resources.length){
-		Log("Image reuse: "+duplicates.resources[0].public_id, "uploaded name: "+req.params.name)
+		Log("Image reuse: ", duplicates.resources[0].public_id, "| uploaded name: "+req.params.name, "| by", req.username)
 		return res.json({success:true,url:duplicates.resources[0].secure_url})
 	}
+	//let name = req.params.name.replace(/[\/?:;\\|#%&]/g,"_")
 	
 	let result = await new Promise((resolve) => {
     cloudinary.v2.uploader.upload_stream({
 			unique_filename:true,
-			public_id: req.params.name.replace(/[\/?:;\\|#%&]/g,"_"),
+			//public_id: name,
 			resource_type:"auto",
 			context: "hash="+realHash
 		}, (error, uploadResult) => {
@@ -1540,7 +1541,7 @@ router.post("/images/:name", getPostBufferHuge, async(req,res) => {
 			return resolve(uploadResult);
     }).end(req.body);
 	})
-	Log("Image: "+result.public_id, "uploaded name: "+req.params.name)
+	Log("Image:", result.public_id, "| uploaded name: "+req.params.name, "| by", req.username)
 	res.json({success:true,url:result.secure_url})
 })
 router.get("/images/*",async(req,res) => {
@@ -1622,7 +1623,7 @@ router.delete("/server/deletePost/*", async(req, res) => {
   await db.set("posts",all)
   if(!deleteOwn) await notif(req.username+" deleted your post: "+title, author)
   res.send("ok")
-  Log("Deleted post", sanitize(title), "Done by", req.username)
+  Log("Deleted post", sanitize(title), "| Done by", req.username)
 })
 async function deletePostNoNotify(id){
   await db.delete("post:"+id)
@@ -1669,7 +1670,7 @@ router.post("/server/editPost/*", getPostData, async(req, res) => {
     data:post.content
   }, id)
   res.json({success:true})
-  Log("Edited post", "<a href='/post?id="+id+"' target='_blank'>"+sanitize(post.title)+"</a>", "Done by", req.username)
+  Log("Edited post", "<a href='/post?id="+id+"' target='_blank'>"+sanitize(post.title)+"</a>", "| Done by", req.username)
 })
 //get a post by its id
 router.get("/server/post/*", (request, res) => {
@@ -1796,7 +1797,7 @@ router.post("/server/deletePostComment/*",getPostData, async(req,res) => {
         type:"deleteComment",
         data: cid
       }, id)
-      Log("Deleted comment at", sanitize(d.title), "Done by", req.username)
+      Log("Deleted comment at", sanitize(d.title), "| Done by", req.username)
     })
   })
 })
@@ -1889,7 +1890,7 @@ router.post("/server/deleteUserComment/*", getPostData,async(req,res) => {
         type:"deleteComment",
         data: cid
       }, user)
-      Log("Deleted comment at profile", user, "Done by", req.username)
+      Log("Deleted comment at profile", user, "| Done by", req.username)
     })
   })
 })
