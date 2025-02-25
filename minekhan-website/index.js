@@ -1,4 +1,3 @@
-
 const websiteBase = "/minekhan-website"
 
 const zlib = require('zlib');
@@ -6,6 +5,7 @@ const express = require('express');
 const router = express.Router();
 const Transform = require('stream').Transform;
 const newLineStream = require('new-line');
+const mime = require('mime-types')
 const fs = require("fs")
 
 async function adjustThumbnail(data,name){

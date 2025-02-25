@@ -1359,7 +1359,7 @@ router.get("/server/capes", (req,res) => {
   res.json(capes)
 })
 router.get("/server/cape/*", (req,res) => {
-  let name = unescape(req.params[0])
+  let name = decodeURIComponent(req.params[0])
   res.send(capes[name] || "null")
 })
 //let nono = ["Vanilla cape"]
