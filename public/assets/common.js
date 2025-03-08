@@ -154,7 +154,12 @@ navbar.innerHTML = `
 	<a onclick="history.forward()">▶</a>
 	<a onclick="location.reload()">↻</a>
 	<a href="/posts">Posts</a>
-	<a href="/minekhan-website/">MineKhan website</a>
+	<div class="dropdown">
+    <a class="dropdown-name" href="/minekhan/">MineKhan</a>
+    <div class="dropdown-content">
+			<a href="/minekhan/">MineKhan (thingmaker version)</a>
+    </div>
+  </div>
 
 	<a class="right" onclick="navbar.classList.remove('navbarStick')">&times;</a>
 

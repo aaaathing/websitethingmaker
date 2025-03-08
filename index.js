@@ -3686,7 +3686,7 @@ app.use(async (req, res, next) => {
 	res.end()
 })
 
-require("./strangePaths.js")
+//require("./strangePaths.js")
 
 //404
 app.use(function(req, res, next) {
