@@ -4,7 +4,7 @@
     <title>Log</title>
     <meta charset="UTF-8">
     <link rel="stylesheet" href="/assets/common.css">
-    <style>
+    <style id="logstyle">
       #log{
         width:100%;
         max-width:100%;
@@ -54,13 +54,16 @@
     <script src="/assets/common.js"></script>
     <script>
       var log = document.querySelector("#log")
-			let lastTime
+			let lastTime, options
+			function loaded(r){
+				log.innerHTML = r
+				lastTime = +r.match(/time:(\d*?)(\D|$)/)[1]
+			}
       function load(){
-        var options = "?timeZone="+encodeURIComponent(Intl.DateTimeFormat().resolvedOptions().timeZone)
+        options = "?timeZone="+encodeURIComponent(Intl.DateTimeFormat().resolvedOptions().timeZone)
         if(!document.querySelector("#minekhan").checked) options += "&nominekhan=true"
         fetch("/log"+options).then(r=>r.text()).then(r => {
-          log.innerHTML = r
-					lastTime = +r.match(/time:(\d*?)(\D|$)/)[1]
+          loaded(r)
         }).catch(e => {
           log.append(document.createElement("br"),e)
         })
@@ -95,13 +98,18 @@
       }
 			window.clearLog = async function restart(){
         await getPwd()
-				load()
-        fetch("/internal/run",{
+        fetch("/internal/clearLog"+options,{
           method:"POST",
-          body: "clearLog("+JSON.stringify(lastTime)+")",
+          body: JSON.stringify({lastTime}),
 					headers:{Authorization:auth}
-        }).then(r => r.text()).then(r => {
-          if(r !== "success") log.append(document.createElement("br"),r)
+        }).then(r => r.text()).then(async r => {
+          loaded(r)
+					let file = await showSaveFilePicker({suggestedName:"log "+new Date().toLocaleDateString(undefined,{dateStyle:"medium"})+".html"})
+					const writable = await file.createWritable()
+					await writable.write("<style>"+document.querySelector("#logstyle").textContent+"</style><div id='log'>\n"+r)
+					await writable.close()
+        }).catch(e => {
+          log.append(document.createElement("br"),e)
         })
       }
       }

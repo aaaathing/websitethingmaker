@@ -144,7 +144,7 @@ ${buttonText ? `<button onclick="comment()" class="comment-button">${buttonText}
   }
   
   addFormatButton("Image",() => {upload.accept='image/*'; upload.setAttribute('mediaType', 'img'); upload.click()})
-  addFormatButton("Video",() => {upload.accept='image/*'; upload.setAttribute('mediaType', 'video'); upload.click()})
+  addFormatButton("Video",() => {upload.accept='video/*'; upload.setAttribute('mediaType', 'video'); upload.click()})
   addFormatButton("Image from url", () => addToComment(`<img src='${prompt("URL for image")}'>`))
   addFormatButton("Video from url", () => addToComment(`<video controls src='${prompt("URL for video")}'>`))
   addFormatButton("Heading 1", () => addToComment('<h1>Heading</h1>'))
@@ -212,11 +212,27 @@ ${buttonText ? `<button onclick="comment()" class="comment-button">${buttonText}
     if(res.success){
       addToComment("<"+(type || "img")+" src='"+res.url+"'"+(type==="video"?"controls":"")+"/>")
     }else alert(res.message)*/
+		Swal.fire({
+	    title:"uploading",
+	    html: '<progress/>',
+	  })
+		let bytesUploaded = 0, uploadProgress = Swal.getHtmlContainer().querySelector("progress"), totalBytes = d.size
+		const progressStream = new TransformStream({
+	    transform(chunk, controller) {
+	      controller.enqueue(chunk);
+	      bytesUploaded += chunk.byteLength;
+	      uploadProgress.value = bytesUploaded / totalBytes;
+	    },
+			flush(){
+				Swal.close()
+			}
+	  })
     let r
     try{
       r = await (await fetch("/images/"+encodeURIComponent((new Date(d.lastModified).toLocaleString())+" "+d.name), {
         method:"POST",
-        body: await d.arrayBuffer()
+        body: d.stream().pipeThrough(progressStream),
+				duplex:"half"
       })).json()
     }catch(e){
       alert(e.message)

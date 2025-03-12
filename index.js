@@ -68,11 +68,8 @@ const alertStrs = ["don"+"gwei","alertthis"]
 
 
 
-if(!process.env.REPLIT_DEPLOYMENT){
-  console.log('not deployment')
-  
-  if(! require("./indextest.js") . run) return
-}
+if(! require("./indextest.js") . run) return
+
 process.on('unhandledRejection', (reason, p) => {
   //console.error('Unhandled Rejection at: Promise', p, 'reason:', reason);
   //Log(reason.stack)
@@ -181,6 +178,7 @@ global.Log = Log
 function waitToRestart(){
 	console.log("waiting to restart")
   serverPort.close()
+	serverPort.closeAllConnections()
 	updateOnline()
 	let j=0
   setInterval(() => {
@@ -650,7 +648,7 @@ global.getPostBuffer2 = function getPostBuffer2(req,res,next){
   getPostBuffer(req,res,next)
 }
 global.getPostBufferHuge = function getPostBufferHuge(req,res,next){
-  getPostBuffer(req,res,next,null,10000000)
+  getPostBuffer(req,res,next,null,50000000)
 }
 global.getPostText = function getPostText(req,res,next,limit=10000){
   getPostBuffer(req,res,next,"text",limit)
@@ -852,7 +850,7 @@ router.get("/test", function(req,res){
   res.send("test")
 })
 
-router.get('/log', async(req,res,next) => {
+const getLog = (req,res,next) => {
   if(!req.isAdmin) return next()
 	let now = Date.now()
   let format = new Intl.DateTimeFormat(undefined, {
@@ -895,10 +893,12 @@ router.get('/log', async(req,res,next) => {
   res.write("<br>Banned: "+banned.size+" | Cached: "+Object.keys(db.timeouts).length)
   res.write("<br> Time: "+format.format(now)+" | time:"+now)
   res.end()
-})
+}
+router.get('/log', getLog)
 router.get("/banned", (req,res) => {
   res.send("People banned:<br>"+getBanned().replace(/\n/g,"<br>").replace(/\t/g,"&nbsp;&nbsp;&nbsp;&nbsp;"))
 })
+
 router.get("/assets/common.js", (req,res) => {
   let userInfo = null
   if(req.user){
@@ -1528,12 +1528,11 @@ router.post("/images/:name", getPostBufferHuge, async(req,res) => {
 		Log("Image reuse: ", duplicates.resources[0].public_id, "| uploaded name: "+req.params.name, "| by", req.username)
 		return res.json({success:true,url:duplicates.resources[0].secure_url})
 	}
-	//let name = req.params.name.replace(/[\/?:;\\|#%&]/g,"_")
+	let name = generateId()+"_"+req.params.name.replace(/[\/?:;\\|#%&, ]/g,"_")
 	
 	let result = await new Promise((resolve) => {
     cloudinary.v2.uploader.upload_stream({
-			unique_filename:true,
-			//public_id: name,
+			public_id: name,
 			resource_type:"auto",
 			context: "hash="+realHash
 		}, (error, uploadResult) => {
@@ -2289,6 +2288,11 @@ router.post('/internal/run',auth,getPostText,async(req,res) => {
     Log("%< Unable to show output")
   }
   res.send('success')
+})
+router.post('/internal/clearLog',auth,getPostData,async(req,res,next) => {
+	runBy = req.username
+  getLog(req,res,next)
+	clearLog(req.body.lastTime)
 })
 router.get("/internal/getFile/:file",async(req,res)=>{
 	if(req.query.pwd !== process.env.passKey) return res.send('Unauthorized')
