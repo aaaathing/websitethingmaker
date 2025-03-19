@@ -12,7 +12,7 @@ channel = "stable-24_05"
 language = "nodejs"
 
 [deployment]
-run = "sh run.sh"
+run = ["sh", "-c", "while true; do node index.js runall; done"]
 deploymentTarget = "gce"
 ignorePorts = false
 

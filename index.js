@@ -67,7 +67,7 @@ const alertStrs = ["don"+"gwei","alertthis"]
 
 
 
-
+console.log("index.js")
 if(! require("./indextest.js") . run) return
 
 process.on('unhandledRejection', (reason, p) => {
@@ -1516,7 +1516,11 @@ cloudinary.config({
   api_key: '525257699528752', 
   api_secret: process.env['cloudinary_api_secret']
 });
-router.post("/images/:name", getPostBufferHuge, async(req,res) => {
+router.post("/images/:name", (req,res,next) => {
+	req.theImageName = generateId()+"_"+req.params.name.replace(/[\/?:;\\|#%&, ]/g,"_")
+	Log("Image:", req.theImageName, "| uploaded name: "+req.params.name, "| by", req.username)
+	next()
+}, getPostBufferHuge, async(req,res) => {
 	let hash = crypto.createHash('md5');
   hash.setEncoding('hex');
   hash.write(req.body);
@@ -1528,11 +1532,10 @@ router.post("/images/:name", getPostBufferHuge, async(req,res) => {
 		Log("Image reuse: ", duplicates.resources[0].public_id, "| uploaded name: "+req.params.name, "| by", req.username)
 		return res.json({success:true,url:duplicates.resources[0].secure_url})
 	}
-	let name = generateId()+"_"+req.params.name.replace(/[\/?:;\\|#%&, ]/g,"_")
 	
 	let result = await new Promise((resolve) => {
     cloudinary.v2.uploader.upload_stream({
-			public_id: name,
+			public_id: req.theImageName,
 			resource_type:"auto",
 			context: "hash="+realHash
 		}, (error, uploadResult) => {
@@ -1540,7 +1543,6 @@ router.post("/images/:name", getPostBufferHuge, async(req,res) => {
 			return resolve(uploadResult);
     }).end(req.body);
 	})
-	Log("Image:", result.public_id, "| uploaded name: "+req.params.name, "| by", req.username)
 	res.json({success:true,url:result.secure_url})
 })
 router.get("/images/*",async(req,res) => {

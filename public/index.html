@@ -24,8 +24,15 @@ body {
 	line-height: 1.5;
 }*/
 
+.side {
+	flex: 30%; /* Set the width of the sidebar */
+	background-color: #f1f1f1; /* Grey background color */
+	padding: 20px; /* Some padding */
+}
+body[theme=dark] .side{
+  background:#222;
+}
 .main {   
-  -ms-flex: 70%; /* IE10 */
   flex: 70%;
   background-color: white;
   padding: 20px;
@@ -119,6 +126,23 @@ body[theme=dark] #links a.no{
 	right:8px;
 	translate: 0 -50%;
 }
+
+/* Style the navigation links */
+.side a {
+  padding: 12px;
+  text-decoration: none;
+  color: black;
+  display: block
+}
+body[theme=dark] .side a{
+  color:#eee;
+}
+.side a:hover {
+  background-color: #eee;
+}
+body[theme=dark] .side a:hover{
+  background:#111;
+}
 	</style>
 <!-- Global site tag (gtag.js) - Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-VRNT3CCCGH"></script>
@@ -162,6 +186,31 @@ body[theme=dark] #links a.no{
     </script>
   </div>
 
+	<div style="display: flex;flex-wrap: wrap;">
+	<div class="side">
+		<h3>Links with time</h3>
+		<script>
+			let side = document.querySelector(".side")
+			let index = []
+			function add(prefix){
+				return fetch(prefix+"/index.json").then(a => a.json()).then(a => {
+					for(let i in a){
+						let el = document.createElement("div")
+						el.innerHTML = `<a href="${prefix+"/"+i}">${a[i].name||i}<br><span style="opacity:0.5">${a[i].created}</span></a>`
+						el.created = Date.parse(a[i].created)
+						index.push(el)
+					}
+				})
+			}
+			Promise.all([
+				add(""),
+				add("/stuff"),
+			]).then(() => {
+				index.sort((a,b) => b.created - a.created || 0)
+				for(let i of index) side.appendChild(i)
+			})
+		</script>
+	</div>
   <div class="main">
     <h2>Website</h2>
     <p>This is the home page of this website. You can find many things like interesting stuff and useful tools in the links above. Green background means it may be interesting.</p>
@@ -447,11 +496,11 @@ https://minekhan.glitch.me/
 		<p>Find out what happened on this before.</p>
 		</a>
 </div>
+</div>
 
 <div id="cookie-banner" style="display: none">
   <p>
-    This website uses cookies for log in and because google analytics uses cookies.<br>
-    Click &times; to close and don't show again, which will use local storage.
+    This website uses cookies for log in and because google analytics uses cookies.
   </p>
   <button class="close">&times;</button>
 </div>
