@@ -18,9 +18,14 @@ function question(str){
 	}
 
 	while(true){
-	let f = files[await question("which one: ")]
-	f = await f.restore({generation:f.metadata.generation})
-	console.log(f)
+	let f = files[await question("choose one: ")]
+	let a = await question("what to do?\n1. restore\n2. show contents\n")
+	if(a === "1"){
+		f = await f.restore({generation:f.metadata.generation})
+		console.log(f)
+	}else if(a === "2"){
+		console.log((await f.download())[0].toString()) //doesnt work
+	}
 	}
 
 })()
