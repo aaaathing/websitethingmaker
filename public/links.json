@@ -22,6 +22,7 @@
 	"MineKhan website":{"url":"/minekhan-website/"},
   "MineKhan Wiki":{"url":"/minekhan-website/wiki"},
   "MineKhan tools":{"url":"/tools"},
+	"MC server":{"url":"/mcs.html","interesting":true},
 	"History of website":{"url":"/history.html","interesting":true},
   "to do & info":{"url":"/todo.html"},
   "Code editor":{"url":"/code%20editor/Programs.html", "interesting":true},
