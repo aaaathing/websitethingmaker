@@ -160,6 +160,7 @@ navbar.innerHTML = `
 			<a href="/minekhan/">MineKhan (thingmaker version)</a>
     </div>
   </div>
+	<a href="/mcs.html">Lake and mountains</a>
 
 	<a class="right" onclick="navbar.classList.remove('navbarStick')">&times;</a>
 

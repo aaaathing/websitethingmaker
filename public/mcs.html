@@ -1,10 +1,34 @@
-<!-- Apr 7, 2025, 1:06 PM -->
+<!-- Apr 7, 2025, 1:06 PM | some stuff by thingmaker. thingmaker.us.eu.org -->
+<!--
+3:20 PM, Apr 10, 2025: added section class and "join now" button
+-->
 <!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+	/* style by thingmaker */
+	body{
+		background: radial-gradient(pink,yellow,lime,cyan,lightblue,pink);
+		font-size:16px;
+	}
+	button{
+		padding:20px 40px;
+		font-size:16px;
+		background:#8f8;
+		border: 4px outset #cfc;
+	}
+	.section{
+		text-align: center;
+		padding:12vh 0;
+	}
+</style>
 </head>
-<body style="background: radial-gradient(pink,yellow,lime,cyan,lightblue,pink);">
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-VRNT3CCCGH"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-VRNT3CCCGH');
+</script>
+<body>
 
 <!--<div style="height:100vh">
 <h1>2x² + 5x + 6</h1>
@@ -19,16 +43,21 @@ scroll down
 </div>-->
 
 
-<h1>Lake and mountains server</h1>
-
-<div id="embed"></div>
-
-<h2>information for joining on MC java edition</h2>
-Address: mcs.thingmaker.us.eu.org<br>
-Port: 25569
-
-<h2>on eaglercraft</h2>
-Address: wss://mcs.thingmaker.us.eu.org<br>
+<div class="section">
+	<h1>Lake and mountains server</h1>
+	It is a MC server and SMP. You can build houses and survive in it.
+	<div id="embed"></div>
+	<button onclick='load_eaglercraft("https://yee.pages.dev/games/1.12js/classes.js","https://yee.pages.dev/games/1.12js/assets.epk",true)'>PLAY NOW</button>
+</div>
+<div class="section">
+	<h2>on MC java edition</h2>
+	Address: mcs.thingmaker.us.eu.org<br>
+	Port: 25565
+</div>
+<div class="section">
+	<h2>on Eaglercraft</h2>
+	Address: wss://mcs.thingmaker.us.eu.org<br>
+</div>
 
 <!--
 <script>
@@ -97,59 +126,36 @@ async function load_eaglercraft(){
 
 
 <script>
-function load_eaglercraft(){
+function load_eaglercraft(classes,assets,joinnow){
+	//let joinnow = document.getElementById('joinnow').checked
 	document.body.innerHTML = `<div id="game_frame" style="position:absolute;top:0;left:0;width:100vw;height:100vh;"></div>`
 	window.eaglercraftXOpts = {
 		container: "game_frame",
+		relays: [],
+		assetsURI: assets,
 		servers: [
-			{ addr: "ws://localhost:8081/", name: "Local test server" }
+			{ addr: "wss://mcs.thingmaker.us.eu.org" }
 		],
-		joinServer:"ws://localhost:8081/",
+		joinServer: joinnow ? "wss://mcs.thingmaker.us.eu.org" : undefined,
 		html5CursorSupport:true,
 		useDelayOnSwap:true
 	}
 	let s=document.createElement("script")
-	s.src="https://eaglercraft.com/js/loader.js"
-	s.onload=()=>window.dispatchEvent(new Event("load"))
+	s.src=classes //"https://eaglercraft.com/js/loader.js"
+	s.onload=()=>{
+		main() //window.dispatchEvent(new Event("load"))
+		window.addEventListener("beforeunload", e=>e.stopImmediatePropagation())
+	}
 	document.body.appendChild(s)
 }
 </script>
-<button onclick='
-window.__eaglercraftLoaderClient = {
-	container: "game_frame",
-	name: "EaglercraftX 1.8",
-	file: "net.lax1dude.eaglercraft.v1_8.client",
-	cid: "bafybeigvjbotqwm5mdjkvfqwxylpvap35lmya4d3jo6sn76pqzm2gub52i",
-	path: "",
-	dlSize: 14027305,
-	gzip: true
-};
-load_eaglercraft()
-'>open eaglercraft 1.8 js</button>
-<button onclick='
-window.__eaglercraftLoaderClient = {
-	container: "game_frame",
-	name: "EaglercraftX 1.8 WASM-GC",
-	file: "net.lax1dude.eaglercraft.v1_8.client_wasm_gc",
-	cid: "bafybeidq4blbqze3slnaz6hbhxpb2msb53nmzayhjoiuf3axhqyoq77fjy",
-	path: "",
-	dlSize: 11868723,
-	gzip: true
-};
-load_eaglercraft()
-'>open eaglercraft 1.8 wasm</button>
-<button onclick='
-window.__eaglercraftLoaderClient = {
-	container: "game_frame",
-	name: "Eaglercraft 1.12 WASM-GC",
-	file: "net.peytonplayz585.eaglercraft.v1_12.client_wasm_gc",
-	cid: "bafybeicj2obyqrtip2a36tkvx6ut4kboh4miolcv5vidxephvcgyyiv2tm",
-	path: "",
-	dlSize: 15097124,
-	gzip: true
-};
-load_eaglercraft()
-'>open eaglercraft 1.12 wasm</button>
+<br>
+<button onclick='load_eaglercraft("https://yee.pages.dev/games/1.8js/classes.js","https://yee.pages.dev/games/1.8js/assets.epk")'>open eaglercraft 1.8 js</button>
+<button onclick='load_eaglercraft("https://yee.pages.dev/games/1.8wasm/bootstrap.js","https://yee.pages.dev/games/1.8wasm/assets.epw")'>open eaglercraft 1.8 wasm</button>
+<button onclick='load_eaglercraft("https://yee.pages.dev/games/1.12js/classes.js","https://yee.pages.dev/games/1.12js/assets.epk")'>open eaglercraft 1.12 js</button>
+<button onclick='load_eaglercraft("https://yee.pages.dev/games/1.12wasm/bootstrap.js","https://yee.pages.dev/games/1.12wasm/assets.epw")'>open eaglercraft 1.12 wasm</button>
+<button onclick='load_eaglercraft("https://yee.pages.dev/games/starlikejs/classes.js","https://yee.pages.dev/games/starlikejs/assets.epk")'>open Starlike Client js</button>
+<button onclick='load_eaglercraft("https://yee.pages.dev/games/starlikewasm/bootstrap.js","https://yee.pages.dev/games/starlikewasm/assets.epw")'>open Starlike Client wasm</button>
 
 </body>
 
