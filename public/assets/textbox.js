@@ -1,3 +1,4 @@
+// ©, by thingmaker. thingmaker.us.eu.org
 if(!document.querySelector("#textboxStyle")){
   var style = document.createElement("style")
   style.id = "textboxStyle"

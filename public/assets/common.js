@@ -138,7 +138,7 @@ async function mentionNotifications(){
 
 
 //====================NAVBAR===============
-var navbar = document.createElement("div");
+var navbar = document.createElement("nav");
 navbar.className = "navbar navbarStick"
 
 navbar.innerHTML = `
@@ -341,17 +341,22 @@ script.src = "/news.js"
 document.body.appendChild(script)
 
 //===============FOOTER=============
-var div = document.createElement("div")
-div.innerHTML = `
-<div>
-  <b>footer</b>
-  <ul>
-    <li><a href="/">home</a></li>
-  </ul>
+let prevFooter = document.getElementsByClassName("footer")[0]
+if(prevFooter) prevFooter.remove()
+let footer = document.createElement("footer")
+footer.innerHTML = `
+<div class="lists">
+	<div>
+	  <b>footer</b>
+	  <ul>
+	    <li><a href="/">home</a></li>
+	  </ul>
+	</div>
 </div>
+<div class="lists">${prevFooter?prevFooter.innerHTML:""}</div>
 `
-div.classList.add("footer")
-document.body.appendChild(div)
+footer.className = "footer"
+document.body.appendChild(footer)
 
 div = document.createElement("div")
 div.className = "footerPlaceholder"
@@ -361,31 +366,33 @@ var style=document.createElement("style")
 style.innerHTML = `
 .footer {
   padding: 20px;
-  display:flex;
   background: #ddd;
-  justify-content:center;
-  flex-direction:row;
   position:absolute;
   bottom:0;
   width:100%;
   height:200px;
   overflow:auto;
 }
+.footer .lists{
+  display:flex;
+  justify-content:center;
+  flex-direction:row;
+}
 body[theme=dark] .footer{
   background:#171717;
 }
-.footer > div{
+.footer .lists > div{
   margin:0px 20px;
 }
-.footer > div > ul{
+.footer .lists > div > ul{
   list-style-type: none;
   margin: 0;
   padding: 0;
 }
-.footer > div > ul li{
+.footer .lists > div > ul li{
   margin:10px 0px;
 }
-.footer > div{
+.footer .lists > div{
   text-align:center;
 }
 .footerPlaceholder{

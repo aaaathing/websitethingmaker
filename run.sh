@@ -1,4 +1,3 @@
-node index.js runall
 while true
-do node index.js runall
+do node index.js runall || sleep 60
 done

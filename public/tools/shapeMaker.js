@@ -1,3 +1,4 @@
+// ©, by thingmaker. thingmaker.us.eu.org
 window.onbeforeunload=function(){return "save your stuff. if you saved then good"}
 
 var container = document.getElementById("container");

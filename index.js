@@ -693,8 +693,18 @@ function auth(req,res,next){//https://stackoverflow.com/questions/5951552/basic-
   var parts = auth.split(/:/);                        // split on colon
   var username = parts.shift();                       // username is first
   var password = parts.join(':');
-  req.thePassword = password
   if(password === process.env.passKey) next()
+  else res.status(401).sendFile(__dirname+"/401.html")
+}
+function authAlt(req,res,next){//https://stackoverflow.com/questions/5951552/basic-http-authentication-in-node-js
+  var header = req.headers.authorization || '';       // get the auth header
+  res.header("WWW-Authenticate", 'Basic realm="alt"')
+  var token = header.split(/\s+/).pop() || '';        // and the encoded auth token
+  var auth = Buffer.from(token, 'base64').toString(); // convert from base64
+  var parts = auth.split(/:/);                        // split on colon
+  var username = parts.shift();                       // username is first
+  var password = parts.join(':');
+  if(process.env.passKeyAlt.split(",").includes(password)) next()
   else res.status(401).sendFile(__dirname+"/401.html")
 }
 
@@ -2309,6 +2319,9 @@ router.post("/internal/updateFile/:file",getPostBufferHuge,async(req,res)=>{
   res.send('success')
   Log("Editor: updated file "+relfile)
 })
+/*router.post("/log",authAlt,getPostText,async(req,res)=>{
+	Log("External"+req.body)
+})*/
 
 router.post("/server/editorUploadZip/",async(req,res)=>{
 	rateLimit(req)
