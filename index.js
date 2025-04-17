@@ -3671,20 +3671,20 @@ app.use(express.static(__dirname + "/public"))
 const mkwebsite = require("./minekhan-website/index.js")
 
 const {serveIndex,gdrivemw} = require("./serveIndex.js")
-app.use("/stuff2",gdrivemw("1KCM3Cu2otCW8y0GYtI-cQXjfL-SXe0Yy"))
+//app.use("/stuff2",gdrivemw("1KCM3Cu2otCW8y0GYtI-cQXjfL-SXe0Yy"))
 
 app.use(async (req, res, next) => {
-	let path = decodeURIComponent(req.path)
+	let tpath = decodeURIComponent(req.path)
 	let dir
 	try{
-		dir = await fs.promises.opendir(__dirname+"/public"+path)
+		dir = await fs.promises.opendir(path.join(__dirname,"public",tpath))
 	}catch(e){
 		next()
 		return
 	}
 	let dir2 = []
 	for await(const dirent of dir) dir2.push(dirent)
-	serveIndex(req,res, dir2, async name => await fs.promises.readFile(__dirname+"/public"+path+name), f => f.isDirectory())
+	serveIndex(req,res, dir2, async name => await fs.promises.readFile(path.join(__dirname,"public",tpath,name)), f => f.isDirectory())
 })
 
 //require("./strangePaths.js")

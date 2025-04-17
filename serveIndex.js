@@ -32,7 +32,7 @@ const fs=require("fs")
 const path=require("path")
 
 let service
-	if(process.env["gdriveServiceacc"]){
+if(process.env["gdriveServiceacc"]){
 	const auth = new GoogleAuth({
 	  scopes: 'https://www.googleapis.com/auth/drive',
 	  credentials:JSON.parse(process.env["gdriveServiceacc"])
@@ -40,14 +40,77 @@ let service
 	service = google.drive({version: 'v3', auth});
 }
 
-module.exports.gdrivemw = function(folderId){
+function pipeAsync(from,to){
+	return new Promise(resolve => {
+		from.on("end",resolve).pipe(to)
+	})
+}
+
+
+
+// node -e "require('./serveIndex.js').gdrivemw('18HU-fesCi44znWRH7rQ8Z8cxqspifId_','replit-objstore-6cdbe550-1c93-4f51-8778-7a52f0cd3367',0)"
+/*module.exports.gdrivemw = async function(folderId, bucket, fetchInterval = 1000*60*60*24){
+	let storage = require("./db.js").storage
+	bucket = storage.bucket(bucket)
+	if(await bucket.file(folderId+".lastFetch").exists()[0]){
+		setTimeout(fetchAgain, fetchInterval-(Date.now()-(+(await bucket.file(folderId+"/lastFetch").download())[0].toString())) )
+	}else fetchAgain()
+	async function fetchAgain(){
+		doFolder(folderId,folderId)
+		await bucket.file(folderId+".lastFetch").save(Date.now()+"")
+	}
+	async function doFolder(folderId,path){
+		let drvfiles = folderId ? (await service.files.list({
+			q:"parents='"+folderId+"'",
+			fields:"files(id,mimeType,name,shortcutDetails,modifiedTime)"
+		})).data.files : [] //should be sorted
+		let lc = drvfiles.values()
+		let localFile = bucket.file(path)
+		let localfiles = (await localFile.exists())[0] ? JSON.parse((await localFile.download())[0].toString()) : []
+		let ll = localfiles.values()
+		let fc = lc.next(), fl = ll.next()
+		console.log(drvfiles,localfiles)
+		while(!fc.done || !fl.done){
+			if(fc.done || !fl.done && fc.value.name > fl.value.name){
+				console.log("del", fl.value.name)
+				if(fc.mimeType === "application/vnd.google-apps.folder") doFolder(null,path+"/"+fl.value.name)
+				else await bucket.file(path+"/"+fl.value.name)
+				fl = ll.next()
+			}else if(fl.done || fc.value.name < fl.value.name){
+				console.log('new', fc.value.name)
+				if(fc.mimeType === "application/vnd.google-apps.folder") doFolder(fc.value.id, path+"/"+fc.value.name)
+				else await pipeAsync((await service.files.get({ fileId: fc.value.id, alt: 'media', }, { responseType: "stream" })).data, bucket.file(path+"/"+fc.value.name).createWriteStream())
+				fc = lc.next()
+			}else{
+				if(fc.mimeType === "application/vnd.google-apps.folder") doFolder(fc.value.id, path+"/"+fc.value.name)
+				else if(fc.value.modifiedTime !== fl.value.modifiedTime){
+					console.log('upt',fc.value.name, ct, fl.value.mtimeMs)
+					await pipeAsync((await service.files.get({ fileId: fc.value.id, alt: 'media', }, { responseType: "stream" })).data, bucket.file(path+"/"+fc.value.name).createWriteStream())
+				}//else console.log('same',fc.value.name)
+				fc = lc.next(), fl = ll.next()
+			}
+		}
+		await localFile.save(JSON.stringify(drvfiles))
+	}
+}*/
+
+/*module.exports.gdrivemw = function(folderId){
 	const cache = new Map()
 	return async function(req,res,next){
 		if(!service) return res.send("no access")
+		let now = Date.now()
 		try{
 		let cur = {id:folderId, mimeType:"application/vnd.google-apps.folder"}
+		let pathpart = ""
 		for(let p of req.url.split("/")){
 			if(!p) continue
+			pathpart += p+"/"
+			//if(cache.get(pathpart)){
+			//	if(now-cache.get(pathpart).time<1000*60*60){
+			//		cur = cache.get(pathpart).stuff
+			//		continue
+			//	}else cache.delete(pathpart)
+			//}
 			let l = (await service.files.list({
 				q:"parents='"+cur.id+"' and name="+JSON.stringify(decodeURIComponent(p)),
 				fields:"files(id,mimeType,name,shortcutDetails)"
@@ -58,7 +121,7 @@ module.exports.gdrivemw = function(folderId){
 				cur.id = cur.shortcutDetails.targetId
 				cur.mimeType = cur.shortcutDetails.targetMimeType
 			}
-			console.log(p,cur)
+			//cache.set(pathpart, {time:now,stuff:cur})
 		}
 		if(cur.mimeType === "application/vnd.google-apps.folder"){
 			let l = (await service.files.list({
@@ -76,4 +139,4 @@ module.exports.gdrivemw = function(folderId){
 		}
 		}catch(e){console.error(e);res.status(500).send(e.message)}
 	}
-}
+}*/
