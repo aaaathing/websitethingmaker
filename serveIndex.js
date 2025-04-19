@@ -1,9 +1,10 @@
 async function serveIndex(req,res, dir,read,isDirectory){
 	let path = decodeURIComponent(req.path)
 	//let dir = list
-	let index
-	if(dir.includes("index.json")) index = await read("index.json")
-	else index = {}
+	let index = {}
+	for(let d of dir){
+		if(d.name === "index.json") index = JSON.parse(await read("index.json"))
+	}
 	res.write("<style>a>*{vertical-align:middle;}.item{display:inline-block;width:16px;height:16px;box-sizing:border-box;}.file{border:1px solid black;background:white;}.folder{background:linear-gradient(0,yellow,brown);}</style>")
 	res.write("<h1>Index of "+sanitize(path)+"</h1><hr>")
 	let list = []
@@ -16,7 +17,8 @@ async function serveIndex(req,res, dir,read,isDirectory){
 		}
 	}
 	res.write("<table><thead><tr><th>Name</th><th>Created</th><th>Last modified</th></tr></thead><tbody>")
-	list.sort((a,b) => (index[b.name]?Date.parse(index[b.name].created):Infinity) - (index[a.name]?Date.parse(index[a.name].created):Infinity) || 0)
+	let now = Date.now()
+	list.sort((a,b) => (index[b.name]&&index[b.name].created?Date.parse(index[b.name].created):now) - (index[a.name]&&index[a.name].created?Date.parse(index[a.name].created):now))
 	for(let i of list){
 		res.write(i.str)
 	}
