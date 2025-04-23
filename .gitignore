@@ -1,5 +1,7 @@
 public/stuff/ka/*
+!public/stuff/ka/index.json
 public/stuff/ka-oldacc/*
+!public/stuff/ka-oldacc/index.json
 
 # Logs
 logs
