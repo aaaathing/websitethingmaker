@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Put old stuff</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/assets/common.css">
+	</head>
+	<body>
+	<div id="contentBG">
+		<div id="content">
+
+<h1>Put old stuff</h1>
+<div>
+<p>If you have <b>old worlds</b> from 2022 and before, you can put them <a href="/minekhan-website/maps/new">here</a>.</p>
+<h2>How to get old worlds</h2>
+<div style="white-space: pre-line;">
+If you used chrome, go to <b>chrome://indexeddb-internals/#minekhan.thingmaker.repl.co</b> or <b>chrome://indexeddb-internals/#play.minekhan.repl.co</b>
+Wait for it to load
+Click download (at the bottom of the list)
+Use <a href="/save-mk-indexed-db.html">this tool</a> to get and save the worlds
+Or unzip the zip file
+
+<!--This only works if you used to go to <b>minekhan.thingmaker.repl.co</b> or <b>play.minekhan.repl.co</b>
+This also requires access to devtools.
+
+Go to minekhan.thingmaker.repl.co or the other one.
+Use proxy or extension to make it not have error.
+Open devtools by:
+	right clicking and clicking inspect
+	or pressing ctrl+shift+i or similar
+Paste this in console and optionaly check for bad things:
+<textarea>
+let or=indexedDB.open("MineKhan");or.onsuccess = e => { let db = or.result;let trans = db.transaction('worlds', "readonly");let store = trans.objectStore('worlds'); let req = store.getAll(); req.onsuccess=()=>{ for(let i of req.result){ var link = document.createElement("a"); link.download = i.data.name+'.minekhan'; link.href = URL.createObjectURL(new Blob([JSON.stringify(i.data)])); link.click(); Object.revokeObjectURL(link.href); } }}
+</textarea>
+The files should have been downloaded afterwards.-->
+</div>
+<P>If you have screenshots or videos of <b>MineKhan</b> from <b>2022 and before</b>, you can put them in the upload below so more history can be found.</P>
+<input type="file" onchange="uploadit(this)">
+<script>
+	async function uploadit(e){
+		let r
+		try{
+			r = await (await fetch('/images/'+encodeURIComponent((new Date(e.files[0].lastModified).toLocaleString())+" "+e.files[0].name), {
+				method:'POST',
+				body: await e.files[0].arrayBuffer()
+			})).json()
+		}catch(e){
+			alert(e.message)
+			return
+		}
+		if(!r.success) alert(r.message)
+	}
+</script>
+</div>
+
+<img src="/assets/images/Screen Shot 2022-09-02 at 8.31.12 PM.jpg" loading="lazy" width="200px">
+
+    </div>
+    <script src="/assets/common.js"></script>
+  </body>
+</html>
