@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<!--
+Some parts by thingmaker. https://thingmaker.us.eu.org
+
+Apr 20, 2025, 10 pm:
+Asked chatgpt to make a 4d ray caster
+Fixed some syntax and type errors
+Asked chatgpt to add shading
+
+Apr 21, 2025:
+3 pm to 4 pm:
+Asked chatgpt to add player that can move and look around, no gravity
+Fixed stretch and rotations
+4:20 pm:
+Added velocity and add w to add, sub, scale functions
+Replaced things like p[ax] with p.x p.y p.z p.w
+4:35 pm:
+Added jump and made movement faster
+5 pm to 6:20 pm:
+Added loadLevel and levels
+Fixed intersectBox when origin inside box
+Apr 22, 2025:
+4:00 pm:
+Added more rotations (rxy, etc.)
+Added level message, gray path, tree
+4:50 pm
+Added portals
+Added another level
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>4D Platformer</title>
+  <style>
+    body { margin: 0; overflow: hidden; }
+    canvas { width: 100vw; height: 100vh; display: block; }
+  </style>
+</head>
+<body>
+<div id="topleft" style="position:absolute;top:8px;left:8px; color:white;"></div>
+<div id="levelMessage" style="position:absolute;width:100vw;left:0;top:8px;text-align:center;white-space:pre-line;color:white;"></div>
+<canvas id="gpu-canvas"></canvas>
+
+<script>
+let colors = {
+  g:[0.2,0.6,0.2],
+  s:[0.52,0.5,0.51],
+  wood:[0.5,0.4,0.2],
+  leaves:[0.1,0.4,0.1],
+  p:[1,0.2,1]
+}
+/*
+empty space for nothing
+@ for spawn point
+T for tree
+p for portal to next level
+*/
+let levels = {
+0:{
+colors,
+minY:-8,
+message:"Controls:\nW, S: forward, backward\nA, D: left, right\n← →: rotate y\n↑ ↓: rotate x\nU, O: rotate x y\nJ, L: rotate y z\nI, K: rotate x z\n\nLook around and find the gray path to the other island. Go to the pink portal.",
+data:`
+ggggg
+ggggg
+ggggg
+ggggg
+--y
+ggggT
+--y
+
+
+@
+--w
+s
+--w
+s
+--w
+s
+--w
+sgggs
+ggggg
+ggsgg
+ggggg
+sgggs
+  s
+--y
+  T
+
+
+
+
+  p
+`
+},
+1:{
+colors,
+minY:-8,
+data:`
+ggggg
+g   g
+g   g
+g   g
+ggggg
+--y
+--y
+@
+--w
+
+
+  s
+g
+s
+g
+sgsgs
+--w
+
+
+
+
+
+
+
+    g
+--w
+
+
+
+
+
+
+
+    s
+--w
+
+
+
+
+
+
+
+    g
+--y
+
+
+
+
+
+
+    p
+`
+},
+
+2:{
+colors,
+minY:-8,
+message:"No more levels",
+data:`
+gggg
+gggg
+gggg
+--y
+
+ @
+`
+}
+}
+</script>
+
+<script type="module">
+// This script made by chatgpt and modified by me
+// Entry point
+if (!navigator.gpu) { alert("WebGPU not supported"); throw "WebGPU not supported"; }
+const adapter = await navigator.gpu.requestAdapter();
+const device = await adapter.requestDevice();
+const canvas = document.getElementById('gpu-canvas');
+const context = canvas.getContext('webgpu');
+const format = navigator.gpu.getPreferredCanvasFormat();
+context.configure({ device, format, alphaMode: 'opaque' });
+
+canvas.width = innerWidth/4, canvas.height = innerHeight/4
+addEventListener("resize", () => {
+  canvas.width = innerWidth/4, canvas.height = innerHeight/4
+})
+
+let levelMessage = document.getElementById("levelMessage")
+let boxes, nodes, bvhBuffer, boxBuffer
+let level, levelSpawn
+function loadLevel(l){
+  level = l
+  levelMessage.innerHTML = level.message || ""
+  // Define 4D colored boxes
+  boxes = []
+  let wrows = level.data.split("--w\n")
+  for(let w=0; w<wrows.length; w++){
+    let yrows = wrows[w].split("--y\n")
+    for(let y=0; y<yrows.length; y++){
+      let zrows = yrows[y].split("\n")
+      for(let z=0; z<zrows.length; z++){
+        let xrows = zrows[z]
+        for(let x=0; x<xrows.length; x++){
+          let b = xrows[x]
+          let box
+          if(colors[b]){
+            box = {min:[x-0.5,y-0.5,z-0.5,w-0.5], max:[x+0.5,y+0.5,z+0.5,w+0.5], color:level.colors[b]}
+            boxes.push(box)
+          }
+          switch(b){
+            case "@": levelSpawn = {x,y,z,w}; break
+            case "T":
+              boxes.push({min:[x-0.5,y-0.5,z-0.5,w-0.5], max:[x+0.5,y+3.5,z+0.5,w+0.5], color:level.colors.wood})
+              boxes.push({min:[x-4.5,y+3.5,z-4.5,w-4.5], max:[x+4.5,y+7.5,z+4.5,w+4.5], color:level.colors.leaves})
+              break
+            case "p": box.portal = true; break
+          }
+        }
+      }
+    }
+  }
+  /*[
+    { min: [-1,-1,-1,-1], max: [0,0,0,1], color: [1,0,0] },
+    { min: [0.2,0.2,-1,-1], max: [1,1,0,1], color: [1,1,0] },
+    { min: [2,2, 0, 0], max: [3,3,1,1], color: [0,1,0] },
+    { min: [-3,2, 0, 1], max: [-2,3,1,2], color: [0,0,1] }
+  ];*/
+
+  // Build BVH for GPU and CPU (same nodes)
+  nodes = buildBVH(boxes);
+  bvhBuffer = createStorageBuffer(device, nodes, /*isBox=*/false);
+  boxBuffer = createStorageBuffer(device, boxes, /*isBox=*/true);
+
+  respawn()
+}
+
+// Uniform buffer: resolution (vec2), camPos (vec4), camRight/up/forward (3x vec4)
+const uniformBufferSize = 4*2+8 + 4*4*4; // 72 bytes + 8 padding
+const uniformBuffer = device.createBuffer({ size: uniformBufferSize, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+
+// Shaders
+const vertexShader = `
+@vertex fn main(@builtin(vertex_index) i: u32) -> @builtin(position) vec4<f32> {
+  var pos = array<vec2<f32>,6>(
+    vec2<f32>(-1,-1), vec2<f32>(1,-1), vec2<f32>(-1,1),
+    vec2<f32>(-1,1), vec2<f32>(1,-1), vec2<f32>(1,1)
+  ); return vec4<f32>(pos[i],0,1);
+}`;
+
+const fragmentShader = `
+struct Camera { resolution: vec2<f32>, camPos: vec4<f32>, camRight: vec4<f32>, camUp: vec4<f32>, camFwd: vec4<f32>, };
+@group(0) @binding(0) var<uniform> cam: Camera;
+struct BVHNode{ min: vec4<f32>, max: vec4<f32>, left:u32, right:u32, boxIndex:u32, isLeaf:u32, };
+@group(0) @binding(1) var<storage> bvh: array<BVHNode>;
+struct Box{ min: vec4<f32>, max: vec4<f32>, color: vec3<f32>, };
+@group(0) @binding(2) var<storage> boxes: array<Box>;
+
+fn intersectBox(orig: vec4<f32>, dir: vec4<f32>, bmin: vec4<f32>, bmax: vec4<f32>) -> f32 {
+  let t1=(bmin-orig)/dir; let t2=(bmax-orig)/dir;
+  let tmin=max(max(min(t1.x,t2.x),min(t1.y,t2.y)),max(min(t1.z,t2.z),min(t1.w,t2.w)));
+  let tmax=min(min(max(t1.x,t2.x),max(t1.y,t2.y)),min(max(t1.z,t2.z),max(t1.w,t2.w)));
+  return select(select(tmin,0.0,tmax>=0.0&&tmin<=0.0), -1.0, tmin>tmax || tmax<0);
+}
+
+struct traverseReturn{
+  color: vec4<f32>,
+  normal: vec4<f32>
+}
+fn traverse(orig: vec4<f32>, dir: vec4<f32>) -> traverseReturn {
+  var stack: array<i32,64>;
+  var sp: i32 = 0;
+  stack[0] = 0;
+  var finalColor = vec4<f32>(0.0);
+  var finalNormal = vec4<f32>(0.0);
+  var closest = 1e9;
+
+  var it=0;
+  loop {
+    it++;if(it>1000){break;}//infinite loop protect
+    if (sp < 0) { break; }
+    let idx = stack[sp]; sp -= 1;
+    let node = bvh[idx];
+    let t = intersectBox(orig, dir, node.min, node.max);
+    if (t >= 0.0 && t < closest) {
+      if (node.isLeaf == 1u) {
+        let b = boxes[node.boxIndex];
+        let th = intersectBox(orig, dir, b.min, b.max);
+        if (th >= 0.0 && th < closest) {
+          closest = th;
+          // compute hit point
+          let pos = orig + dir * th;
+          // compute normal by finding closest face
+          var normal = vec4<f32>(0.0);
+          let eps = 1e-3;
+          if (abs(pos.x - b.min.x) < eps) { normal = vec4<f32>(-1.0,0.0,0.0,0.0); }
+          else if (abs(pos.x - b.max.x) < eps) { normal = vec4<f32>(1.0,0.0,0.0,0.0); }
+          else if (abs(pos.y - b.min.y) < eps) { normal = vec4<f32>(0.0,-1.0,0.0,0.0); }
+          else if (abs(pos.y - b.max.y) < eps) { normal = vec4<f32>(0.0,1.0,0.0,0.0); }
+          else if (abs(pos.z - b.min.z) < eps) { normal = vec4<f32>(0.0,0.0,-1.0,0.0); }
+          else if (abs(pos.z - b.max.z) < eps) { normal = vec4<f32>(0.0,0.0,1.0,0.0); }
+          else if (abs(pos.w - b.min.w) < eps) { normal = vec4<f32>(0.0,0.0,0.0,-1.0); }
+          else if (abs(pos.w - b.max.w) < eps) { normal = vec4<f32>(0.0,0.0,0.0,1.0); }
+          finalNormal = normal;
+          finalColor = vec4(b.color, 1.0);
+        }
+      } else {
+        sp += 1; stack[sp] = i32(node.left);
+        sp += 1; stack[sp] = i32(node.right);
+      }
+    }
+  }
+  return traverseReturn(finalColor, finalNormal);
+}
+
+@fragment fn main(@builtin(position) frag: vec4<f32>) -> @location(0) vec4<f32> {
+  let uv = (vec2(frag.x,cam.resolution.y-frag.y)*2.0 - cam.resolution) / min(cam.resolution.x,cam.resolution.y);
+  // build ray in camera space
+  let dir4 = normalize(cam.camRight*uv.x + cam.camUp*uv.y + cam.camFwd);
+  let hit = traverse(cam.camPos, dir4);
+
+  // simple directional light in 3D
+  let lightDir = vec4<f32>(0.9, 1.0, 0.8, 0.7);
+  // diffuse shading
+  let diff = max(dot(abs(hit.normal), lightDir), 0.1);
+
+  return mix(vec4(0.5,0.5,1.,1.), hit.color*diff, hit.color.a);
+}`;
+
+const pipeline = device.createRenderPipeline({ layout:'auto',
+  vertex:{ module:device.createShaderModule({code:vertexShader}), entryPoint: 'main' },
+  fragment:{ module:device.createShaderModule({code:fragmentShader}), entryPoint: 'main', targets:[{format}] },
+  primitive:{topology:'triangle-list'}
+});
+
+// --- Player / Camera ---
+const player = {x:0, y:2, z:0, w:0, radius:0.9,offsetY:0.4, vel:{x:0, y:0, z:0, w:0}, speed:0.5, jumpSpeed:0.15, r:0,rx:0,ry:0,rxy:0,rxz:0,ryz:0 }
+window.player = player
+function respawn(){
+  player.x = levelSpawn.x, player.y = levelSpawn.y, player.z = levelSpawn.z, player.w = levelSpawn.w
+  player.vel.x = 0, player.vel.y = 0, player.vel.z = 0
+  player.r = 0, player.rx = 0, player.ry = 0, player.rxy = 0, player.rxz = 0, player.ryz = 0
+}
+
+const keys = {};
+const gravity = 0.3
+
+/*canvas.addEventListener('click', () => canvas.requestPointerLock());
+document.addEventListener('mousemove', e => {
+  if(document.pointerLockElement!==canvas) return;
+  player.ry   += e.movementX * 0.005;
+  player.rx -= e.movementY * 0.005;
+  player.rx = Math.max(-Math.PI/2, Math.min(Math.PI/2, player.rx));
+});*/
+document.addEventListener('keydown', e => { keys[e.code] = true; });
+document.addEventListener('keyup',   e => { keys[e.code] = false; });
+
+let lastTime = performance.now();
+function tick() {
+  const now = performance.now();
+  const dt = Math.min((now - lastTime) * 0.001, 1);
+  lastTime = now;
+
+  if(keys['ArrowLeft']) player.ry -= 5*dt;
+  if(keys['ArrowRight']) player.ry += 5*dt;
+  if(keys['ArrowDown']) player.rx -= 5*dt;
+  if(keys['ArrowUp']) player.rx += 5*dt;
+  if(keys['KeyI']) player.rxz -= 5*dt;
+  if(keys['KeyK']) player.rxz += 5*dt;
+  if(keys['KeyJ']) player.ryz -= 5*dt;
+  if(keys['KeyL']) player.ryz += 5*dt;
+  if(keys['KeyU']) player.rxy -= 5*dt;
+  if(keys['KeyO']) player.rxy += 5*dt;
+  //player.rx = Math.max(-Math.PI/2, Math.min(Math.PI/2, player.rx));
+
+  // build basis vectors
+  /*const cosY = Math.cos(player.ry), sinY = Math.sin(player.ry);
+  const cosP = Math.cos(player.rx), sinP = Math.sin(player.rx);
+  const forward = { x: sinY*cosP, y: sinP, z: cosY*cosP, w:0 };
+  const right   = { x: cosY, y: 0, z:-sinY,        w:0 };
+  const up      = { x:-sinY*sinP, y:cosP, z:-cosY*sinP, w:0 };*/
+  const forward = {x:0,y:0,z:1,w:0}, right = {x:1,y:0,z:0,w:0}, up = {x:0,y:1,z:0,w:0}
+  rotate(forward,"z","y",player.rx), rotate(right,"z","y",player.rx), rotate(up,"z","y",player.rx)
+  rotate(forward,"z","x",player.ry), rotate(right,"z","x",player.ry), rotate(up,"z","x",player.ry)
+  rotate(forward,"z","w",player.rxy), rotate(right,"z","w",player.rxy), rotate(up,"z","w",player.rxy)
+  rotate(forward,"y","w",player.rxz), rotate(right,"y","w",player.rxz), rotate(up,"y","w",player.rxz)
+  rotate(forward,"x","w",player.ryz), rotate(right,"x","w",player.ryz), rotate(up,"x","w",player.ryz)
+  const forwardNoYThing = Math.sqrt(forward.x*forward.x+forward.z*forward.z+forward.w*forward.w)||1, forwardNoY = {x:forward.x/forwardNoYThing,y:0,z:forward.z/forwardNoYThing,w:forward.w} //Some parts by thingmaker. https://thingmaker.us.eu.org
+
+  // movement input
+  let mv = { x:0,y:0,z:0,w:0 };
+  if(keys['KeyW']) add(mv, forwardNoY);
+  if(keys['KeyS']) sub(mv, forwardNoY);
+  if(keys['KeyA']) sub(mv, right);
+  if(keys['KeyD']) add(mv, right);
+  // normalize
+  const len = Math.hypot(mv.x,mv.y,mv.z)||1;
+  scale(mv, player.speed*dt/len);
+  const drag = 0.075**dt
+  player.vel.x *= drag
+  player.vel.y *= drag
+  player.vel.z *= drag
+  player.vel.w *= drag
+  add(player.vel, mv)
+  if(keys['Space'] && player.onGround) player.vel.y += player.jumpSpeed
+  player.vel.y -= gravity*dt
+
+  // collision per axis
+  touchedPortal = false
+  tryMove(player)
+  if(player.y < level.minY) respawn()
+  if(touchedPortal){
+    loadLevel(levels[++curLevel])
+  }
+
+  // write camera uniform
+  const data = new Float32Array([
+    canvas.width, canvas.height, 0,0,
+    player.x,player.y+player.offsetY,player.z,player.w,
+    right.x,right.y,right.z,right.w,
+    up.x,up.y,up.z,up.w,
+    forward.x,forward.y,forward.z,forward.w
+  ]);
+  device.queue.writeBuffer(uniformBuffer, 0, data.buffer);
+
+  // render
+  const enc = device.createCommandEncoder();
+  const pass = enc.beginRenderPass({ colorAttachments:[{ view:context.getCurrentTexture().createView(), loadOp:'clear', storeOp:'store', clearValue:{r:0,g:0,b:0,a:1} }] });
+  pass.setPipeline(pipeline);
+  pass.setBindGroup(0, device.createBindGroup({ layout:pipeline.getBindGroupLayout(0), entries:[
+    {binding:0, resource:{buffer:uniformBuffer}},
+    {binding:1, resource:{buffer:bvhBuffer}},
+    {binding:2, resource:{buffer:boxBuffer}}
+  ]}));
+  pass.draw(6); pass.end();
+  device.queue.submit([enc.finish()]);
+}
+function frame(){
+  tick()
+  calcFPS()
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+const topleft = document.getElementById("topleft")
+let prevTime = performance.now(), frames = 0;
+function calcFPS(){
+  // from https://gist.github.com/capfsb/3fd1b700b4732debb29aefd576cf54ef
+  const time = performance.now();
+  frames++;
+  if (time > prevTime + 1000) {
+    let fps = Math.round( ( frames * 1000 ) / ( time - prevTime ) );
+    prevTime = time;
+    frames = 0;
+
+    topleft.textContent = "FPS: "+fps
+  }
+}
+
+let touchedPortal = false
+
+// --- Collision Helpers ---
+function tryMove(player) {
+  let prev
+  prev = player.x, player.x += player.vel.x
+  if(collides(player, player.radius)) player.x = prev, player.vel.x = 0
+  prev = player.y, player.y += player.vel.y
+  if(collides(player, player.radius)) player.y = prev, player.vel.y = 0, player.onGround = true
+  else player.onGround = false
+  prev = player.z, player.z += player.vel.z
+  if(collides(player, player.radius)) player.z = prev, player.vel.z = 0
+  prev = player.w, player.w += player.vel.w
+  if(collides(player, player.radius)) player.w = prev, player.vel.w = 0
+}
+function collides(p, r) {
+  // traverse BVH
+  const stack=[0];
+  while(stack.length) {
+    const idx = stack.pop();
+    const n = nodes[idx];
+    if(sphereAABB(p, r, n.min, n.max)) {
+      if(n.isLeaf) {
+        const b = boxes[n.boxIndex];
+        if(sphereAABB(p, r, b.min, b.max)){
+          if(b.portal) touchedPortal = true
+          return true
+        }
+      } else {
+        stack.push(n.left, n.right);
+      }
+    }
+  }
+  return false;
+}
+function sphereAABB(c, r, min, max) {
+  let d2=0;
+  if(c.x<min[0]) d2 += (min[0]-c.x)**2;
+  if(c.x>max[0]) d2 += (c.x-max[0])**2;
+  if(c.y<min[1]) d2 += (min[1]-c.y)**2;
+  if(c.y>max[1]) d2 += (c.y-max[1])**2;
+  if(c.z<min[2]) d2 += (min[2]-c.z)**2;
+  if(c.z>max[2]) d2 += (c.z-max[2])**2;
+  if(c.w<min[3]) d2 += (min[3]-c.w)**2;
+  if(c.w>max[3]) d2 += (c.w-max[3])**2;
+  return d2 <= r*r;
+}
+function add(a,b){a.x+=b.x,a.y+=b.y,a.z+=b.z,a.w+=b.w}
+function sub(a,b){a.x-=b.x,a.y-=b.y,a.z-=b.z,a.w-=b.w}
+function scale(a,s){a.x*=s,a.y*=s,a.z*=s,a.w*=s}
+
+let prevRot, rotcos, rotsin
+function rotate(node, axis1,axis2, amount){
+  var x1 = node[axis1];
+  var x2 = node[axis2];
+  if(prevRot !== amount) rotcos = Math.cos(amount), rotsin = Math.sin(amount);
+  prevRot = amount
+  node[axis1] = x1 * rotcos - x2 * rotsin;
+  node[axis2] = x1 * rotsin + x2 * rotcos;
+}
+
+// --- Improved BVH Builder ---
+function buildBVH(boxes) {
+  const nodes = [];
+
+  // Compute bounding box for a set of indices
+  function computeBounds(indices) {
+    const min = [Infinity, Infinity, Infinity, Infinity];
+    const max = [-Infinity, -Infinity, -Infinity, -Infinity];
+    for (const i of indices) {
+      const b = boxes[i];
+      for (let d = 0; d < 4; d++) {
+        min[d] = Math.min(min[d], b.min[d]);
+        max[d] = Math.max(max[d], b.max[d]);
+      }
+    }
+    return { min, max };
+  }
+
+  // Recursive build: choose longest axis, median split
+  function recurse(indices) {
+    const nodeIndex = nodes.length;
+    nodes.push({});
+
+    // Compute bounds
+    const { min, max } = computeBounds(indices);
+    const extents = max.map((v,d) => v - min[d]);
+    const axis = extents.indexOf(Math.max(...extents));
+
+    const node = { min, max, left: 0, right: 0, boxIndex: 0, isLeaf: 0 };
+    if (indices.length <= 2) {
+      // Make leaf: if two boxes, create one internal and 2 leaves
+      if (indices.length === 1) {
+        node.isLeaf = 1;
+        node.boxIndex = indices[0];
+      } else {
+        // split two
+        const leftIdx = recurse([indices[0]]);
+        const rightIdx = recurse([indices[1]]);
+        node.left = leftIdx;
+        node.right = rightIdx;
+      }
+    } else {
+      // Sort by centroid along axis
+      indices.sort((a, b) => {
+        const ca = (boxes[a].min[axis] + boxes[a].max[axis]) * 0.5;
+        const cb = (boxes[b].min[axis] + boxes[b].max[axis]) * 0.5;
+        return ca - cb;
+      });
+      const mid = Math.floor(indices.length / 2);
+      node.left = recurse(indices.slice(0, mid));
+      node.right = recurse(indices.slice(mid));
+    }
+    nodes[nodeIndex] = node;
+    return nodeIndex;
+  }
+
+  recurse(boxes.map((_,i) => i));
+  return nodes;
+}
+
+function createStorageBuffer(device, data, isBox=false) {
+  const stride = isBox ? (16*2 + 16) : (16*2 + 16);
+  const array = new ArrayBuffer(data.length * stride);
+  const dv = new DataView(array);
+  data.forEach((o,i)=>{
+    const base=i*stride;
+    o.min.forEach((v,d)=>dv.setFloat32(base+4*d, v, true));
+    o.max.forEach((v,d)=>dv.setFloat32(base+16+4*d, v, true));
+    if(isBox) o.color.forEach((c,d)=>dv.setFloat32(base+32+4*d, c, true));
+    else { dv.setUint32(base+32, o.left, true); dv.setUint32(base+36, o.right, true);
+           dv.setUint32(base+40, o.boxIndex, true); dv.setUint32(base+44, o.isLeaf, true); }
+  });
+  const buf = device.createBuffer({ size:array.byteLength, usage: GPUBufferUsage.STORAGE|GPUBufferUsage.COPY_DST, mappedAtCreation:true });
+  new Uint8Array(buf.getMappedRange()).set(new Uint8Array(array)); buf.unmap(); return buf;
+}
+
+let curLevel = 0
+loadLevel(levels[curLevel])
+</script>
+</body>
+</html>
