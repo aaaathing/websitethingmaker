@@ -68,7 +68,7 @@ const alertStrs = ["don"+"gwei","alertthis"]
 
 
 console.log("index.js")
-if(! require("./indextest.js") . run) return
+//if(! require("./indextest.js") . run) return
 
 process.on('unhandledRejection', (reason, p) => {
   //console.error('Unhandled Rejection at: Promise', p, 'reason:', reason);
@@ -78,6 +78,8 @@ process.on('unhandledRejection', (reason, p) => {
   process.exit()
 });
 
+const path = require("path")
+require("dotenv").config({path: path.resolve(__dirname,"..",".env")})
 const express = require('express');
 const app = express(); global.app = app
 var cookieParser = require('cookie-parser');
@@ -90,7 +92,7 @@ app.use(cors({
   },
   credentials: true, // <= Accept credentials (cookies) sent by the client
 }))
-const db = require('./db.js'); global.db = db
+const db = require('./dblevel.js'); global.db = db
 const webPush = require('web-push');
 const Transform = require('stream').Transform;
 const newLineStream = require('new-line');
@@ -110,7 +112,6 @@ const rateLimit = require("./rateLimit.js")
 const { createCanvas, Image } = require('canvas')
 //const nocache = require('nocache')
 const { request } = require("http")
-const path = require("path")
 
 
 const SECOND = 1000
