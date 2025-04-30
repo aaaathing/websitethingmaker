@@ -5,12 +5,25 @@ This script is used in most pages of this website
 Most code here is by thingmaker (thingmaker.us.eu.org)
 */
 
-/*const origin = "https://aaaathing.github.io"
-if(location.origin !== origin && location.origin !== "http://localhost"){
+const origin = "https://thingmaker.us.eu.org"
+/*if(location.origin !== origin && location.origin !== "http://localhost"){
   fetch(origin+"/test").then(() => {
     location.href = origin + location.pathname
   })
 }*/
+
+{ //this needed to avoid big changes. not in service worker because not always available
+const ofetch = window.fetch;
+window.fetch = function(...args) {
+  if(typeof args[0] === "string" && (
+    args[0].startsWith("/server/") ||
+    args[0].startsWith("/images/")
+  )){
+    args[0] = "https://server.thingmaker.us.eu.org"+args[0]
+  }
+  return ofetch.apply(this, args)
+}
+}
 
 const {floor, ceil, abs, round} = Math
 
@@ -68,7 +81,7 @@ async function subscribe() {
     userVisibleOnly: true,
     applicationServerKey: urlBase64ToUint8Array(publicVapidKey),
   })
-  await fetch('/subscribe', {
+  await fetch('/server/subscribe', {
     method: 'POST',
     body: JSON.stringify(subscription),
     headers: {
@@ -78,7 +91,7 @@ async function subscribe() {
 }
 async function sameSubscribe(){
   if(!subscription) return console.error("no subscription")
-  await fetch('/subscribe', {
+  await fetch('/server/subscribe', {
     method: 'POST',
     body: JSON.stringify(subscription),
     headers: {

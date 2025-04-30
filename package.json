@@ -25,7 +25,7 @@
     "google-auth-library": "^9.15.0",
     "googleapis": "^144.0.0",
     "jszip": "^3.10.1",
-    "level": "^8.0.1",
+    "level": "^10.0.0",
     "mime-types": "^2.1.35",
     "minify": "^11.4.0",
     "new-line": "^1.1.1",

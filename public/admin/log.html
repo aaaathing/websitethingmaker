@@ -62,7 +62,7 @@
       function load(){
         options = "?timeZone="+encodeURIComponent(Intl.DateTimeFormat().resolvedOptions().timeZone)
         if(!document.querySelector("#minekhan").checked) options += "&nominekhan=true"
-        fetch("/log"+options).then(r=>r.text()).then(r => {
+        fetch("/server/log"+options).then(r=>r.text()).then(r => {
           loaded(r)
         }).catch(e => {
           log.append(document.createElement("br"),e)
@@ -81,7 +81,7 @@
         let value = document.querySelector("#runWhat").value
         await getPwd()
 				load()
-        fetch("/internal/run",{
+        fetch("/server/internal/run",{
           method:"POST",
           body:value,
 					headers:{Authorization:auth}
@@ -93,12 +93,12 @@
 
       window.restart = async function restart(){
         await getPwd()
-        let r = await fetch("/internal/restart",{headers:{Authorization:auth}}).then(r => r.text()).catch(e => e)
+        let r = await fetch("/server/internal/restart",{headers:{Authorization:auth}}).then(r => r.text()).catch(e => e)
         if(r !== "success") log.append(document.createElement("br"),r)
       }
 			window.clearLog = async function restart(){
         await getPwd()
-        fetch("/internal/clearLog"+options,{
+        fetch("/server/internal/clearLog"+options,{
           method:"POST",
           body: JSON.stringify({lastTime}),
 					headers:{Authorization:auth}

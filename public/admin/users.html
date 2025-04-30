@@ -81,7 +81,7 @@
         document.getElementById("messageHolder").classList.remove("hidden")
         document.getElementById("messageSend").onclick = function(){
           var t = document.getElementById("message").value
-          fetch("/admin/messageUser/"+user, {
+          fetch("/server/admin/messageUser/"+user, {
             credentials: 'include',
             method: "POST",
             body: JSON.stringify({message: t, sendWebPush:document.querySelector("#sendWebPush").checked})
@@ -98,7 +98,7 @@
         document.getElementById("giveCapeHolder").classList.remove("hidden")
         document.getElementById("giveCapeBtn").onclick = function(){
           var t = document.getElementById("giveCapeInput").value
-          fetch("/admin/giveCape/"+user, {
+          fetch("/server/admin/giveCape/"+user, {
             credentials: 'include',
             method: "POST",
             body: JSON.stringify({name: t})
@@ -113,7 +113,7 @@
       }
 
       function updateBanned(){
-        fetch("/banned").then(r => r.text()).then(r => {
+        fetch("/server/banned").then(r => r.text()).then(r => {
           document.querySelector("#banned").innerHTML = r
         })
       }

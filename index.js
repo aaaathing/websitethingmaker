@@ -270,7 +270,7 @@ db.get("lastOnline").then(r => {
 })
 const badPaths = ["/test","/records","/links.json"]
 function goodPath(path){//for online
-  return (path.endsWith(".html") || !path.match(/\.[^.]+$/)) && !path.startsWith("/server/") && !path.startsWith("/editor/") && !path.startsWith("/internal/") && !badPaths.includes(path) && !path.startsWith("/updates/")
+  return (path.endsWith(".html") || !path.match(/\.[^.]+$/)) && !path.startsWith("/server/") && !path.startsWith("/editor/") && !badPaths.includes(path) && !path.startsWith("/updates/")
 }
 function setOnline(username,path,ip){
   let good = path ? goodPath(path) : false
@@ -784,10 +784,6 @@ app.use(validate)
 app.use(async(req,res,next) => {
   let who = setOnline(req.username, req.isGoodPath ? req.method+" "+req.url : null, req.clientIp, req.isGoodPath)
 	req.who = who
-	if(req.url.startsWith("/internal/")){
-		next()
-		return
-	}
 	if(waitingForBanned) await waitForBanned()
   if(who.banned && who.banMode === "website"){
     var banData = whyBanned(who)
@@ -905,8 +901,8 @@ const getLog = (req,res,next) => {
   res.write("<br> Time: "+format.format(now)+" | time:"+now)
   res.end()
 }
-router.get('/log', getLog)
-router.get("/banned", (req,res) => {
+router.get('/server/log', getLog)
+router.get("/server/banned", (req,res) => {
   res.send("People banned:<br>"+getBanned().replace(/\n/g,"<br>").replace(/\t/g,"&nbsp;&nbsp;&nbsp;&nbsp;"))
 })
 
@@ -996,7 +992,7 @@ router.get("/minekhan/minekhan-world.js", async(req,res) => {
 const publicVapidKey = process.env['publicVapidKey']
 const privateVapidKey = process.env['privateVapidKey']
 webPush.setVapidDetails('mailto:test@example.com', publicVapidKey, privateVapidKey);
-router.post('/testNotif',getPostData, async(req, res) => {
+router.post('/server/testNotif',getPostData, async(req, res) => {
   rateLimit(req)
   const subscription = req.body
 
@@ -1089,7 +1085,7 @@ async function sendNotifToAll(msg,actions){
 }
 global.sendNotifToAll = sendNotifToAll
 
-router.post('/subscribe',getPostData, async(req, res) => {
+router.post('/server/subscribe',getPostData, async(req, res) => {
   rateLimit(req)
   const subscription = req.body
 
@@ -2223,13 +2219,13 @@ router.get("/getExternalServerSession/:id", async(req,res) => {
 
 //router.get("/testauth",auth,(req,res)=>res.send('very secret secret'))
 
-router.post("/admin/messageUser/*", getPostData,async(req,res) => {
+router.post("/server/admin/messageUser/*", getPostData,async(req,res) => {
   if(!req.isAdmin) return res.json({message:"Unauthorized"})
   let to = req.url.split("/").pop()
   await notif(req.username+" sent message: "+req.body.message, to, undefined, req.body.sendWebPush)
   res.json({success:true})
 })
-router.post("/admin/giveCape/*", getPostData,async(req,res) => {
+router.post("/server/admin/giveCape/*", getPostData,async(req,res) => {
   if(!req.isAdmin) return res.json({message:"Unauthorized"})
   let to = req.url.split("/").pop()
   if((await giveCape(to, req.body.name, req.username).catch(e => {
@@ -2279,12 +2275,12 @@ router.post("/admin/giveCape/*", getPostData,async(req,res) => {
     else Log(str)
   });
 }*/
-router.get('/internal/restart',auth,async(req,res) => {
+router.get('/server/internal/restart',auth,async(req,res) => {
   res.send('success')
   waitToRestart()
 })
 let runBy = null
-router.post('/internal/run',auth,getPostText,async(req,res) => {
+router.post('/server/internal/run',auth,getPostText,async(req,res) => {
   Log("%> "+req.body)
   runBy = req.username
   let res2
@@ -2302,17 +2298,17 @@ router.post('/internal/run',auth,getPostText,async(req,res) => {
   }
   res.send('success')
 })
-router.post('/internal/clearLog',auth,getPostData,async(req,res,next) => {
+router.post('/server/internal/clearLog',auth,getPostData,async(req,res,next) => {
 	runBy = req.username
   getLog(req,res,next)
 	clearLog(req.body.lastTime)
 })
-router.get("/internal/getFile/:file",async(req,res)=>{
+router.get("/server/internal/getFile/:file",async(req,res)=>{
 	if(req.query.pwd !== process.env.passKey) return res.send('Unauthorized')
   let relfile = Buffer.from(req.params.file, "base64").toString()
   fs.createReadStream(relfile).pipe(res)
 })
-router.post("/internal/updateFile/:file",getPostBufferHuge,async(req,res)=>{
+router.post("/server/internal/updateFile/:file",getPostBufferHuge,async(req,res)=>{
   if(req.query.pwd !== process.env.passKey) return res.send('Unauthorized')
   let relfile = Buffer.from(req.params.file, "base64").toString()
   await fs.promises.mkdir(path.dirname(relfile),{recursive:true})
