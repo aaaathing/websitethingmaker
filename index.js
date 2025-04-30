@@ -906,7 +906,21 @@ router.get("/server/banned", (req,res) => {
   res.send("People banned:<br>"+getBanned().replace(/\n/g,"<br>").replace(/\t/g,"&nbsp;&nbsp;&nbsp;&nbsp;"))
 })
 
-router.get("/assets/common.js", (req,res) => {
+router.get("/server/accountNav", (req,res) => {
+  let userInfo = null
+  if(req.user){
+    if(!("profanityFilter" in req.user)) req.user.profanityFilter = true
+    userInfo = {
+      username:req.user.username,
+      admin:req.user.admin,
+      profanityFilter:req.user.profanityFilter,
+      notifs:req.user.notifs,
+      ...getVotes(req.user)
+    }
+  }
+  res.json(userInfo)
+})
+/*router.get("/assets/common.js", (req,res) => {
   let userInfo = null
   if(req.user){
     if(!("profanityFilter" in req.user)) req.user.profanityFilter = true
@@ -929,7 +943,7 @@ router.get("/assets/common.js", (req,res) => {
       }
     }))
     .pipe(res);
-})
+})*/
 /*router.get("/news.js", (req,res) => {
   fs.createReadStream(__dirname+'/public/news.js')
     .pipe(newLineStream())
@@ -949,7 +963,7 @@ router.get("/server", function(req,res) {
 
 router.get("/search",async function(req,res){
   let q = req.query.q || ""
-  let defaultLinks = JSON.parse(await fs.promises.readFile(__dirname+"/public/links.json"))
+  let defaultLinks = JSON.parse(await fs.promises.readFile(__dirname+"/links.json"))
   let links = Object.assign({},defaultLinks)
   for(let i in links){
     if(!i.toLowerCase().includes(q.toLowerCase())) delete links[i]
@@ -968,7 +982,7 @@ router.get("/search",async function(req,res){
     }
   })
   
-  fs.createReadStream(__dirname+'/public/search/index.html')
+  fs.createReadStream(__dirname+'/search/index.html')
     .pipe(newLineStream())
     .pipe(parser)
     .on("error",e => {
@@ -979,14 +993,14 @@ router.get("/search",async function(req,res){
 
 //router.get("/minekhan",(req,res,next)=>res.send('<body style="filter:url(#wavy2);font:50px cursive;">tHERE IS noTHIng HEre!!!!!!!!!!!!!!!!mmmmdsnejwsdnk ahieywbhjsdkjhbja ns bnahjbw</body><svg><filter id="wavy2"><feTurbulence x="0" y="0" baseFrequency="0.01" numOctaves="5" seed="1" /><feDisplacementMap in="SourceGraphic" scale="30" /></filter></svg>'))
 
-router.get("/minekhan/minekhan.html", async(req,res) => {
+/*router.get("/minekhan/minekhan.html", async(req,res) => {
 	let file = (await fs.promises.readdir(__dirname+"/public/minekhan/")).find(r => r.startsWith("_mksrc") && r.endsWith(".html"))
 	res.redirect("/minekhan/"+file)
 })
 router.get("/minekhan/minekhan-world.js", async(req,res) => {
 	let file = (await fs.promises.readdir(__dirname+"/public/minekhan/")).find(r => r.startsWith("_mksrc") && r.endsWith("-world.js"))
 	res.redirect("/minekhan/"+file)
-})
+})*/
 
 //==================================================
 const publicVapidKey = process.env['publicVapidKey']
@@ -3507,7 +3521,7 @@ function sendOnline({id,path,username,time}){
 //====================== UDPATES
 router.get("/minekhan/updatesAfter/:time", (req,res) => {
   let found
-  fs.createReadStream(__dirname+'/public/minekhan/updates.txt')
+  fs.createReadStream(__dirname+'/minekhan/updates.txt')
     .pipe(newLineStream())
     .pipe(new Transform({
       transform(data, encoding, done) {
@@ -3527,7 +3541,7 @@ router.get("/minekhan/updatesAfter/:time", (req,res) => {
     .pipe(res);
 })
 router.get("/minekhan/recentUpdates", async(req,res) => {
-  const handle = await fs.promises.open(__dirname+'/public/minekhan/updates.txt', 'r');
+  const handle = await fs.promises.open(__dirname+'/minekhan/updates.txt', 'r');
   const { size } = await handle.stat()
   let amount = 1000
   let buffer = Buffer.alloc(amount)
@@ -3663,7 +3677,7 @@ router.get("/server/checkPwd/*", function(req, res) {
 
 app.use(router)
 
-app.use(express.static(__dirname + "/public"))
+//app.use(express.static(__dirname + "/public"))
 
 const mkwebsite = require("./minekhan-website/index.js")
 
