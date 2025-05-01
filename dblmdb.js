@@ -1,0 +1,52 @@
+const pathMod = require("path"), fs = require("fs")
+let db = require("lmdb").open({
+	path: pathMod.resolve(__dirname,"..","website-db"),
+	compression: false,
+	encoding:"msgpack",
+	cache:false,
+	pageSize:8192, // You may want to consider setting this to 8,192 for databases larger than available memory (and moreso if you have range queries) or 4,096 for databases that can mostly cache in memory.
+});
+const filePath = pathMod.resolve(__dirname,"..","website-db-files")
+
+function pipeAsync(from,to){
+	return new Promise(resolve => {
+		from.on("end",resolve).pipe(to)
+	})
+}
+module.exports = {
+  get:async function(key){
+    let value = db.get(key) // synchronous
+		return value === undefined ? null : value
+  },
+  set:async function(key, value, options){
+		if(options && options.raw) throw new Error("set raw not implemented")
+    await db.put(key, value)
+    return this
+  },
+  delete:async function(key){
+    await db.remove(key)
+    return this
+  },
+  list:async function(prefix, values){
+    let obj = values ? {} : []
+    if(values) throw new Error("list values not implemented")
+    for await(let k of db.getKeys({start:prefix,end:prefix+"\xff"})){
+      obj.push(k)
+    }
+    return obj
+  },
+
+  setFile:async function(path,value){
+    await fs.promises.writeFile(pathMod.join(filePath,path),value)
+  },
+  getStream:async function(path){
+    return fs.createReadStream(pathMod.join(filePath,path))
+  },
+  setStream:function(path,value){
+    return pipeAsync(value, fs.createWriteStream(pathMod.join(filePath,path)))
+  },
+	deleteFile: async function(path){
+		await fs.promises.rm(pathMod.join(filePath,path))
+	},
+  autoDeleteOld:()=>{}//todo
+}
