@@ -8,6 +8,15 @@ let db = require("lmdb").open({
 });
 const filePath = pathMod.resolve(__dirname,"..","website-db-files")
 
+  // check for ones after May 1, 2025, 1 AM, if moving back to replit object storage
+
+function esc(s){
+  return s.replace(/\p{Lu}|ˆ/gu, (x) => "ˆ"+x.toLowerCase())
+}
+function unesc(s){
+  return s.replace(/ˆ(.)/gu, (_,x) => x.toUpperCase())
+}
+
 function pipeAsync(from,to){
 	return new Promise(resolve => {
 		from.on("end",resolve).pipe(to)
@@ -20,11 +29,11 @@ module.exports = {
   },
   set:async function(key, value, options){
 		if(options && options.raw) throw new Error("set raw not implemented")
-    await db.put(key, value)
+    await Promise.all([ db.put(key, value), db.put("!modified:"+key, Date.now()) ])
     return this
   },
   delete:async function(key){
-    await db.remove(key)
+    await Promise.all([ db.remove(key), db.remove("!modified:"+key) ])
     return this
   },
   list:async function(prefix, values){
@@ -37,20 +46,42 @@ module.exports = {
   },
 
   setFile:async function(path,value){
-    path = pathMod.join(filePath,path)
+    path = pathMod.join(filePath,esc(path))
     await fs.promises.mkdir(pathMod.dirname(path),{recursive:true})
     await fs.promises.writeFile(path,value)
   },
   getStream:async function(path){
-    return fs.createReadStream(pathMod.join(filePath,path))
+    return fs.createReadStream(pathMod.join(filePath,esc(path)))
   },
   setStream:async function(path,value){
-    path = pathMod.join(filePath,path)
+    path = pathMod.join(filePath,esc(path))
     await fs.promises.mkdir(pathMod.dirname(path),{recursive:true})
     await pipeAsync(value, fs.createWriteStream(path))
   },
 	deleteFile: async function(path){
-		await fs.promises.rm(pathMod.join(filePath,path))
+		await fs.promises.rm(pathMod.join(filePath,esc(path)))
 	},
-  autoDeleteOld:()=>{}//todo
+  autoDeleteOld:function(prefix,timelen){
+    function doBegin(){
+      doNext(prefix)
+    }
+    let me = this
+    async function doNext(nextQuery){
+      let nextNextQuery
+      for await(let name of db.getKeys({start:nextQuery,end:prefix+"\xff",limit:100})){
+        if(name.startsWith(prefix) && (Date.now() - new Date(db.get("!modified:"+name)).getTime()) > timelen){
+          await me.delete(name)
+          await me.delete("!modified:"+name)
+        }
+        last = name
+      }
+      await sleep(1000*60*60)
+      if(nextNextQuery){
+        doNext(nextNextQuery)
+      }else{
+        doBegin()
+      }
+    }
+    doBegin()
+  }
 }

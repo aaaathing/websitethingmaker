@@ -906,7 +906,7 @@ router.get("/server/banned", (req,res) => {
   res.send("People banned:<br>"+getBanned().replace(/\n/g,"<br>").replace(/\t/g,"&nbsp;&nbsp;&nbsp;&nbsp;"))
 })
 
-router.get("/assets/common.js", (req,res) => {
+router.get("/server/accountNav", (req,res) => {
   let userInfo = null
   if(req.user){
     if(!("profanityFilter" in req.user)) req.user.profanityFilter = true
@@ -918,7 +918,8 @@ router.get("/assets/common.js", (req,res) => {
 			...getVotes(req.user)
     }
   }
-  let user = JSON.stringify(userInfo).replace(/</g,"\\<").replace(/>/g,"\\>")
+  res.json(userInfo)
+  /*let user = JSON.stringify(userInfo).replace(/</g,"\\<").replace(/>/g,"\\>")
   fs.createReadStream(__dirname+'/public/assets/common.js')
     .pipe(newLineStream())
     .pipe(new Transform({
@@ -928,7 +929,7 @@ router.get("/assets/common.js", (req,res) => {
         done();
       }
     }))
-    .pipe(res);
+    .pipe(res);*/
 })
 /*router.get("/news.js", (req,res) => {
   fs.createReadStream(__dirname+'/public/news.js')
@@ -2040,7 +2041,8 @@ router.get("/server/compareUser/:user1/:user2",async(req,res) => {
   res.send((user1.ip||[]).filter(value => (user2.ip||[]).includes(value)).length+" similarities")
 })
 
-//cloud saves
+// Don't uncomment if not sure because it takes up a lot of storage
+/*//cloud saves
 router.get("/minekhan/saves", async(req,res) => {
   if(!req.username) return res.status(401).json("Unauthorized")
   var saves = await db.get("saves:"+req.username)
@@ -2117,7 +2119,7 @@ router.get("/server/account/:user/mksaves/:id", async(req,res) => {
 	let stream = await db.getStream("saves:"+req.params.user+":"+req.params.id)
 	if(!stream) return res.json(null)
 	stream.pipe(res)
-})
+})*/
 
 /*router.post("/server/suggest",getPostText,async(req,res) => {
 	rateLimit(request,undefined,0.01)

@@ -43,11 +43,7 @@ document.body.style.filter = "grayscale("+(1-(userCount/50))+")"*/
   document.body.insertAdjacentHTML("beforeend",'<svg style="display:none;"><filter id="wavy2"><feTurbulence x="0" y="0" baseFrequency="0.01" numOctaves="5" seed="1" /><feDisplacementMap in="SourceGraphic" scale="'+desertedness+'" /></filter></svg>')
   document.body.style.filter += "url(#wavy2)"
 }*/
-let luserInfo
-try{
-luserInfo = USERDATA
-}catch{}
-const userInfo = luserInfo
+let userInfo = null
 
 function urlBase64ToUint8Array(base64String) {
   const padding = '='.repeat((4 - base64String.length % 4) % 4);
@@ -119,7 +115,7 @@ localforageScript.addEventListener("load", function(){
   mentionNotifications()
 });
 async function mentionNotifications(){
-  if(windowLoadedForPush !== 2) return console.log("not mention notifs "+windowLoadedForPush)
+  if(windowLoadedForPush !== 3) return console.log("not mention notifs "+windowLoadedForPush)
   if(!userInfo) return
   console.log("mention notifs")
   if(await localforage.getItem("noNotifs")) return
@@ -311,6 +307,8 @@ function addBanner(text, bg = "white", color = "black"){
   document.body.prepend(div)
 }
 
+fetch("/server/accountNav").then(r => r.json()).then(r => {
+userInfo = r || null
 var loggedInEl = document.getElementById("loggedIn")
 var notifs = document.getElementById("notifs")
 notifs.style.display = "none"
@@ -338,11 +336,13 @@ if(loggedInEl && logged){
 <a href="/admin/log.html">Log</a>
 `
   }
+  windowLoadedForPush++
+  mentionNotifications()
 }
-/*.catch(function(e){
-  console.log(e)
-  addBanner("Something went wrong when fetching","var(--red)")
-})*/
+}).catch(function(e){
+  addBanner("Something went wrong when fetching: "+e, "var(--red)")
+  throw e
+})
 /*
 var logged = getCookie("username")
 if(logged){
