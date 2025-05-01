@@ -92,7 +92,7 @@ app.use(cors({
   },
   credentials: true, // <= Accept credentials (cookies) sent by the client
 }))
-const db = require('./dblevel.js'); global.db = db
+const db = require('./dblmdb.js'); global.db = db
 const webPush = require('web-push');
 const Transform = require('stream').Transform;
 const newLineStream = require('new-line');
@@ -897,7 +897,7 @@ const getLog = (req,res,next) => {
       }
     }
   }
-  res.write("<br>Banned: "+banned.size+" | Cached: "+Object.keys(db.timeouts).length)
+  res.write("<br>Banned: "+banned.size+" | Cached: "+(db.timeouts ? Object.keys(db.timeouts).length : "NA"))
   res.write("<br> Time: "+format.format(now)+" | time:"+now)
   res.end()
 }

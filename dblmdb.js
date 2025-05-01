@@ -37,13 +37,17 @@ module.exports = {
   },
 
   setFile:async function(path,value){
-    await fs.promises.writeFile(pathMod.join(filePath,path),value)
+    path = pathMod.join(filePath,path)
+    await fs.promises.mkdir(pathMod.dirname(path),{recursive:true})
+    await fs.promises.writeFile(path,value)
   },
   getStream:async function(path){
     return fs.createReadStream(pathMod.join(filePath,path))
   },
-  setStream:function(path,value){
-    return pipeAsync(value, fs.createWriteStream(pathMod.join(filePath,path)))
+  setStream:async function(path,value){
+    path = pathMod.join(filePath,path)
+    await fs.promises.mkdir(pathMod.dirname(path),{recursive:true})
+    await pipeAsync(value, fs.createWriteStream(path))
   },
 	deleteFile: async function(path){
 		await fs.promises.rm(pathMod.join(filePath,path))

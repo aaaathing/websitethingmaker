@@ -1,3 +1,4 @@
+const start = 0
 const fs = require("fs").promises
 const fss = require("fs")
 const {Storage} = require('@google-cloud/storage');
@@ -28,12 +29,15 @@ rl.question("password: ", async function(pwd) {
 	});
 	const db=require("./dblmdb.js")
 	const bucket = storage.bucket("replit-objstore-dfc036d2-f315-4a87-877d-ec3cea3d75ed")
-	let allf = (await bucket.getFiles())[0]
-	let it=0
-	for(let file of allf){
+	let allf = (await bucket.getFiles())[0].filter(r => !r.name.startsWith('saves:')&&!r.name.startsWith('session:'))
+	let it=start
+	for(let i=start;i<allf.length;i++){
+		let file=allf[i]
 		if(file.name.endsWith(".json")){
+			try{
 			db.set(file.name.slice(0,-5), JSON.parse((await file.download())[0]))
-		}else{
+			}catch(e){console.error(e)}
+		}else if(!file.name.endsWith('/')){
 			await db.setStream(file.name, file.createReadStream())
 		}
 		it++

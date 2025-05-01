@@ -12,7 +12,7 @@ const origin = "https://thingmaker.us.eu.org"
   })
 }*/
 
-{ //this needed to avoid big changes. not in service worker because not always available
+/*{ //this needed to avoid big changes. not in service worker because not always available
 const ofetch = window.fetch;
 window.fetch = function(...args) {
   if(typeof args[0] === "string" && (
@@ -23,7 +23,7 @@ window.fetch = function(...args) {
   }
   return ofetch.apply(this, args)
 }
-}
+}*/
 
 const {floor, ceil, abs, round} = Math
 
