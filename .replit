@@ -12,20 +12,22 @@ channel = "stable-24_05"
 language = "nodejs"
 
 [deployment]
-run = ["sh", "-c", "node index.js runall"]
-deploymentTarget = "gce"
+deploymentTarget = "static"
 ignorePorts = false
+publicDir = "public"
+
+[[deployment.rewrites]]
+from = "*"
+to = "404.html"
 
 [objectStorage]
 defaultBucketID = "replit-objstore-dfc036d2-f315-4a87-877d-ec3cea3d75ed"
 
 [[ports]]
 localPort = 80
-externalPort = 3000
 
 [[ports]]
 localPort = 3001
-externalPort = 3001
 
 [[ports]]
 localPort = 8080

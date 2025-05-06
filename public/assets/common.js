@@ -6,6 +6,8 @@ Most code here is by thingmaker (thingmaker.us.eu.org)
 */
 
 const origin = "https://thingmaker.us.eu.org"
+let contentOrigin = "https://content.thingmaker.us.eu.org"
+if(location.origin === contentOrigin) contentOrigin = ""
 /*if(location.origin !== origin && location.origin !== "http://localhost"){
   fetch(origin+"/test").then(() => {
     location.href = origin + location.pathname
@@ -106,7 +108,7 @@ if(navigator.serviceWorker) navigator.serviceWorker.register('/sw.js', {
 })
 
 var script = document.createElement("script")
-script.src = "/assets/localforage.js"
+script.src = contentOrigin+"/localforage.js"
 document.body.appendChild(script)
 let localforageScript = script
 let windowLoadedForPush = 0
@@ -153,7 +155,7 @@ navbar.className = "navbar navbarStick"
 navbar.innerHTML = `
   <a class="logo" href="/"><span style="font-size:50%;transform:scaleY(2);display:inline-block;">Many things website</span></a>
   <div class="search-container">
-    <form action="/search">
+    <form action="${contentOrigin}/search">
       <input type="text" placeholder="Search..." name="q">
 <button type="submit">🔎</button>
     </form>
@@ -162,7 +164,7 @@ navbar.innerHTML = `
 	<a onclick="history.back()">◀</a>
 	<a onclick="history.forward()">▶</a>
 	<a onclick="location.reload()">↻</a>
-	<a href="/posts">Posts</a>
+	<a href="${contentOrigin}/posts">Posts</a>
 	<div class="dropdown">
     <a class="dropdown-name" href="/minekhan/">MineKhan</a>
     <div class="dropdown-content">
@@ -184,15 +186,17 @@ navbar.innerHTML = `
   
   <span id="adminNav"></span>
 
-  <a class="right" id="loggedIn" href="/login">Log in</a>
+	<span id="userNav" style="display:none;">
+  <a class="right" id="loggedIn" href="${contentOrigin}/login">Log in</a>
   <div class="dropdown right" id="usernameDropdown" style="display:none;">
     <a class="dropdown-name"></a>
     <div class="dropdown-content">
-      <a href="/account">Account</a>
+      <a href="${contentOrigin}/account">Account</a>
       <a id="usernameDropdown-profile">Profile</a>
     </div>
   </div>
-  <a class="right" id="notifs" href="/notifs">Notifications</a>
+  <a class="right" id="notifs" href="${contentOrigin}/notifs">Notifications</a>
+	</span>
 `
 document.body.prepend(navbar)
 
@@ -307,7 +311,8 @@ function addBanner(text, bg = "white", color = "black"){
   document.body.prepend(div)
 }
 
-fetch("/server/accountNav").then(r => r.json()).then(r => {
+if(document.currentScript.dataset.usernav) fetch("/server/accountNav").then(r => r.json()).then(r => {
+document.getElementById("userNav").style.display = ""
 userInfo = r || null
 var loggedInEl = document.getElementById("loggedIn")
 var notifs = document.getElementById("notifs")
@@ -320,7 +325,7 @@ if(loggedInEl && logged){
     document.getElementById("usernameDropdown").style.display = ""
     usernameEl.innerHTML = logged
     usernameEl.href = "/account"
-    document.querySelector("#usernameDropdown-profile").href="/user?user="+escape(logged)
+    document.querySelector("#usernameDropdown-profile").href=contentOrigin+"/user?user="+escape(logged)
   }else{
     loggedInEl.innerHTML = logged
     loggedInEl.href = "/account"
@@ -332,8 +337,8 @@ if(loggedInEl && logged){
   }
   if(userInfo.admin){
     document.querySelector("#adminNav").innerHTML = `
-<a href="/admin/users.html">Users</a>
-<a href="/admin/log.html">Log</a>
+<a href="${contentOrigin}/admin/users.html">Users</a>
+<a href="${contentOrigin}/admin/log.html">Log</a>
 `
   }
   windowLoadedForPush++

@@ -79,7 +79,7 @@ process.on('unhandledRejection', (reason, p) => {
 });
 
 const path = require("path")
-require("dotenv").config({path: path.resolve(__dirname,"..",".env")})
+//require("dotenv").config({path: path.resolve(__dirname,"..",".env")})
 const express = require('express');
 const app = express(); global.app = app
 var cookieParser = require('cookie-parser');
@@ -92,7 +92,7 @@ app.use(cors({
   },
   credentials: true, // <= Accept credentials (cookies) sent by the client
 }))
-const db = require('./dblmdb.js'); global.db = db
+const db = require('./dbcloud.js'); global.db = db
 const webPush = require('web-push');
 const Transform = require('stream').Transform;
 const newLineStream = require('new-line');
@@ -109,7 +109,7 @@ const mime = require('mime-types')
 const crypto = require("crypto")
 const fetch = require('@replit/node-fetch')
 const rateLimit = require("./rateLimit.js")
-const { createCanvas, Image } = require('canvas')
+//const { createCanvas, Image } = require('canvas')
 //const nocache = require('nocache')
 const { request } = require("http")
 
@@ -666,7 +666,7 @@ global.getPostDataLarge = function getPostDataLarge(req,res,next,limit=100000){
 global.getPostDataHuge = function getPostDataHuge(req,res,next){
   getPostBuffer(req,res,next,"json",10000000)
 }
-function resizeThumbnail(data){
+/*function resizeThumbnail(data){
   let img = new Image()
   img.src = data
   if(img.width > 128 || img.height > 128){
@@ -684,7 +684,7 @@ function limitImage(data, size = 800){
     canvas.drawImage(img,0,0,canvas.width,canvas.height)
     return canvas.toDataURL()
   }
-}
+}*/
 
 function auth(req,res,next){//https://stackoverflow.com/questions/5951552/basic-http-authentication-in-node-js
   var header = req.headers.authorization || '';       // get the auth header
@@ -2443,7 +2443,7 @@ function setPassword(username,pwd){
 
 //require("./public/save-mk-indexed-db")
 
-let serverPort = app.listen(8080, '0.0.0.0', function(){
+let serverPort = app.listen(80, '0.0.0.0', function(){
   Log("Server running");
 	console.log("server running")
 });
