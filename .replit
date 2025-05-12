@@ -1,6 +1,12 @@
 entrypoint = "index.js"
-modules = ["nodejs-20", "python-3.10"]
+modules = ["nodejs-20", "python-3.10", "web"]
 hidden = [".config", "package-lock.json"]
+run = "echo 'its static now'"
+
+# for static
+[hosting]
+route = "/"
+directory= "/public/"
 
 [gitHubImport]
 requiredFiles = [".replit", "replit.nix", "package.json", "package-lock.json"]
@@ -16,9 +22,9 @@ deploymentTarget = "static"
 ignorePorts = false
 publicDir = "public"
 
-[[deployment.rewrites]]
-from = "*"
-to = "*/index.html"
+#[[deployment.rewrites]]
+#from = "/*"
+#to = "/*/index.html"
 
 [objectStorage]
 defaultBucketID = "replit-objstore-dfc036d2-f315-4a87-877d-ec3cea3d75ed"

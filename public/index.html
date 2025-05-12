@@ -38,7 +38,7 @@ body[theme=dark] .side{
 }
 .main {   
   flex: 70%;
-  background-color: white;
+  background-color: #fff;
   padding: 20px;
 }
 body[theme=dark] .main{
@@ -162,6 +162,7 @@ body[theme=dark] .side a:hover{
 
 <!-- ©, by thingmaker. thingmaker.us.eu.org -->
 
+
 <!--<h1>Please make this website more <span style='background:#ff08'>popular</span></h1>
 <p id="more-popular">You can do that by sharing the link. If this website is more popular, it will make MineKhan <span style='background:#ff08'>more fun</span> and there may be <span style='background:#ff08'>more updates</span>. There are about 20 users on this website every day and less on weekends.</p>
 <span id="currentUsers"></span>
@@ -206,7 +207,7 @@ body[theme=dark] .side a:hover{
 						el.created = Date.parse(a[i].created)
 						index.push(el)
 					}
-				})
+				}).catch(e => {console.error(e); index.unshift(document.createTextNode(prefix+"/index.json | "+e))})
 			}
 			Promise.all([
 				add(""),
@@ -219,14 +220,13 @@ body[theme=dark] .side a:hover{
 	</div>
   <div class="main">
 
-		<details>I don't want to worry anymore about what happens on the website and keeping it up and making back ups. </details>
-		what should I do with the posts and maps? I don't want to delete them.<br>
-		<iframe src="/chat/other.html" style="width:calc(100vw - 50px); height:calc(100vh - 50px);"></iframe>
+		<div style="width:50%;float:right;" class="arena-chat" data-publisher="ske-tch" data-chatroom="VSCI1IW" data-position="in-page"></div><script async src="https://go.arena.im/public/js/arenachatlib.js?p=ske-tch&e=VSCI1IW"></script>
 		
     <h2>Website</h2>
     <p>This is the home page of this website. You can find many things like interesting stuff and useful tools in the links above. Green background means it may be interesting.</p>
 		<h3>thingmaker's profiles</h3>
-		<a href="https://scratch.mit.edu/users/2-people">scratch</a>
+		<a href="https://scratch.mit.edu/users/2-people">scratch</a><br>
+		<a href="https://github.com/aaaathing/">github</a><br>
     
     <h2>Websites and things you may not have even known existed!</h2>
     <a href="https://mordritch.com/">Modritch.com</a><br>
@@ -253,6 +253,7 @@ https://minekhan.glitch.me/
 </pre>-->
 
     <h2>Website Stats</h2>
+		<!--
     <a id="showStats">Show</a>
     <p id="users-inactive">Note: Most users are inactive</p>
     <span id="users"></span>
@@ -260,6 +261,9 @@ https://minekhan.glitch.me/
     <span id="posts"></span><br>
     <span id="worlds"></span><br>
     <span id="maps"></span>
+		-->
+		Posts and maps and worlds and accounts from 2021 to 2024 are not here anymore.<br>Something new may come.
+		<img src="https://images.stockcake.com/public/e/f/4/ef4b86d8-f9f8-43af-ab0e-2baf15abc8cc_large/starry-forest-night-stockcake.jpg">
 
     <h2>MineKhan videos</h2>
 		<b>These ones are disappearing. archive them before they disappear!!</b>
@@ -517,6 +521,7 @@ https://minekhan.glitch.me/
 		localStorage.setItem("cookieSeen","true")
 	}
 </script>
+
 
 </body>
 </html>
