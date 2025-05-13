@@ -26,6 +26,11 @@ publicDir = "public"
 #from = "/*"
 #to = "/*/index.html"
 
+[[deployment.responseHeaders]]
+path = "*"
+name = "Access-Control-Allow-Origin"
+value = "*"
+
 [objectStorage]
 defaultBucketID = "replit-objstore-dfc036d2-f315-4a87-877d-ec3cea3d75ed"
 
