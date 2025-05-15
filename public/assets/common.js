@@ -197,6 +197,8 @@ navbar.innerHTML = `
   </div>
   <a class="right" id="notifs" href="${contentOrigin}/notifs">Notifications</a>
 	</span>
+
+	<a class="right" href="/old.html">Notifications (2)</a>
 `
 document.body.prepend(navbar)
 
