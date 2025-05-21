@@ -200,10 +200,11 @@ body[theme=dark] .side a:hover{
 			let side = document.querySelector(".side")
 			let index = []
 			function add(prefix){
-				return fetch(prefix+"/index.json").then(a => a.json()).then(a => {
+				let url = new URL(prefix,location).href
+				return fetch(new URL("index.json",url).href).then(a => a.json()).then(a => {
 					for(let i in a){
 						let el = document.createElement("div")
-						el.innerHTML = `<a href="${prefix+"/"+i}">${a[i].name||i}<br><span style="opacity:0.5">${a[i].created}</span></a>`
+						el.innerHTML = `<a href="${new URL(i,url).href}">${a[i].name||i}<br><span style="opacity:0.5">${a[i].created}</span></a>`
 						el.created = Date.parse(a[i].created)
 						index.push(el)
 					}
@@ -211,7 +212,7 @@ body[theme=dark] .side a:hover{
 			}
 			Promise.all([
 				add(""),
-				add("/stuff"),
+				add("/stuff/"),
 			]).then(() => {
 				index.sort((a,b) => b.created - a.created || 0)
 				for(let i of index) side.appendChild(i)

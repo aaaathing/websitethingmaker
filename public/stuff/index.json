@@ -12,6 +12,10 @@
 	"text.html": {
 		"created": "Apr 30 2023 4:29 AM (maybe before)"
 	},
+	"https://drive.google.com/drive/folders/1WH1vv1qzwjaXiQNr95wTjmJ8QzZbRNv8":{
+		"name":"My awesome addon",
+		"created":"Feb 3, 2022 (maybe before)"
+	},
 	"minekhan msg.js": {
 		"created": "Apr 2021 (maybe after)"
 	},
@@ -23,7 +27,15 @@
 	},
 	"ka":{
 		"created":"Jun 2021",
-		"name":"thingmaker's KA programs and webpages"
+		"name":"thingmaker's KA programs and webpages (missing)",
+		"path":"https://www.khanacademy.org/profile/kaid_30538885139931647243460/projects"
+	},
+	"https://drive.google.com/drive/folders/16M0-Io0DZa_6E9mRuLqXYp73phnHNM5c":{
+		"created":"Jun 2021",
+		"name":"thingmaker's KA programs and webpages (backup)"
+	},
+	"https://replit.com/@thingMaker":{
+		"name":"thingmaker's projects on Replit"
 	},
 	"creepy window.html": {
 		"created": "Mar 25 2021"
@@ -34,11 +46,19 @@
 	"scratch readouts.js": {
 		"created": "Mar 2021"
 	},
+	"https://drive.google.com/drive/folders/1uY4VNSsT4-rvBCGO19fNC8x8BJAlz6aF":{
+		"name":"Scratch Color Extension",
+		"created":"Jan 2021"
+	},
 	"towerDefense.html": {
 		"created": "Jan 15 2021 5:24 PM (maybe before)"
 	},
 	"TvGuys.html": {
 		"created": "Dec 29 2020"
+	},
+	"https://drive.google.com/drive/folders/1uXw7oNrqTAId1ky7cBiqVkGk91pbp3SL":{
+		"name":"my extension",
+		"created":"Dec 16, 2020 (maybe before)"
 	},
 	"fake game.html": {
 		"created": "Nov 16 2020 12:41 PM"
@@ -48,6 +68,15 @@
 	},
 	"tobase64.html": {
 		"created": "late 2020"
+	},
+	"ka-oldacc":{
+		"created":"Jul 2020",
+		"name":"Old KA programs and webpages (broken)",
+		"path":"https://www.khanacademy.org/profile/kaid_1192481548237719607966796/projects"
+	},
+	"https://drive.google.com/drive/folders/1X1okKTHUGxxK-YsVwpl59zAPGI-3wzJA":{
+		"created":"Jul 2020",
+		"name":"Old KA programs and webpages (backup)"
 	},
 	"space.html": {
 		"created": "2020"
@@ -64,8 +93,12 @@
 	"textbox.html": {
 		"created": "2020"
 	},
-	"ka-oldacc":{
-		"created":"Jul 2020",
-		"name":"Old KA programs and webpages"
+	"https://drive.google.com/drive/folders/1KCM3Cu2otCW8y0GYtI-cQXjfL-SXe0Yy":{
+		"name":"More stuff",
+		"created":"2020"
+	},
+	"https://scratch.mit.edu/users/95045290/":{
+		"name":"My old scratch projects",
+		"created":"Mar 2019"
 	}
 }
