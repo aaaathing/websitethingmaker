@@ -5,6 +5,10 @@
 	"bending pixels.html": {
 		"created": "Feb 9 2025 4:38 PM"
 	},
+	"https://github.com/aaaathing?tab=repositories":{
+		"name":"thingmaker's projects on Github",
+		"created":"June 16, 2024"
+	},
 	"bitmap-font-generator.html": {
 		"created": "Dec 31 2023 10:34 AM UTC-8",
 		"lastModified": "Jan 3 2024 10:42 AM UTC-8"
@@ -25,10 +29,9 @@
 	"adblock.js": {
 		"created": "Jun 2021 (maybe before)"
 	},
-	"ka":{
+	"https://www.khanacademy.org/profile/kaid_30538885139931647243460/projects":{
 		"created":"Jun 2021",
-		"name":"thingmaker's KA programs and webpages (missing)",
-		"path":"https://www.khanacademy.org/profile/kaid_30538885139931647243460/projects"
+		"name":"thingmaker's KA programs and webpages (missing)"
 	},
 	"https://drive.google.com/drive/folders/16M0-Io0DZa_6E9mRuLqXYp73phnHNM5c":{
 		"created":"Jun 2021",
@@ -66,13 +69,16 @@
 	"Locker.html": {
 		"created": "Nov 2020"
 	},
+	"/stuff/my-on-mordritch.html":{
+		"name":"My redstone stuff on mordritch.com",
+		"created":"Aug 24 2020"
+	},
 	"tobase64.html": {
 		"created": "late 2020"
 	},
-	"ka-oldacc":{
+	"https://www.khanacademy.org/profile/kaid_1192481548237719607966796/projects":{
 		"created":"Jul 2020",
-		"name":"Old KA programs and webpages (broken)",
-		"path":"https://www.khanacademy.org/profile/kaid_1192481548237719607966796/projects"
+		"name":"Old KA programs and webpages (broken)"
 	},
 	"https://drive.google.com/drive/folders/1X1okKTHUGxxK-YsVwpl59zAPGI-3wzJA":{
 		"created":"Jul 2020",
@@ -96,6 +102,10 @@
 	"https://drive.google.com/drive/folders/1KCM3Cu2otCW8y0GYtI-cQXjfL-SXe0Yy":{
 		"name":"More stuff",
 		"created":"2020"
+	},
+	"https://scratch.mit.edu/users/2-people/":{
+		"name":"My scratch projects & other",
+		"created":"Jan 2020"
 	},
 	"https://scratch.mit.edu/users/95045290/":{
 		"name":"My old scratch projects",

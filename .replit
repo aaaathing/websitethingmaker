@@ -22,9 +22,9 @@ deploymentTarget = "static"
 ignorePorts = false
 publicDir = "public"
 
-#[[deployment.rewrites]]
+[[deployment.rewrites]]
 #from = "/*"
-#to = "/*/index.html"
+#to = "../*"
 
 [[deployment.responseHeaders]]
 path = "*"
