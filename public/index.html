@@ -33,7 +33,10 @@ body {
 	background-color: #f1f1f1; /* Grey background color */
 	padding: 20px; /* Some padding */
 }
-body[theme=dark] .side{
+.side .dropdown-content{
+	background-color: #f1f1f1; /* Grey background color */
+}
+body[theme=dark] .side, body[theme=dark] .side .dropdown-content{
   background:#222;
 }
 .main {   
@@ -121,7 +124,7 @@ body[theme=dark] #links a.interesting{
 body[theme=dark] #links a.no{
   background: #622;
 }
-#links .dropdown::after{
+#links .dropdown::after, .side .dropdown::after{
 	display:block;
 	float:right;
 	content:"▼";
@@ -136,16 +139,19 @@ body[theme=dark] #links a.no{
   padding: 12px;
   text-decoration: none;
   color: black;
-  display: block
+  display: block;
 }
 body[theme=dark] .side a{
   color:#eee;
 }
 .side a:hover {
-  background-color: #eee;
+  background-color: #ddd;
 }
 body[theme=dark] .side a:hover{
-  background:#111;
+  background:#444;
+}
+.side .dropdown{
+	display:block;
 }
 	</style>
 <!-- Global site tag (gtag.js) - Google Analytics -->
@@ -168,7 +174,7 @@ body[theme=dark] .side a:hover{
 <span id="currentUsers"></span>
 <script>addEventListener("load", () => document.querySelector("#currentUsers").innerHTML = "Current amount of users in last 24 hours (on page load): "+userCount)</script>-->
 	
-  <div id="links">
+  <!--<div id="links">
     <script>
 			function addlinks(r,container){
         for(let i in r){
@@ -191,10 +197,49 @@ body[theme=dark] .side a:hover{
 				addlinks(r,document.querySelector("#links"))
       })
     </script>
-  </div>
+  </div>-->
+	<div class="header" style="
+		background:lightblue;
+		height:50vh;
+		background-image:url(https://images.stockcake.com/public/e/f/4/ef4b86d8-f9f8-43af-ab0e-2baf15abc8cc_large/starry-forest-night-stockcake.jpg);
+		background-size: cover;
+	"></div>
 
 	<div class="mainrow">
 	<div class="side">
+		<a href="/posts/">Posts: a place for talking (mostly minekhan)</a>
+		<div class="dropdown"> <a href="/minekhan/">MineKhan</a> <div class="dropdown-content">
+			<a href="/minekhan/offdown.html">Offline download</a>
+			<a href="/minekhan/history/">MineKhan older versions</a>
+			<a>MineKhan mods (find in KA programs)</a>
+			<a href="/minekhan/live-servers.html">MineKhan live list of servers</a>
+		</div></div>
+		<div class="dropdown"> <a href="/minekhan-website/maps/browse/">MineKhan Maps</a> <div class="dropdown-content">
+			<a href="/minekhan-website/maps/new/">Upload MineKhan Map</a>
+			<a href="/minekhan-website/maps/newrp/">Upload MineKhan Resource Pack</a>
+		</div> </div>
+		<div class="dropdown"> <a href="/minekhan-website/">MineKhan website (maps, wiki)</a> <div class="dropdown-content">
+			<a href="/minekhan-website/wiki/">MineKhan Wiki</a>
+		</div></div>
+		<a href="/mcs.html">Lake and mountains</a>
+		<a href="/history.html">History of website</a>
+		<div class="dropdown"> <a>Tools</a> <div class="dropdown-content">
+			<a href="/tools/">MineKhan tools</a>
+			<a href="/random.html">Randomizer</a>
+			<a href="/code%20editor/Programs.html">Code editor</a>
+			<a href="/code%20editor/pythoninterpreter.html">Python interpreter</a>
+			<a href="/chat/">chat by TomMustBe12</a>
+			<a href="/music/">A tool for making music</a>
+		</div></div>
+		<div class="dropdown"> <a>Interesting</a> <div class="dropdown-content">
+			<a href="/multiplayer/">Multiplayer drawing</a>
+			<a href="/platformer/">Platformer (lots of levels)</a>
+			<a href="/dino/">dino</a>
+			<a href="/redstone/">Redstone simulator (old)</a>
+			<a href="/text-meaning-distorter/">Text meaning distorter</a>
+			<a href="/particleLife/">Particle life</a>
+		</div></div>
+		<a href="https://drive.google.com/drive/folders/1KCM3Cu2otCW8y0GYtI-cQXjfL-SXe0Yy">More stuff</a>
 		<h3>By thingmaker</h3>
 		<script>
 			let side = document.querySelector(".side")
@@ -224,10 +269,10 @@ body[theme=dark] .side a:hover{
 		<div style="width:50%;float:right;min-height:620px;" class="arena-chat" data-publisher="ske-tch" data-chatroom="VSCI1IW" data-position="in-page"><script async src="https://go.arena.im/public/js/arenachatlib.js?p=ske-tch&e=VSCI1IW"></script></div>
 		
     <h2>Website</h2>
-    <p>This is the home page of this website. You can find many things like interesting stuff and useful tools in the links above. Green background means it may be interesting.</p>
-		<h3>thingmaker's profiles</h3>
-		<a href="https://scratch.mit.edu/users/2-people">scratch</a><br>
-		<a href="https://github.com/aaaathing/">github</a><br>
+    Welcome to thingmaker's website.<br><br>
+		<b>thingmaker's profiles</b><br>
+		'thingmaker' is my username.
+		<a href="https://scratch.mit.edu/users/2-people">scratch</a> | <a href="https://replit.com/@thingMaker">replit</a> | <a href="https://github.com/aaaathing/">github</a>
     
     <h2>Websites and things you may not have even known existed!</h2>
     <a href="https://mordritch.com/">Modritch.com</a><br>
@@ -264,7 +309,6 @@ https://minekhan.glitch.me/
     <span id="maps"></span>
 		-->
 		Posts and maps and worlds and accounts from 2021 to 2024 are not here anymore.<br>Something new may come.
-		<img src="https://images.stockcake.com/public/e/f/4/ef4b86d8-f9f8-43af-ab0e-2baf15abc8cc_large/starry-forest-night-stockcake.jpg">
 
     <h2>MineKhan videos</h2>
 		<b>These ones are disappearing. archive them before they disappear!!</b>

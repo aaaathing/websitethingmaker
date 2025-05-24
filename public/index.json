@@ -1,9 +1,13 @@
 {
+	"minekhan/beta/allupdate/_mksrc10test.html":{
+		"name":"MineKhan test: all update",
+		"created":"Dec 16, 2024, 3:38 PM PST"
+	},
 	"history.html": {
 		"created": "November 17, 2024 10:17 PM"
 	},
-	"lfbd": {
-		"name":"Leafbuild (unfinished)",
+	"lfbd/prealpha-0.1.0.html": {
+		"name":"Leafbuild (prealpha 0.1.0, unfinished)",
 		"created": "March 17, 2024",
 		"lastModified": "August 9, 2024"
 	},
@@ -14,7 +18,8 @@
 		"name":"Python interpreter",
 		"created": "December 16, 2023 12:58 PM"
 	},
-	"music": {
+	"music/": {
+		"name":"Make music",
 		"created": "Oct 30 2023 03:13 (a little before)",
 		"lastModified": "Jan 2024"
 	},
@@ -27,7 +32,7 @@
 	"videoCompress.html": {
 		"created": "Jun 13 2023 11:15 PM UTC-8 (maybe before)"
 	},
-	"particleLife": {
+	"particleLife/": {
 		"name":"Particle life",
 		"created": "Jun 4 2023 9:32 PM UTC-8",
 		"lastModified": "June 5 2023 9:38 AM UTC-8"
@@ -41,19 +46,25 @@
 		"lastModified": "10:03 pm, Nov 12, 2023 UTC-8"
 	},
 	"text-meaning-distorter": {
+		"name":"Text meaning distorter",
 		"created": "Feb 6 2023 5:35 AM (maybe before)"
 	},
-	"updates": {
+	"updates/": {
 		"created": "2023"
 	},
 	"sandboxels_mod.js": {
 		"created": "6:22 pm, Jul 08, 2022 UTC-8",
 		"lastModified": "7:08 pm, Jul 08, 2022 UTC-8"
 	},
-	"redstone": {
+	"minekhan/live-servers.html":{
+		"name":"MineKhan live list of servers",
+		"created":"3:03 pm, Mar 23, 2022"
+	},
+	"redstone/": {
+		"name":"Redstone simulator (old)",
 		"created": "Jan 5, 2022"
 	},
-	"grapher": {
+	"grapher/": {
 		"created": "around 2022"
 	},
 	"glitch.html": {
@@ -62,41 +73,57 @@
 		"lastModified": "8:46 pm, Oct 30, 2021 UTC-8"
 	},
 	"random.html": {
+		"name":"Randomizer",
 		"created": "Jun 19, 2021"
 	},
-	"fullscreen-os": {
+	"fullscreen-os/": {
+		"name":"Fullscreen OS",
 		"created": "Jun 2, 2021 2:33 PM (maybe before)"
 	},
-	"dino": {
+	"tools/": {
+		"name":"MineKhan tools",
+		"created": "around Jun 2021"
+	},
+	"posts/":{
+		"name":"Posts: a place for talking (mostly minekhan)",
+		"created":"May 26, 2021"
+	},
+	"dino/": {
 		"created": "May 22 2021"
 	},
-	"websocket-test": {
+	"websocket-test/": {
 		"created": "2021-05-13T20:38:36.222Z"
 	},
-	"multiplayer": {
+	"multiplayer/": {
+		"name":"Multiplayer drawing",
 		"created": "May 13 2021"
 	},
-	"platformer": {
+	"scratch/scratchjs.html": {
+		"name":"Scratch to javascript converter",
+		"created": "Mar 2021"
+	},
+	"platformer/": {
+		"name":"Platformer (lots of levels)",
 		"created": "Feb 13 2021 12:38 PM (maybe before)"
+	},
+	"Adder.html": {
+		"created": "early 2021"
 	},
 	"programBrowser.html": {
 		"name":"Program browser (doesn't work anymore)",
 		"created": "Jan 14 2021"
 	},
-	"minekhan": {
-		"created": "2021"
-	},
-	"tools": {
-		"created": "2021"
-	},
-	"scratch": {
-		"created": "late 2020"
-	},
-	"Adder.html": {
-		"created": "late 2020"
-	},
-	"code editor": {
-		"created": "late 2020",
+	"code editor/Programs.html": {
+		"name":"Code editor",
+		"created": "Jan 2021",
 		"lastModified": "2024"
+	},
+	"minekhan/history": {
+		"name":"MineKhan older versions",
+		"created": "2021"
+	},
+	"minekhan/": {
+		"name":"MineKhan",
+		"created": "2021"
 	}
 }
