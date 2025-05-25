@@ -33,6 +33,36 @@ var script = document.createElement("script")
 script.src = "//cdn.jsdelivr.net/npm/sweetalert2@11"
 document.body.appendChild(script)
 
+// minimal stylesheet
+if(!document.querySelector("link[rel=stylesheet][href='/assets/common.css']")){
+	let style = document.createElement("style")
+	style.innerHTML = `
+:root{/*also in common.css and common.js*/
+  --black:#1B262C;
+  --blue:#0F4C81;
+  --red:#ED6663;
+  --orange:#FFA372;
+  --theme:#FFA372;
+  --teal:#1abc9c;
+}
+body{
+	position:relative;
+}
+.dropdown{
+  display:inline-block;
+	position:relative;
+}
+.dropdown .dropdown-content{
+  display:none;
+  position:absolute;
+}
+.dropdown:hover .dropdown-content{
+  display:block;
+}
+`
+	document.head.appendChild(style)
+}
+
 /*{
   let diff = Date.now()-(new Date('Fri Nov 17 2023'))+(new Date().getTimezoneOffset()*60*1000)
 console.log(diff)
