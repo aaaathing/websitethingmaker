@@ -750,7 +750,7 @@ var Project = {
     
     //Project.rafTog = !Project.rafTog;
     //if(Project.rafTog){
-		let now=Date.now(); if(!Project.lasttick || now-Project.lasttick>(1000/30)){ Project.lasttick=now // added in May 25, 2025
+		let now=Math.floor(Date.now()/30); if(!Project.lasttick || now!==Project.lasttick){ Project.lasttick=now // added in May 25, 2025
       Trigger.tick();
     }
     

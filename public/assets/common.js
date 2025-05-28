@@ -92,6 +92,7 @@ function urlBase64ToUint8Array(base64String) {
   return outputArray;
 }
 
+/*
 const publicVapidKey = 'BC97-wjdng136e_0JIJV3CHzcPKzfJsaCMscJrkoB1GMuyOJY8AvJg70WmGY5io5mPUEaBEbHrizKUvqqFagd5g';
 
 async function subscribe() {
@@ -136,12 +137,13 @@ if(navigator.serviceWorker) navigator.serviceWorker.register('/sw.js', {
   windowLoadedForPush++
   mentionNotifications()
 })
+*/
 
 var script = document.createElement("script")
-script.src = contentOrigin+"/localforage.js"
+script.src = contentOrigin+"/assets/localforage.js"
 document.body.appendChild(script)
 let localforageScript = script
-let windowLoadedForPush = 0
+/*let windowLoadedForPush = 0
 localforageScript.addEventListener("load", function(){
   windowLoadedForPush++
   mentionNotifications()
@@ -175,7 +177,7 @@ async function mentionNotifications(){
       }
     })
   }  
-}
+}*/
 
 
 //====================NAVBAR===============
@@ -185,7 +187,7 @@ navbar.className = "navbar navbarStick"
 navbar.innerHTML = `
   <a class="logo" href="/"><span style="font-size:50%;transform:scaleY(2);display:inline-block;">Many things website</span></a>
   <div class="search-container">
-    <form action="${contentOrigin}/search">
+    <form action="https://google.com/search">
       <input type="text" placeholder="Search..." name="q">
 <button type="submit">🔎</button>
     </form>
@@ -213,8 +215,12 @@ navbar.innerHTML = `
       <a onclick="setTheme('dark,glow')">Glow</a>
     </div>
   </div>
-  
-  <span id="adminNav"></span>
+
+	<a class="right" href="/old.html">(2) people from 2021-2023, read</a>
+`
+document.body.prepend(navbar)
+/*
+	<span id="adminNav"></span>
 
 	<span id="userNav" style="display:none;">
   <a class="right" id="loggedIn" href="${contentOrigin}/login">Log in</a>
@@ -227,10 +233,7 @@ navbar.innerHTML = `
   </div>
   <a class="right" id="notifs" href="${contentOrigin}/notifs">Notifications</a>
 	</span>
-
-	<a class="right" href="/old.html" style="background:#ff08;">Notifications (2)</a>
-`
-document.body.prepend(navbar)
+*/
 
 var style=document.createElement("style")
 style.innerHTML = `
