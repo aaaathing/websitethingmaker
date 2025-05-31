@@ -216,7 +216,7 @@ navbar.innerHTML = `
     </div>
   </div>
 
-	<a class="right" href="/old.html">(2) people from 2021-2023, read</a>
+	<a class="right" href="/old.html">(2) message to people from 2021-2023</a>
 `
 document.body.prepend(navbar)
 /*
