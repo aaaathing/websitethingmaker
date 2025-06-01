@@ -6,25 +6,10 @@ Most code here is by thingmaker (thingmaker.us.eu.org)
 */
 
 const origin = "https://thingmaker.us.eu.org"
-let contentOrigin = "https://content.thingmaker.us.eu.org"
-if(location.origin === contentOrigin) contentOrigin = ""
 /*if(location.origin !== origin && location.origin !== "http://localhost"){
   fetch(origin+"/test").then(() => {
     location.href = origin + location.pathname
   })
-}*/
-
-/*{ //this needed to avoid big changes. not in service worker because not always available
-const ofetch = window.fetch;
-window.fetch = function(...args) {
-  if(typeof args[0] === "string" && (
-    args[0].startsWith("/server/") ||
-    args[0].startsWith("/images/")
-  )){
-    args[0] = "https://server.thingmaker.us.eu.org"+args[0]
-  }
-  return ofetch.apply(this, args)
-}
 }*/
 
 const {floor, ceil, abs, round} = Math
@@ -75,109 +60,18 @@ document.body.style.filter = "grayscale("+(1-(userCount/50))+")"*/
   document.body.insertAdjacentHTML("beforeend",'<svg style="display:none;"><filter id="wavy2"><feTurbulence x="0" y="0" baseFrequency="0.01" numOctaves="5" seed="1" /><feDisplacementMap in="SourceGraphic" scale="'+desertedness+'" /></filter></svg>')
   document.body.style.filter += "url(#wavy2)"
 }*/
+
+let swRegister
+if(navigator.serviceWorker) swRegister = navigator.serviceWorker.register('/sw.js', {
+  scope: '/'
+})
+
 let userInfo = null
 
-function urlBase64ToUint8Array(base64String) {
-  const padding = '='.repeat((4 - base64String.length % 4) % 4);
-  const base64 = (base64String + padding)
-    .replace(/-/g, '+')
-    .replace(/_/g, '/');
-
-  const rawData = window.atob(base64);
-  const outputArray = new Uint8Array(rawData.length);
-
-  for (let i = 0; i < rawData.length; ++i) {
-    outputArray[i] = rawData.charCodeAt(i);
-  }
-  return outputArray;
-}
-
-/*
-const publicVapidKey = 'BC97-wjdng136e_0JIJV3CHzcPKzfJsaCMscJrkoB1GMuyOJY8AvJg70WmGY5io5mPUEaBEbHrizKUvqqFagd5g';
-
-async function subscribe() {
-  if(!swRegister) return Swal.fire({
-    title:"Wait!",
-    text: 'Please wait for service worker to register.',
-    icon: 'error',
-  })
-  if(subscription) return Swal.fire({
-    title:"Wait!",
-    text: 'You already subscribed.',
-    icon: 'error',
-  })
-  subscription = await swRegister.pushManager.subscribe({
-    userVisibleOnly: true,
-    applicationServerKey: urlBase64ToUint8Array(publicVapidKey),
-  })
-  await fetch('/server/subscribe', {
-    method: 'POST',
-    body: JSON.stringify(subscription),
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
-}
-async function sameSubscribe(){
-  if(!subscription) return console.error("no subscription")
-  await fetch('/server/subscribe', {
-    method: 'POST',
-    body: JSON.stringify(subscription),
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
-}
-
-let swRegister, subscription
-if(navigator.serviceWorker) navigator.serviceWorker.register('/sw.js', {
-  scope: '/'
-}).then(r => {
-  swRegister = r
-  windowLoadedForPush++
-  mentionNotifications()
-})
-*/
-
 var script = document.createElement("script")
-script.src = contentOrigin+"/assets/localforage.js"
+script.src = "/assets/localforage.js"
 document.body.appendChild(script)
 let localforageScript = script
-/*let windowLoadedForPush = 0
-localforageScript.addEventListener("load", function(){
-  windowLoadedForPush++
-  mentionNotifications()
-});
-async function mentionNotifications(){
-  if(windowLoadedForPush !== 3) return console.log("not mention notifs "+windowLoadedForPush)
-  if(!userInfo) return
-  console.log("mention notifs")
-  if(await localforage.getItem("noNotifs")) return
-  if (await localforage.getItem("notifs")) {
-    subscription = await swRegister.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(publicVapidKey),
-    })
-  }else{
-    Swal.fire({
-      title:"Notifcations!",
-      text:"Please consider allowing notifications, to get notified of new things, and other notifications if you are logged in!",
-      toast: true,
-      denyButtonText:"No thank you!",
-      confirmButtonText:"Yes please!",
-      showConfirmButton:true,
-      showDenyButton:true,
-      position: 'top-right',
-    }).then(async result => {
-      if (result.isConfirmed) {
-        await localforage.setItem("notifs", "true")
-        await subscribe()
-      }else if(result.isDenied){
-        await localforage.setItem("noNotifs", "true")
-      }
-    })
-  }  
-}*/
 
 
 //====================NAVBAR===============
@@ -185,7 +79,7 @@ var navbar = document.createElement("nav");
 navbar.className = "navbar navbarStick"
 
 navbar.innerHTML = `
-  <a class="logo" href="/"><span style="font-size:50%;transform:scaleY(2);display:inline-block;">Many things website</span></a>
+  <a class="logo" href="${origin}"><span style="font-size:50%;transform:scaleY(2);display:inline-block;">Many things website</span></a>
   <div class="search-container">
     <form action="https://google.com/search">
       <input type="text" placeholder="Search..." name="q">
@@ -196,7 +90,6 @@ navbar.innerHTML = `
 	<a onclick="history.back()">◀</a>
 	<a onclick="history.forward()">▶</a>
 	<a onclick="location.reload()">↻</a>
-	<a href="${contentOrigin}/posts">Posts</a>
 	<div class="dropdown">
     <a class="dropdown-name" href="/minekhan/">MineKhan</a>
     <div class="dropdown-content">
@@ -223,15 +116,15 @@ document.body.prepend(navbar)
 	<span id="adminNav"></span>
 
 	<span id="userNav" style="display:none;">
-  <a class="right" id="loggedIn" href="${contentOrigin}/login">Log in</a>
+  <a class="right" id="loggedIn" href="/login">Log in</a>
   <div class="dropdown right" id="usernameDropdown" style="display:none;">
     <a class="dropdown-name"></a>
     <div class="dropdown-content">
-      <a href="${contentOrigin}/account">Account</a>
+      <a href="/account">Account</a>
       <a id="usernameDropdown-profile">Profile</a>
     </div>
   </div>
-  <a class="right" id="notifs" href="${contentOrigin}/notifs">Notifications</a>
+  <a class="right" id="notifs" href="/notifs">Notifications</a>
 	</span>
 */
 
@@ -311,30 +204,8 @@ async function setTheme(theme){
 	updateTheme(theme)
 }
 
-//================LOGGEDIN==============
-/*function getCookie(cname) {
-  var name = cname + "=";
-  var decodedCookie = decodeURIComponent(document.cookie);
-  var ca = decodedCookie.split(';');
-  for(var i = 0; i <ca.length; i++) {
-    var c = ca[i];
-    while (c.charAt(0) == ' ') {
-      c = c.substring(1);
-    }
-    if (c.indexOf(name) == 0) {
-      return c.substring(name.length, c.length);
-    }
-  }
-  return "";
-}*/
+//=============== Logged in is in websitecontent common.js now
 
-function findUnread(n){
-  var a = 0
-  for(var i=0; i<n.length; i++){
-    if(!n[i].read) a++
-  }
-  if(a > 0) return a
-}
 function addBanner(text, bg = "white", color = "black"){
   var div = document.createElement("div")
   div.style.padding = "10px"
@@ -345,49 +216,6 @@ function addBanner(text, bg = "white", color = "black"){
   div.innerHTML = text
   document.body.prepend(div)
 }
-
-if(document.currentScript.dataset.usernav) fetch("/server/accountNav").then(r => r.json()).then(r => {
-document.getElementById("userNav").style.display = ""
-userInfo = r || null
-var loggedInEl = document.getElementById("loggedIn")
-var notifs = document.getElementById("notifs")
-notifs.style.display = "none"
-var logged = userInfo && userInfo.username
-if(loggedInEl && logged){
-  var usernameEl = document.querySelector("#usernameDropdown .dropdown-name")
-  if(usernameEl){
-    loggedInEl.style.display = "none"
-    document.getElementById("usernameDropdown").style.display = ""
-    usernameEl.innerHTML = logged
-    usernameEl.href = "/account"
-    document.querySelector("#usernameDropdown-profile").href=contentOrigin+"/user?user="+escape(logged)
-  }else{
-    loggedInEl.innerHTML = logged
-    loggedInEl.href = "/account"
-  }
-  notifs.style.display = ""
-  if(userInfo.notifs){
-    var amount = findUnread(userInfo.notifs)
-    notifs.innerHTML += amount ? (" ("+amount+")") : ""
-  }
-  if(userInfo.admin){
-    document.querySelector("#adminNav").innerHTML = `
-<a href="${contentOrigin}/admin/users.html">Users</a>
-<a href="${contentOrigin}/admin/log.html">Log</a>
-`
-  }
-  windowLoadedForPush++
-  mentionNotifications()
-}
-}).catch(function(e){
-  addBanner("Something went wrong when fetching: "+e, "var(--red)")
-  throw e
-})
-/*
-var logged = getCookie("username")
-if(logged){
-  loggedInEl.innerHTML = logged
-}*/
 
 var script = document.createElement("script")
 script.src = "/news.js"
@@ -544,107 +372,6 @@ function hashCode(str) {
   return hash;
 }
 
-function enableUserPopup(el,user){
-  var hoveringEl = false, hoveringPopup = false
-  el.addEventListener("mouseover", function(e){
-    hoveringEl = true
-    var popup = el.previousElementSibling
-    if(popup && popup.classList.contains("popup")) return
-    popup = document.createElement("div")
-    popup.className = "popup"
-    var popupContent = document.createElement("span")
-    popup.appendChild(popupContent)
-    popupContent.innerHTML = `<h3 class="skeletonText" style="width:200px;">&nbsp;</h3><br><span class="skeletonText" style="width:300px;">&nbsp;</span><br><span class="skeletonText" style="width:100px;">&nbsp;</span>`
-    el.parentNode.insertBefore(popup, el);
-    popup.addEventListener("mouseover", function(e){
-      hoveringPopup = true
-    })
-    popup.addEventListener("mouseout", function(e){
-      hoveringPopup = false
-      setTimeout(function(){
-        if(!hoveringPopup && !hoveringEl){
-          popup.remove()
-        }
-      },1000)
-    })
-    fetch(`/server/account/${user}`).then(r => r.json()).then(r => {
-      if(!r){
-        return popupContent.innerHTML = "User doesn't exist: "+user
-      }
-      popupContent.innerHTML = `${r.bg ? '<div class="bg"></div>' : ''}
-      <div class="userContent">
-      <a href="/user?user=${r.username}"><h3 style="display:inline-block;">
-      <img class="pfp" style="width:30px;height:30px;border-radius:100%;border:1px solid gray;vertical-align:middle;">
-      ${r.username}</h3></a><div class='popupVotes' style="margin-left:16px;display:inline-block;"></div><br>
-      ${r.bio ? ""+r.username+" - "+format(r.bio) : ""}<br>
-      ${r.lastActive ? "Last active: "+timeString(r.lastActive) : ""}</div>`
-      if(r.bg) popupContent.querySelector(".bg").style.backgroundImage = 'url('+r.bg+')'
-      popupContent.querySelector(".pfp").src = r.pfp
-      makeVotes(popupContent.querySelector(".popupVotes"),r, userInfo && userInfo.username)
-    })
-  })
-  el.addEventListener("mouseout", function(e){
-    hoveringEl = false
-    var popup = el.previousElementSibling
-    if(!popup || !popup.classList.contains("popup")) return
-    setTimeout(function(){
-      if(!hoveringEl && !hoveringPopup){
-        popup.remove()
-        hoveringPopup = false
-      }
-    },1000)
-  })
-}
-
-function makeVotes(el,data,yourUsername){
-  let username = data.username
-  el.innerHTML = `<div class="popupContainer">
-<a class="allVotes"></a>
-<div class="popup">
-	<span style="padding:8px;">
-		<button class="vote_1 small">+1</button>
-		<button class="vote_0 small">0</button>
-		<button class="vote_-1 small">-1</button>
-		<br><br>
-		<span class="voteInfo"></span>
-		<br><br>
-		<span style="color:gray;">If a user has 10 or more votes and 70% or more positive, they can create and edit wiki pages and delete some things.</span>
-	</span>
-</div>
-</div>`
-  let voteEl = el.querySelector(".allVotes")
-  let voteInfo = el.querySelector(".voteInfo")
-	let yourVote = data.yourVote || 0
-	let votePercent, voteCount
-  function updateVotes(data){
-		({votePercent,voteCount} = data)
-    voteEl.innerHTML = Math.round(votePercent*voteCount) // + (votes >= 10 ? " ✅" : "")
-    voteEl.style.color = data.enoughVotes ? "green" : (votePercent < 0 ? "red" : "")
-		voteInfo.textContent = Math.round(votePercent*100)+"% positive | "+voteCount+" voted"
-		voteInfo.style.color = voteEl.style.color
-  }
-  updateVotes(data)
-  el.querySelector(".vote_"+yourVote).classList.add("selected")
-  function vote(amount){
-    fetch("/server/voteUser/"+username, {
-      credentials:'include',
-      method: 'POST',
-      body: JSON.stringify({vote:amount})
-    }).then(d => d.json()).then(d => {
-      if(d.success){
-        el.querySelector(".vote_"+yourVote).classList.remove("selected")
-				yourVote = amount
-        updateVotes(d)
-        el.querySelector(".vote_"+yourVote).classList.add("selected")
-      }else{
-        alert(d.message)
-      }
-    })
-  }
-  el.querySelector(".vote_1").onclick = () => vote(1)
-  el.querySelector(".vote_0").onclick = () => vote(0)
-  el.querySelector(".vote_-1").onclick = () => vote(-1)
-}
 
 /*function formatGetAttributesInString(str){
   var arr = []

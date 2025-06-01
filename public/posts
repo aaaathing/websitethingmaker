@@ -1,0 +1,2 @@
+<!doctype html>
+<script>location.replace("https://download-thingMaker.replit.app"+location.pathname+location.search+location.hash)</script>

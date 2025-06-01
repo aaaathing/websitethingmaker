@@ -5,7 +5,6 @@ run = "echo 'its static now'"
 
 # for static
 [hosting]
-route = "/"
 directory= "/public/"
 
 [gitHubImport]
