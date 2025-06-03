@@ -265,7 +265,10 @@ body[theme=dark] .side a:hover{
 	</div>
   <div class="main">
 
-		<div style="width:50%;float:right;min-height:620px;" class="arena-chat" data-publisher="ske-tch" data-chatroom="VSCI1IW" data-position="in-page"><script async src="https://go.arena.im/public/js/arenachatlib.js?p=ske-tch&e=VSCI1IW"></script></div>
+		<div style="width:50%;float:right;height:620px;">
+		<b>TNJS's chat ↓↓ You can talk here</b>
+		<div style="height:600px;" class="arena-chat" data-publisher="ske-tch" data-chatroom="VSCI1IW" data-position="in-page"><script async src="https://go.arena.im/public/js/arenachatlib.js?p=ske-tch&e=VSCI1IW"></script></div>
+		</div>
 		
     <h2>Website</h2>
     Welcome to thingmaker's website.<br><br>
@@ -307,7 +310,7 @@ https://minekhan.glitch.me/
     <span id="worlds"></span><br>
     <span id="maps"></span>
 		-->
-		Posts and maps and worlds and accounts from 2021 to 2024 are not here anymore.<br>Something new may come.
+		Posts and maps and worlds and accounts from 2021 to 2024 were shut down and are not here anymore.<br>Something new may come.<br> thingmaker: i sometimes still feel like it wasn't right and was a mistake
 
     <h2>MineKhan videos</h2>
 		<b>These ones are disappearing. archive them before they disappear!!</b>
@@ -489,8 +492,8 @@ https://minekhan.glitch.me/
     <a href="https://www.deviantart.com/yasmintt/art/Minekhan-repl-co-pics-945471226">https://www.deviantart.com/yasmintt/art/Minekhan-repl-co-pics-945471226</a><br>
     <a href="https://www.deviantart.com/yasmintt/art/Minekhan-Play-with-anybody-945480121">https://www.deviantart.com/yasmintt/art/Minekhan-Play-with-anybody-945480121</a><br>
     
-    <h2>Highest records</h2>
-    <span id="records"></span>
+    <!--<h2>Highest records</h2>
+    <span id="records"></span>-->
 
     <!--<h2>Recent updates for MineKhan</h2>
     <div id="updates"></div>
@@ -517,6 +520,7 @@ https://minekhan.glitch.me/
   <button class="close">&times;</button>
 </div>
 <script>
+	/*
   fetch("/records").then(r => r.json()).then(r => {
     var el = document.querySelector("#records")
     for(var i in r){
@@ -548,7 +552,7 @@ https://minekhan.glitch.me/
     fetch("/server/maps").then(r => r.json()).then(r => {
       document.querySelector("#maps").innerHTML = "There are currently "+Object.keys(r).length+" maps and other stuff."
     })
-  }
+  }*/
   /*fetch("/minekhan/recentUpdates").then(r => r.text()).then(r => {
     document.getElementById('updates').innerHTML = r.replace(/\n/g,"<br>")
   })*/
