@@ -1,0 +1,3 @@
+[submodule "public/minekhan"]
+	path = public/minekhan
+	url = https://github.com/aaaathing/MineKhan
