@@ -1,11 +1,7 @@
 entrypoint = "index.js"
 modules = ["nodejs-20", "python-3.10", "web"]
 hidden = [".config", "package-lock.json"]
-run = "echo 'its static now'"
-
-# for static
-[hosting]
-directory= "/public/"
+run = "static-web-server -w .config/static-web-server.toml"
 
 [gitHubImport]
 requiredFiles = [".replit", "replit.nix", "package.json", "package-lock.json"]
@@ -35,21 +31,21 @@ defaultBucketID = "replit-objstore-dfc036d2-f315-4a87-877d-ec3cea3d75ed"
 
 [[ports]]
 localPort = 80
+externalPort = 80
 
 [[ports]]
 localPort = 3001
 
 [[ports]]
 localPort = 8080
-externalPort = 80
 
 [workflows]
 
 [[workflows.workflow]]
-name = "run all"
+name = "pull submodule"
 mode = "sequential"
 author = 7458955
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "node index.js runall"
+args = "git submodule update --recursive"

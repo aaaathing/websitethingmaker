@@ -26,26 +26,30 @@ body {
 
 .mainrow{
 	display: flex;
-	flex-wrap: wrap-reverse;
+	flex-direction: row-reverse;
+	flex-wrap: wrap;
+	width:100%;
 }
 .side {
-	flex: 30%; /* Set the width of the sidebar */
-	background-color: #f1f1f1; /* Grey background color */
+	flex: 20%; /* Set the width of the sidebar */
+	background-color: color-mix(in srgb, #f1f1f1 80%, transparent); /* Grey background color */
 	padding: 20px; /* Some padding */
 }
 .side .dropdown-content{
-	background-color: #f1f1f1; /* Grey background color */
+	background-color: color-mix(in srgb, #f1f1f1 80%, transparent); /* Grey background color */
 }
 body[theme=dark] .side, body[theme=dark] .side .dropdown-content{
-  background:#222;
+  background:color-mix(in srgb, #222 80%, transparent);
 }
-.main {   
-  flex: 70%;
-  background-color: #fff;
+.main {
+	flex:80%;
+	min-width:0;
+  background-color: color-mix(in srgb, #fff 90%, transparent);
   padding: 20px;
+	height:fit-content;
 }
 body[theme=dark] .main{
-  background:#111;
+  background:color-mix(in srgb, #111 90%, transparent);
 }
 
 #cookie-banner {
@@ -92,7 +96,7 @@ h3{
   text-align: center;
 }
 
-#links{
+/*#links{
   display: grid;
   grid-template-columns: auto auto auto;
 }
@@ -124,7 +128,8 @@ body[theme=dark] #links a.interesting{
 body[theme=dark] #links a.no{
   background: #622;
 }
-#links .dropdown::after, .side .dropdown::after{
+#links .dropdown::after, */
+.side .dropdown::after{
 	display:block;
 	float:right;
 	content:"▼";
@@ -164,7 +169,12 @@ body[theme=dark] .side a:hover{
   gtag('config', 'G-VRNT3CCCGH');
 </script>
 </head>
-<body>
+<body class="bgImg" style="
+	--bgImg:url(
+		https://cdn.sanity.io/images/oyzyxja8/v2/7f5713f69dee53f64ae5bf456cc3ec14787c26a2-1700x2000.jpg
+	);
+">
+<div id="contentBG" class="fullWidth">
 
 <!-- ©, by thingmaker. thingmaker.us.eu.org -->
 
@@ -199,72 +209,10 @@ body[theme=dark] .side a:hover{
     </script>
   </div>-->
 	<div class="header" style="
-		background:lightblue;
 		height:50vh;
-		background-image:url(
-			https://cdn.sanity.io/images/oyzyxja8/v2/7f5713f69dee53f64ae5bf456cc3ec14787c26a2-1700x2000.jpg
-		);
-		background-size: cover;
 	"></div>
 
 	<div class="mainrow">
-	<div class="side">
-		<div class="dropdown"> <a href="https://download-thingmaker.replit.app">Old website (2021 - March 2025)</a> <div class="dropdown-content">
-			<a href="https://download-thingmaker.replit.app/posts/">Posts: a place for talking (mostly minekhan)</a>
-		</div></div>
-		<div class="dropdown"> <a href="/minekhan/">MineKhan</a> <div class="dropdown-content">
-			<a href="/minekhan/offdown.html">Offline download</a>
-			<a href="/minekhan/history/">MineKhan older versions</a>
-			<a>MineKhan mods (find in KA programs)</a>
-			<a href="/minekhan/live-servers.html">MineKhan live list of servers</a>
-		</div></div>
-		<a href="/mcs.html">Lake and mountains</a>
-		<a href="/history.html">History of website</a>
-		<div class="dropdown"> <a>Tools</a> <div class="dropdown-content">
-			<a href="/websocket-test/">Websocket tester</a>
-			<a href="/tools/">MineKhan tools</a>
-			<a href="/random.html">Randomizer</a>
-			<a href="/code%20editor/Programs.html">Code editor</a>
-			<a href="/grapher/">Grapher</a>
-			<a href="/code%20editor/pythoninterpreter.html">Python interpreter</a>
-			<a href="/chat/">chat by TomMustBe12</a>
-			<a href="/music/">A tool for making music</a>
-		</div></div>
-		<div class="dropdown"> <a>Interesting</a> <div class="dropdown-content">
-			<a href="/scratch/scratchjs.html">Scratch to javascript converter (actually runs scratch projects)</a>
-			<a href="/multiplayer/">Multiplayer drawing</a>
-			<a href="/platformer/">Platformer (lots of levels)</a>
-			<a href="/fullscreen-os/">Fullscreen OS</a>
-			<a href="/dino/">dino</a>
-			<a href="/redstone/">Redstone simulator (old)</a>
-			<a href="/text-meaning-distorter/">Text meaning distorter</a>
-			<a href="/particleLife/">Particle life</a>
-		</div></div>
-		<a href="https://drive.google.com/drive/folders/1KCM3Cu2otCW8y0GYtI-cQXjfL-SXe0Yy">More stuff</a>
-		<h3>By thingmaker</h3>
-		<script>
-			let side = document.querySelector(".side")
-			let index = []
-			function add(prefix){
-				let url = new URL(prefix,location).href
-				return fetch(new URL("index.json",url).href).then(a => a.json()).then(a => {
-					for(let i in a){
-						let el = document.createElement("div")
-						el.innerHTML = `<a href="${new URL(i,url).href}">${a[i].name||i}<br><span style="opacity:0.5">${a[i].created}</span></a>`
-						el.created = Date.parse(a[i].created)
-						index.push(el)
-					}
-				}).catch(e => {console.error(e); index.unshift(document.createTextNode(prefix+"/index.json | "+e))})
-			}
-			Promise.all([
-				add(""),
-				add("/stuff/"),
-			]).then(() => {
-				index.sort((a,b) => b.created - a.created || 0)
-				for(let i of index) side.appendChild(i)
-			})
-		</script>
-	</div>
   <div class="main">
 
 		<div style="width:50%;float:right;height:620px;">
@@ -513,7 +461,64 @@ https://minekhan.glitch.me/
 		<h2>History</h2>
 		<a href="/history.html">Find out what happened on this before.</a><br>
 		If you have old stuff, <a href="/old.html">look at this</a>.
-</div>
+	</div>
+	<div class="side">
+		<div class="dropdown"> <a href="https://download-thingmaker.replit.app">Old website (May 2021 - April 2025)</a> <div class="dropdown-content">
+			<a href="https://download-thingmaker.replit.app/posts/">Posts: a place for talking (mostly minekhan)</a> <a href="https://drive.google.com/file/d/1SQNeXnzlSJkb0DgX-qx_CUdXA9-rHbNw/view?usp=drive_link">database (may 2025) (posts,users,maps,wiki)</a> <a href="https://drive.google.com/file/d/1Mr8ABXTjNopGtb100E3geBHxcU7t-DtL/view?usp=drive_link">database (jul 10, 2024) (posts,users,maps,wiki, people's cloud saves)</a>
+		</div></div>
+		<div class="dropdown"> <a href="/minekhan/">MineKhan</a> <div class="dropdown-content">
+			<a href="/minekhan/offdown.html">Offline download</a>
+			<a href="/minekhan/history/">MineKhan older versions</a>
+			<a>MineKhan mods (find in KA programs)</a>
+			<a href="/minekhan/live-servers.html">MineKhan live list of servers</a>
+		</div></div>
+		<a href="/mcs.html">Lake and mountains</a>
+		<a href="/history.html">History of website</a>
+		<div class="dropdown"> <a>Tools</a> <div class="dropdown-content">
+			<a href="/websocket-test/">Websocket tester</a>
+			<a href="/tools/">MineKhan tools</a>
+			<a href="/random.html">Randomizer</a>
+			<a href="/code%20editor/Programs.html">Code editor</a>
+			<a href="/grapher/">Grapher</a>
+			<a href="/code%20editor/pythoninterpreter.html">Python interpreter</a>
+			<a href="/chat/">chat by TomMustBe12</a>
+			<a href="/music/">A tool for making music</a>
+		</div></div>
+		<div class="dropdown"> <a>Interesting</a> <div class="dropdown-content">
+			<a href="/scratch/scratchjs.html">Scratch to javascript converter (actually runs scratch projects)</a>
+			<a href="/multiplayer/">Multiplayer drawing</a>
+			<a href="/platformer/">Platformer (lots of levels)</a>
+			<a href="/fullscreen-os/">Fullscreen OS</a>
+			<a href="/dino/">dino</a>
+			<a href="/redstone/">Redstone simulator (old)</a>
+			<a href="/text-meaning-distorter/">Text meaning distorter</a>
+			<a href="/particleLife/">Particle life</a>
+		</div></div>
+		<a href="https://drive.google.com/drive/folders/1KCM3Cu2otCW8y0GYtI-cQXjfL-SXe0Yy">More stuff</a>
+		<h3>By thingmaker</h3>
+		<script>
+			let side = document.querySelector(".side")
+			let index = []
+			function add(prefix){
+				let url = new URL(prefix,location).href
+				return fetch(new URL("index.json",url).href).then(a => a.json()).then(a => {
+					for(let i in a){
+						let el = document.createElement("div")
+						el.innerHTML = `<a href="${new URL(i,url).href}">${a[i].name||i}<br><span style="opacity:0.5">${a[i].created}</span></a>`
+						el.created = Date.parse(a[i].created)
+						index.push(el)
+					}
+				}).catch(e => {console.error(e); index.unshift(document.createTextNode(prefix+"/index.json | "+e))})
+			}
+			Promise.all([
+				add(""),
+				add("/stuff/"),
+			]).then(() => {
+				index.sort((a,b) => b.created - a.created || 0)
+				for(let i of index) side.appendChild(i)
+			})
+		</script>
+	</div>
 </div>
 
 <div id="cookie-banner" style="display: none">
@@ -574,5 +579,6 @@ https://minekhan.glitch.me/
 </script>
 
 
+</div>
 </body>
 </html>
