@@ -61,6 +61,9 @@ document.body.style.filter = "grayscale("+(1-(userCount/50))+")"*/
   document.body.style.filter += "url(#wavy2)"
 }*/
 
+let urlParams1 = new URLSearchParams(location.search)
+var doAddNav = !urlParams1.has("nonav")
+
 let swRegister
 if(navigator.serviceWorker) swRegister = navigator.serviceWorker.register('/sw.js', {
   scope: '/'
@@ -75,6 +78,7 @@ let localforageScript = script
 
 
 //====================NAVBAR===============
+if(doAddNav){
 var navbar = document.createElement("nav");
 navbar.className = "navbar navbarStick"
 
@@ -198,6 +202,7 @@ body[theme=dark] .navbar a:hover{
 }
 `
 document.head.appendChild(style)
+}
 
 async function setTheme(theme){
 	localStorage.setItem("theme", theme)
@@ -222,6 +227,7 @@ script.src = "/news.js"
 document.body.appendChild(script)
 
 //===============FOOTER=============
+if(doAddNav){
 let prevFooter = document.getElementsByClassName("footer")[0]
 if(prevFooter) prevFooter.remove()
 let footer = document.createElement("footer")
@@ -281,6 +287,7 @@ body[theme=dark] .footer{
 }
 `
 document.head.appendChild(style)
+}
 
 //=========THEME===========
 var globTheme

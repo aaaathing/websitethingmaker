@@ -15,10 +15,15 @@ May 26, 2025, 11:44 am: added message about register and disconnect.
 		font-size:16px;
 	}
 	button{
-		padding:20px 40px;
-		font-size:16px;
 		background:#8f8;
 		border: 4px outset #cfc;
+	}
+	button:not(.small){
+		padding:20px 40px;
+		font-size:16px;
+	}
+	button:hover{
+		filter:hue-rotate(60deg);
 	}
 	.section{
 		text-align: center;
@@ -47,12 +52,14 @@ scroll down
 
 <div class="section">
 	<h1>Lake and mountains server</h1>
-	It is a MC server with survival world. You can build houses and survive in it and do other stuff.<br>
-	<div id="embed" style="margin:auto;"></div>
+	A MC server with survival world. You can build houses and survive in it and do other stuff. Hopefully there will eventually be more players.<br>
 	<button onclick='load_eaglercraft("https://yee.pages.dev/games/1.12js/classes.js","https://yee.pages.dev/games/1.12js/assets.epk",true)'>CLICK HERE</button> to join<br>
+	<div id="embed" style="margin:auto;"></div>
 	<br><br>
-	Anyone can join. The first time you join, you will need to register by typing <code>/register</code> and typing a new password and typing the password again.<br> Like this: <code>/register myPassword123 myPassword123</code><br>
-	If you get disconnected after a few seconds, try again with better internet connection.<br>
+	The first time you join, type <code>/register myPassword myPassword</code> but replace <code>myPassword</code> with your new password.<br>
+	<br>
+	<b>Have problems? Send message here</b><br>
+	Username: <input id="djofew"> Message: <input id="erjidfs"><button onclick='fetch("https://script.google.com/macros/s/AKfycbxAEIeNzzrUBimqqgL3DC0bCz77kiyJC4h8-qcgiBP8s8JcJ-s1tvQAEFEGRp1MjlZeLw/exec",{method:"POST",body: document.querySelector("#djofew").value+": "+document.querySelector("#erjidfs").value}).then(r=>r.text()).then(alert).catch(alert)' class="small">submit</button>
 </div>
 <div class="section">
 	<img 
@@ -166,7 +173,7 @@ function load_eaglercraft(classes,assets,joinnow){
 
 </div>
 <div class="section">
-	<a href="https://mcs.thingmaker.us.eu.org:8805">Analytics</a>
+	<a href="https://mcs.thingmaker.us.eu.org:8805">Analytics</a><br>
 </div>
 
 </body>
@@ -205,6 +212,32 @@ ServerEmbed.prototype.showTooltip=function(a){this.dirty=!0;if(this.mouseOver){t
 c+"px"}else this.tooltipCanvas.style.display="none"};ServerEmbed.prototype.updateIconFromBytes=function(a){this.iconCanvas||(this.iconCanvas=document.createElement("canvas"),this.iconCanvas.width=64,this.iconCanvas.height=64,this.iconContext=this.iconCanvas.getContext("2d"));for(var c=this.iconContext.createImageData(64,64),b=0;16384>b;++b)c.data[b]=a[b];this.iconContext.putImageData(c,0,0)};
 </script>
 <script>
-	var embed = new ServerEmbed(document.getElementById("embed"), "500px");
-	embed.ping("wss://mcs.thingmaker.us.eu.org", undefined,undefined,undefined,true);
+	let embed = new ServerEmbed(document.getElementById("embed"), "500px");
+	let prevOnline = 1
+	function ping(){
+		if(window.eaglercraftXOpts) return
+
+		embed.ping("wss://mcs.thingmaker.us.eu.org", undefined,undefined,undefined,true)
+		embed.socket.addEventListener("close", () => {
+			setTimeout(ping, 5000)
+			if(embed.currentStatus.onlineCount && !prevOnline){
+				new Notification('Players online!', {
+					body: 'There is now a player online!'
+				})
+			}
+			prevOnline = embed.currentStatus.onlineCount
+		})
+	}
+	ping()
+
+	function notifyMe() {
+		if (!window.Notification) {
+			console.log('Browser does not support notifications.');
+		} else {
+			if (Notification.permission !== 'granted') {
+				Notification.requestPermission()
+			}
+		}
+	}
+	addEventListener("load",notifyMe)
 </script>
