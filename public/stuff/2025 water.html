@@ -1,0 +1,458 @@
+<!--
+Wed, May 21, 2025
+5:30 pm to 6:07 pm:
+ask chatgpt to make it
+rewrote all of it
+
+Thu, May 22, 2025
+3:30 pm to 3:53 pm: tried to make water better
+
+Sun, May 25, 2025
+12:40 pm to 1:35 pm: made it more like mls-mpm
+1:35 pm: the 2 particles are moving like plinko
+1:48 pm: switched to b spline weights, particles move like flies
+1:49 pm: negated cell dist in p2g 2, particles clustering
+1:53 pm: I realized that i forgot to add '* weight' to p2g 2. It smoothes it, so probably don't need to normalize cell dist. Actually, normalizing it makes it less smooth.
+1:59 pm: finally behaves like boiling water, and water.
+
+Mon, May 26, 2025
+10:20 pm: told chatgpt to add affine per-particle momentum matrix
+10:26 pm: found out that the bug was my mistake, not chatgpt's
+
+Tue, May 27, 2025
+4:07 pm to 4:50 pm: tried asking chatgpt to add strees matrix but it doesn't work and possibly inefficient
+
+Wed, May 28, 2025
+4:56 pm: asked chatgpt to rewrite the update function
+4 pm to 5:59 pm: tried to figure out why the particles were slowing down and getting closer and closer vertically
+5:40 pm: realized that it was caused by density less than 1, which was caused by multiplying by weight both when distributing mass and adding up mass. fixed by adding sqrt to some weights.
+6:04 pm: it behaves like jelly even without elastic strain
+6:10 pm: it seems to be stable and velocities decrease when stiffness <= 30
+
+Tue, Jun 10, 2025
+3:07 pm to 3:41 pm: Added strain and dynamicViscosity and volume variable. water still not accurate.
+
+Thu, Jun 12, 2025
+2:10 pm to 2:17 pm: Added materialTypes and moved constants to it
+
+Sun, Jun 15, 2025
+5:37 pm to 7:12 pm: Asked chatgpt how to add solid things and chatgpt wrote processVoxelSolids and generateVoxelBlock.
+10:08 pm to 10:29 pm: Made solid things less squishy. Still to squishy.
+-->
+<!doctype html>
+<script src="https://cdn.jsdelivr.net/npm/p5@2.0.1/lib/p5.min.js"></script>
+<script>
+
+const materialTypes = [
+  {
+    color:[0,100,255],
+    mass: 1,
+    restDensity: 2,
+    densityPow: 3,
+    pressureStiffness: 30,
+    dynamicViscosity: 1,
+  },
+  {
+    color:[100,100,100],
+    mass: 1,
+    restDensity: 1,
+    densityPow: 1,
+    pressureStiffness: 30,
+    dynamicViscosity: 1,
+    springStiffness: 0.5
+  }
+]
+
+class Container{
+  grid = new Map()
+  velxs = new Map()
+  velys = new Map()
+  velzs = new Map()
+  mass = new Map()
+  particles = []
+  add(p){
+    this.particles.push(p)
+  }
+  set(p){
+    let a,k
+    // add at position
+    k=Math.round(p.x)+","+Math.round(p.y)+","+Math.round(p.z)
+    a=this.grid.get(k)
+    if(!a)this.grid.set(k,a=[])
+    a.push(p)
+  }
+  find(x,y,z){
+    let k=Math.round(x)+","+Math.round(y)+","+Math.round(z)
+    let a=this.grid.get(k)
+    return a||[]
+  }
+  clear(){
+    this.grid.clear()
+    this.velxs.clear()
+    this.velys.clear()
+    this.velzs.clear()
+    this.mass.clear()
+  }
+  addVel(x,y,z,vx,vy,vz){
+    let k=Math.round(x)+","+Math.round(y)+","+Math.round(z)
+    this.velxs.set(k, (this.velxs.get(k)||0)+vx)
+    this.velys.set(k, (this.velys.get(k)||0)+vy)
+    this.velzs.set(k, (this.velzs.get(k)||0)+vz)
+  }
+  tempVel = [0,0,0]
+  getVel(x,y,z){
+    let k=Math.round(x)+","+Math.round(y)+","+Math.round(z)
+    this.tempVel[0] = (this.velxs.get(k) || 0)
+    this.tempVel[1] = (this.velys.get(k) || 0)
+    this.tempVel[2] = (this.velzs.get(k) || 0)
+    return this.tempVel
+  }
+  addMass(x,y,z,v){
+    let k=Math.round(x)+","+Math.round(y)+","+Math.round(z)
+    this.mass.set(k, (this.mass.get(k)||0) + v)
+  }
+  getMass(x,y,z){
+    return this.mass.get(Math.round(x)+","+Math.round(y)+","+Math.round(z)) || 0
+  }
+  calcWeight(x,y,z){
+    return this.tempWeights[x+1]*this.tempWeights[y+1+3]*this.tempWeights[z+1+6]
+  }
+  tempWeights = [0,0,0,0,0,0,0,0,0]
+  weightCenter(x,y,z){
+    let dx = x-Math.round(x), dy = y-Math.round(y), dz = z-Math.round(z)
+    let weights = this.tempWeights
+    weights[0] = 0.5 * Math.pow(0.5 - dx, 2);
+    weights[3] = 0.5 * Math.pow(0.5 - dy, 2);
+    weights[6] = 0.5 * Math.pow(0.5 - dz, 2);
+    weights[1] = 0.75 - Math.pow(dx, 2);
+    weights[4] = 0.75 - Math.pow(dy, 2);
+    weights[7] = 0.75 - Math.pow(dz, 2);
+    weights[2] = 0.5 * Math.pow(0.5 + dx, 2);
+    weights[5] = 0.5 * Math.pow(0.5 + dy, 2);
+    weights[8] = 0.5 * Math.pow(0.5 + dz, 2);
+  }
+}
+
+let container = new Container()
+let voxelSolids = [];
+
+generateVoxelBlock(30,-10,6,6, 1)
+generateVoxelBlock(30,10,6,6, 1)
+
+for(let x=0; x<10; x+=1) for(let y=0; y<10; y+=1){
+  container.add({x:x*2,y:y*2,z:1,vx:0,vy:0,vz:0, C: [[0,0,0],[0,0,0],[0,0,0]], materialType:0 })
+}
+
+function update() {
+  container.clear();
+
+  // Elasticity parameters
+  /*const youngsModulus = 30;  // MUCH smaller
+  const poissonRatio = 0.2
+  const lambda = (youngsModulus * poissonRatio) / ((1 + poissonRatio) * (1 - 2 * poissonRatio));
+  const mu = youngsModulus / (2 * (1 + poissonRatio));*/
+
+  const dt = 0.5;          // Shorter time step
+  const gravity = 0.1;
+
+  processVoxelSolids()
+
+  // --- Particle to Grid (P2G) transfer ---
+  for (let p of container.particles) {
+    const mass = materialTypes[p.materialType].mass
+    container.weightCenter(p.x, p.y, p.z);
+    for (let ox = -1; ox <= 1; ox++) {
+      for (let oy = -1; oy <= 1; oy++) {
+        for (let oz = -1; oz <= 1; oz++) {
+          const weight = Math.sqrt(container.calcWeight(ox, oy, oz));
+          const gridX = p.x + ox;
+          const gridY = p.y + oy;
+          const gridZ = p.z + oz;
+
+          container.addMass(gridX, gridY, gridZ, mass * weight);
+
+          // Affine momentum contribution
+          const dx = Math.round(gridX) - p.x;
+          const dy = Math.round(gridY) - p.y;
+          const dz = Math.round(gridZ) - p.z;
+
+          const affX = p.C[0][0]*dx + p.C[0][1]*dy + p.C[0][2]*dz;
+          const affY = p.C[1][0]*dx + p.C[1][1]*dy + p.C[1][2]*dz;
+          const affZ = p.C[2][0]*dx + p.C[2][1]*dy + p.C[2][2]*dz;
+
+          container.addVel(gridX, gridY, gridZ, (p.vx + affX) * mass * weight, (p.vy + affY) * mass * weight, (p.vz + affZ) * mass * weight);
+        }
+      }
+    }
+  }
+
+  // --- Apply elastic forces using stress tensor ---
+  for (let p of container.particles) {
+    // --- Compute density from nearby grid mass ---
+    let density = 0;
+    container.weightCenter(p.x, p.y, p.z);
+    for (let dx = -1; dx <= 1; dx++) {
+      for (let dy = -1; dy <= 1; dy++) {
+        for (let dz = -1; dz <= 1; dz++) {
+          let weight = Math.sqrt(container.calcWeight(dx, dy, dz));
+          density += container.getMass(p.x + dx, p.y + dy, p.z + dz) * weight;
+        }
+      }
+    }
+
+    const {pressureStiffness, restDensity, densityPow, dynamicViscosity, mass} = materialTypes[p.materialType]
+
+    const volume = 1/density
+
+    const pressure = pressureStiffness * Math.max(-0.1, Math.pow(density / restDensity, densityPow) - mass);
+
+    const dudv = p.C
+    const strain = [
+      dudv[0][0]+dudv[0][0], dudv[0][1]+dudv[1][0], dudv[0][2]+dudv[2][0],
+      dudv[1][0]+dudv[0][1], dudv[1][1]+dudv[1][1], dudv[1][2]+dudv[2][1],
+      dudv[2][0]+dudv[0][2], dudv[2][1]+dudv[1][2], dudv[2][2]+dudv[2][2],
+    ]
+
+    // --- Fluid stress tensor: σ = -p * I ---
+    const stress = [
+      [-pressure + dynamicViscosity*strain[0], dynamicViscosity*strain[1], dynamicViscosity*strain[2]],
+      [dynamicViscosity*strain[3], -pressure + dynamicViscosity*strain[4], dynamicViscosity*strain[5]],
+      [dynamicViscosity*strain[6], dynamicViscosity*strain[7], -pressure + dynamicViscosity*strain[8]]
+    ];
+
+    container.weightCenter(p.x, p.y, p.z);
+    for (let ox = -1; ox <= 1; ox++) {
+      for (let oy = -1; oy <= 1; oy++) {
+        for (let oz = -1; oz <= 1; oz++) {
+          const weight = container.calcWeight(ox, oy, oz);
+          const dx = Math.round(p.x + ox) - p.x;
+          const dy = Math.round(p.y + oy) - p.y;
+          const dz = Math.round(p.z + oz) - p.z;
+
+          let gradWeight = [dx * weight, dy * weight, dz * weight];
+          let forceX = volume * -(stress[0][0] * gradWeight[0] + stress[0][1] * gradWeight[1] + stress[0][2] * gradWeight[2]);
+          let forceY = volume * -(stress[1][0] * gradWeight[0] + stress[1][1] * gradWeight[1] + stress[1][2] * gradWeight[2]);
+          let forceZ = volume * -(stress[2][0] * gradWeight[0] + stress[2][1] * gradWeight[1] + stress[2][2] * gradWeight[2]);
+
+          container.addVel(p.x + ox, p.y + oy, p.z + oz, forceX * dt, forceY * dt, forceZ * dt);
+        }
+      }
+    }
+  }
+
+  // --- Grid to Particle (G2P) transfer ---
+  for (let p of container.particles) {
+    p.vx = p.vy = p.vz = 0;
+    let C = [[0,0,0],[0,0,0],[0,0,0]];
+
+    container.weightCenter(p.x, p.y, p.z);
+    for (let ox = -1; ox <= 1; ox++) {
+      for (let oy = -1; oy <= 1; oy++) {
+        for (let oz = -1; oz <= 1; oz++) {
+          const dx = Math.round(p.x + ox) - p.x;
+          const dy = Math.round(p.y + oy) - p.y;
+          const dz = Math.round(p.z + oz) - p.z;
+
+          const weight = container.calcWeight(ox, oy, oz);
+          const mass = container.getMass(p.x + ox, p.y + oy, p.z + oz);
+          if (mass === 0) continue;
+
+          const key = Math.round(p.x + ox) + "," + Math.round(p.y + oy) + "," + Math.round(p.z + oz);
+          const gridVx = container.velxs.get(key) / mass || 0;
+          const gridVy = container.velys.get(key) / mass || 0;
+          const gridVz = container.velzs.get(key) / mass || 0;
+
+          p.vx += gridVx * weight;
+          p.vy += gridVy * weight;
+          p.vz += gridVz * weight;
+
+          // Affine matrix update: outer product
+          C[0][0] += gridVx * dx * weight;
+          C[0][1] += gridVx * dy * weight;
+          C[0][2] += gridVx * dz * weight;
+          C[1][0] += gridVy * dx * weight;
+          C[1][1] += gridVy * dy * weight;
+          C[1][2] += gridVy * dz * weight;
+          C[2][0] += gridVz * dx * weight;
+          C[2][1] += gridVz * dy * weight;
+          C[2][2] += gridVz * dz * weight;
+        }
+      }
+    }
+    p.C = C;
+
+    // Apply gravity
+    p.vy += gravity * dt;
+
+    //p.vx *= 0.99;
+    //p.vy *= 0.99;
+    //p.vz *= 0.99;
+  }
+  for (let solid of voxelSolids) {
+    // Apply edge constraints to maintain shape
+    for (let [i, j] of solid.edges) {
+      let a = solid.voxels[i];
+      let b = solid.voxels[j];
+
+      let dx = b.x - a.x, dy = b.y - a.y, dz = b.z - a.z;
+      let dist = Math.sqrt(dx * dx + dy * dy + dz * dz) || 1;
+      let restLength = 1; // assume grid spacing
+      let force = (materialTypes[a.materialType].springStiffness + materialTypes[b.materialType].springStiffness)*0.5 * (dist - restLength);
+
+      let fx = (dx / dist) * force;
+      let fy = (dy / dist) * force;
+      let fz = (dz / dist) * force;
+
+      a.vx += fx * dt;
+      a.vy += fy * dt;
+      a.vz += fz * dt;
+      b.vx -= fx * dt;
+      b.vy -= fy * dt;
+      b.vz -= fz * dt;
+    }
+  }
+  for(let p of container.particles){
+    // Update position
+    p.x += p.vx * dt;
+    p.y += p.vy * dt;
+    p.z += p.vz * dt;
+
+    // Boundary conditions
+    if (p.y > 39) { p.y = 39; p.vy = -p.vy; }
+    if (p.x < 0)  { p.x = 0;  p.vx = -p.vx; }
+    if (p.x > 60) { p.x = 60; p.vx = -p.vx; }
+
+    // Draw particle
+    const color = materialTypes[p.materialType].color
+    stroke(color[0],color[1],color[2]);
+    strokeWeight(1 / p.z);
+    point(p.x / p.z, p.y / p.z);
+  }
+
+  // --- Optional: Visualize grid mass ---
+  noStroke();
+  for (let x = 10; x < 20; x++) {
+    for (let y = 0; y < 40; y++) {
+      let densityVis = container.getMass(x, y, 1) * 200;
+      fill(densityVis, densityVis, densityVis, 127);
+      rect(x - 0.5, y - 0.5, 1, 1);
+    }
+  }
+}
+
+function matMulVec(M, v) {
+  return [
+    M[0][0]*v[0] + M[0][1]*v[1] + M[0][2]*v[2],
+    M[1][0]*v[0] + M[1][1]*v[1] + M[1][2]*v[2],
+    M[2][0]*v[0] + M[2][1]*v[1] + M[2][2]*v[2]
+  ];
+}
+function matTranspose(M) {
+  return [
+    [M[0][0], M[1][0], M[2][0]],
+    [M[0][1], M[1][1], M[2][1]],
+    [M[0][2], M[1][2], M[2][2]]
+  ];
+}
+
+function particleDistance(a, b) {
+  let dx = a.x - b.x, dy = a.y - b.y, dz = a.z - b.z;
+  return Math.sqrt(dx*dx + dy*dy + dz*dz);
+}
+function processVoxelSolids() {
+  const fractureThreshold = 4;
+  let newSolids = [];
+
+  for (let solid of voxelSolids) {
+    let voxels = solid.voxels;
+    let edges = solid.edges;
+    let adjacency = new Map();
+
+    // Build adjacency list of still-connected voxels
+    for (let [i, j] of edges) {
+      if (particleDistance(voxels[i], voxels[j]) <= fractureThreshold) {
+        if (!adjacency.has(i)) adjacency.set(i, []);
+        if (!adjacency.has(j)) adjacency.set(j, []);
+        adjacency.get(i).push(j);
+        adjacency.get(j).push(i);
+      }
+    }
+
+    // Flood fill to find connected groups
+    let visited = new Set();
+
+    for (let start = 0; start < voxels.length; start++) {
+      if (visited.has(start)) continue;
+      let group = [];
+      let stack = [start];
+
+      while (stack.length > 0) {
+        let i = stack.pop();
+        if (visited.has(i)) continue;
+        visited.add(i);
+        group.push(i);
+        let neighbors = adjacency.get(i) || [];
+        for (let j of neighbors) {
+          if (!visited.has(j)) stack.push(j);
+        }
+      }
+
+      if(group.length === 1) continue // not a solid anymore
+
+      // Convert index group to new voxelSolid
+      let newVoxels = group.map(k => voxels[k]);
+      let indexMap = new Map(group.map((k, idx) => [k, idx]));
+      let newEdges = [];
+
+      for (let [i, j] of edges) {
+        if (indexMap.has(i) && indexMap.has(j)) {
+          newEdges.push([indexMap.get(i), indexMap.get(j)]);
+        }
+      }
+
+      newSolids.push({ voxels: newVoxels, edges: newEdges });
+    }
+  }
+
+  voxelSolids = newSolids;
+}
+function generateVoxelBlock(x0, y0, width, height, materialType) {
+  let voxels = [], edges = [];
+  const index = (x, y) => y * width + x;
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      let v = { x: x0 + x, y: y0 + y, z: 1, vx: 0, vy: 0, vz: 0, C: [[0,0,0],[0,0,0],[0,0,0]], materialType }
+      voxels.push(v);
+      container.add(v)
+    }
+  }
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      let i = index(x, y);
+      if (x < width - 1) edges.push([i, index(x + 1, y)]);
+      if (y < height - 1) edges.push([i, index(x, y + 1)]);
+      if (x < width - 1 && y < height - 1) edges.push([i, index(x + 1, y + 1)]);
+      if (x < width - 1 && y > 0) edges.push([i, index(x + 1, y - 1)]);
+    }
+  }
+
+  voxelSolids.push({ voxels, edges });
+}
+
+
+function setup() {
+  document.body.prepend(createCanvas(600, 400).canvas)
+  //frameRate(5)
+}
+
+function draw() {
+  background(240);
+
+  scale(10)
+  update()
+
+  if(keyIsDown("s"))noLoop()
+}
+</script>
