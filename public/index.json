@@ -11,9 +11,6 @@
 		"created": "March 17, 2024",
 		"lastModified": "August 9, 2024"
 	},
-	"namegenerator.html": {
-		"created": "2024"
-	},
 	"code editor/pythoninterpreter.html": {
 		"name":"Python interpreter",
 		"created": "December 16, 2023 12:58 PM"
@@ -70,6 +67,10 @@
 	"fullscreen-os/": {
 		"name":"Fullscreen OS",
 		"created": "Jun 2, 2021 2:33 PM (maybe before)"
+	},
+	"adblock.js": {
+		"name":"adblock (hacker)",
+		"created": "Jun 2021 (maybe before)"
 	},
 	"tools/": {
 		"name":"MineKhan tools",
