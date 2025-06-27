@@ -11,6 +11,10 @@
 		"created": "March 17, 2024",
 		"lastModified": "August 9, 2024"
 	},
+	"bitmap-font-generator.html": {
+		"created": "Dec 31 2023 10:34 AM UTC-8",
+		"lastModified": "Jan 3 2024 10:42 AM UTC-8"
+	},
 	"code editor/pythoninterpreter.html": {
 		"name":"Python interpreter",
 		"created": "December 16, 2023 12:58 PM"
@@ -20,6 +24,18 @@
 		"created": "Oct 30 2023 03:13 (a little before)",
 		"lastModified": "Jan 2024"
 	},
+	"panoramas.html": {
+		"created": "Oct 21 2023 5:08 AM (before)"
+	},
+	"namegenerator.html": {
+		"created": "Oct 11, 2023 (a little before)"
+	},
+	"s.html": {
+		"created": "Jun 19 2023 5:02 PM UTC-8 (maybe before)"
+	},
+	"videoCompress.html": {
+		"created": "Jun 13 2023 11:15 PM UTC-8 (maybe before)"
+	},
 	"particleLife/": {
 		"name":"Particle life",
 		"created": "Jun 4 2023 9:32 PM UTC-8",
@@ -28,6 +44,9 @@
 	"https://replit.com/@thingMaker/windows":{
 		"name":"windows",
 		"created":"Jun 8 2023 5:30:39 pm"
+	},
+	"text.html": {
+		"created": "Apr 30 2023 4:29 AM (maybe before)"
 	},
 	"scratch_extension.js": {
 		"created": "4:58 pm Feb 24 2023 UTC-8",
