@@ -3,39 +3,35 @@
 <head>
 	<meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="thingmaker's website has many tools and interesting things. It used to be fun...">
+  <meta name="description" content="this website has stuff in it">
 	<link rel="shortcut icon" href="/favicon.ico">
   <link rel="stylesheet" href="/assets/common.css">
+	<!--<link href='https://fonts.googleapis.com/css?family=Aclonica' rel='stylesheet'>-->
 	<title>Website</title>
 
 	<style>
+/*@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400&display=swap');*/
 
-.mainrow{
-	display: flex;
-	flex-direction: row-reverse;
-	flex-wrap: wrap;
-	width:100%;
+/*
+* {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
 }
-.side {
-	flex: 20%; /* Set the width of the sidebar */
-	background-color: color-mix(in srgb, #f1f1f1 80%, transparent); /* Grey background color */
-	padding: 20px; /* Some padding */
-}
-.side .dropdown-content{
-	background-color: color-mix(in srgb, #f1f1f1 80%, transparent); /* Grey background color */
-}
-body[theme=dark] .side, body[theme=dark] .side .dropdown-content{
-  background:color-mix(in srgb, #222 80%, transparent);
-}
-.main {
-	flex:80%;
-	min-width:0;
-  background-color: color-mix(in srgb, #fff 90%, transparent);
+
+body {
+	font-family: 'Open Sans', sans-serif;
+	line-height: 1.5;
+}*/
+
+.main {   
+  -ms-flex: 70%; /* IE10 */
+  flex: 70%;
+  background-color: white;
   padding: 20px;
-	height:fit-content;
 }
 body[theme=dark] .main{
-  background:color-mix(in srgb, #111 90%, transparent);
+  background:#111;
 }
 
 #cookie-banner {
@@ -82,7 +78,39 @@ h3{
   text-align: center;
 }
 
-.side .dropdown::after{
+#links{
+  display: grid;
+  grid-template-columns: auto auto auto;
+}
+#links a{
+  padding:8px 20px;
+  background:#eee;
+  display:block;
+  color:black;
+}
+#links a:hover{
+  background:#ccc;
+}
+#links a.interesting{
+  background: #dfd;
+}
+#links a.no{
+  background: #fdd;
+}
+body[theme=dark] #links a{
+  background:#222;
+  color:white;
+}
+body[theme=dark] #links a:hover{
+  background:#111;
+}
+body[theme=dark] #links a.interesting{
+  background: #262;
+}
+body[theme=dark] #links a.no{
+  background: #622;
+}
+#links .dropdown::after{
 	display:block;
 	float:right;
 	content:"▼";
@@ -90,26 +118,6 @@ h3{
 	top:50%;
 	right:8px;
 	translate: 0 -50%;
-}
-
-/* Style the navigation links */
-.side a {
-  padding: 12px;
-  text-decoration: none;
-  color: black;
-  display: block;
-}
-body[theme=dark] .side a{
-  color:#eee;
-}
-.side a:hover {
-  background-color: #ddd;
-}
-body[theme=dark] .side a:hover{
-  background:#444;
-}
-.side .dropdown{
-	display:block;
 }
 	</style>
 <!-- Global site tag (gtag.js) - Google Analytics -->
@@ -123,26 +131,87 @@ body[theme=dark] .side a:hover{
 </script>
 </head>
 <body>
-<div id="contentBG" class="fullWidth">
 
-<!-- ©, by thingmaker. thingmaker.us.eu.org -->
+<!--<h1>Please make this website more <span style='background:#ff08'>popular</span></h1>
+<p id="more-popular">You can do that by sharing the link. If this website is more popular, it will make MineKhan <span style='background:#ff08'>more fun</span> and there may be <span style='background:#ff08'>more updates</span>. There are about 20 users on this website every day and less on weekends.</p>
+<span id="currentUsers"></span>
+<script>addEventListener("load", () => document.querySelector("#currentUsers").innerHTML = "Current amount of users in last 24 hours (on page load): "+userCount)</script>-->
+	
+  <div id="links">
+    <script>
+			function addlinks(r,container){
+        for(let i in r){
+					let contain = container
+          if(r[i].dropdown){
+						contain = document.createElement("div")
+						contain.className = "dropdown"
+						container.appendChild(contain)
+					}
+					contain.insertAdjacentHTML("beforeend","<a href='"+r[i].url+"' class='"+(r[i].no?"no ":"")+(r[i].interesting?"interesting ":"")+"'>"+i+"</a>")
+					if(r[i].dropdown){
+						let newc = document.createElement("div")
+						newc.className = "dropdown-content"
+						addlinks(r[i].dropdown,newc)
+						contain.appendChild(newc)
+					}
+        }
+			}
+addlinks({ // this was added on May 31, 2025
+  "Home":{"url":"/"},
+  "Posts":{"url":"/posts"},
+  "MineKhan":{
+		"url":"/minekhan", "interesting":true,
+		"dropdown":{
+			"Offline download":{"url":"/minekhan/offdown.html"},
+			"MineKhan history":{"url":"/minekhan/history","interesting":true},
+ 	 		"MineKhan mods":{"url":"/stuff/ka/mk-mods"},
+ 	 		"MineKhan test: all update":{"url":"/minekhan/beta/allupdate/_mksrc10test.html"},
+  		"MineKhan Servers":{"url":"/minekhan/live-servers.html","description":"A live list of servers on MineKhan."},
+			"Editor":{"url":"/code%20editor/multifile/?import=%2Fminekhan%2Fminekhan.html&import=%2Fminekhan%2Fminekhan-world.js"}
+		}
+	},
+  "MineKhan Maps":{
+		"url":"/minekhan-website/maps/browse",
+		"dropdown":{
+			"Upload MineKhan Map":{"url":"/minekhan-website/maps/new"},
+			"Upload MineKhan Resource Pack":{"url":"/minekhan-website/maps/new"}
+		}
+	},
+	"MineKhan website":{"url":"/minekhan-website/"},
+  "MineKhan Wiki":{"url":"/minekhan-website/wiki"},
+  "MineKhan tools":{"url":"/tools"},
+	"History of website":{"url":"/history.html","interesting":true},
+  "to do & info":{"url":"/todo.html"},
+  "Adder":{"url":"/Adder.html"},
+  "Program browser (doesn't work anymore)":{"url":"/programBrowser.html"},
+  "Code editor":{"url":"/code%20editor/Programs.html", "interesting":true},
+  "Scratch to javascript converter":{"url":"/scratch/scratchjs.html"},
+  "Randomizer":{"url":"/random.html"},
+  "Fullscreen OS":{"url":"/fullscreen-os", "interesting":true},
+  "Multiplayer drawing":{"url":"/multiplayer", "interesting":true},
+  "Platformer":{"url":"/platformer", "interesting":true},
+  "dino":{"url":"/dino"},
+  "Fake glitchy screen":{"url":"/glitch.html"},
+  "Redstone simulator (old)":{"url":"/redstone"},
+  "Text meaning distorter":{"url":"/text-meaning-distorter"},
+  "Particle life":{"url":"/particleLife", "interesting":true},
+  "chat by TomMustBe12":{"url":"/chat"},
+  "Generate username":{"url":"/namegenerator.html"},
+  "View panorama":{"url":"/panoramas.html"},
+  "Make music":{"url":"/music","description":"A tool for making music.", "interesting":true},
+  "Python interpreter":{"url":"/code%20editor/pythoninterpreter.html", "interesting":true},
+	"Grapher":{"url":"/grapher", "interesting":true},
+	"Bitmap font generator":{"url":"/stuff/bitmap-font-generator.html"},
+	"life":{"url":"/stuff/life.html", "interesting":true},
+	"Stuff":{"url":"/stuff", "interesting":true},
+	"bending pixels":{"url":"/stuff/bending pixels.html", "interesting":true}
+},document.querySelector("#links"))
+    </script>
+  </div>
 
-
-	<div class="header" style="height:50vh;"></div>
-
-	<div class="mainrow">
   <div class="main">
-
-		<div style="width:50%;float:right;height:620px;">
-		<b>TNJS's chat ↓↓ You can talk here</b>
-		<div style="height:600px;" class="arena-chat" data-publisher="ske-tch" data-chatroom="VSCI1IW" data-position="in-page"><script async src="https://go.arena.im/public/js/arenachatlib.js?p=ske-tch&e=VSCI1IW"></script></div>
-		</div>
-		
-    <h2>Website</h2>
-    Welcome to thingmaker's website.<br><br>
-		<b>thingmaker's profiles</b><br>
-		'thingmaker' is my username.
-		<a href="https://scratch.mit.edu/users/2-people">scratch</a> | <a href="https://replit.com/@thingMaker">replit</a> | <a href="https://github.com/aaaathing/">github</a>
+    <h2>Website (March 12, 2025)</h2>
+    <p>This is the home page of this website. You can find many things like interesting stuff and useful tools in the links above. Green background means it may be interesting.</p>
     
     <h2>Websites and things you may not have even known existed!</h2>
     <a href="https://mordritch.com/">Modritch.com</a><br>
@@ -158,9 +227,73 @@ body[theme=dark] .side a:hover{
     <a href="https://github.com/Shawnlandis/eaglercraft/blob/main/index.html">eaglercraft for khan acadmy</a><br>
 		<a href="https://github.com/emer/emergent">emergent</a> | can be used to make AI with perception, memory, language, possibly ability to think<br>
 
+		<br><br><br>
+	<h1>Put old stuff here</h1>
+	<i>otherwise it will probably be forgotten</i>
+	<br><a href="https://thingmaker.us.eu.org/old.html">actually, read this because the one below is old</a>
+	<div>
+	<p>If you have <b>old worlds</b> from 2022 and before, you should put them <a href="/minekhan-website/maps/new">here</a>.</p>
+	<h2>How to get old worlds</h2>
+	<img src="/assets/images/Screen Shot 2022-09-02 at 8.31.12 PM.jpg" loading="lazy" width="200px">
+<div style="white-space: pre-line;">
+If you used chrome, go to <b>chrome://indexeddb-internals/#minekhan.thingmaker.repl.co</b> or <b>chrome://indexeddb-internals/#play.minekhan.repl.co</b>
+Wait for it to load
+Click download (at the bottom of the list)
+Use <a href="/save-mk-indexed-db.html">this tool</a> to get and save the worlds
+Or unzip the zip file
+
+<!--This only works if you used to go to <b>minekhan.thingmaker.repl.co</b> or <b>play.minekhan.repl.co</b>
+This also requires access to devtools.
+
+Go to minekhan.thingmaker.repl.co or the other one.
+Use proxy or extension to make it not have error.
+Open devtools by:
+	right clicking and clicking inspect
+	or pressing ctrl+shift+i or similar
+Paste this in console and optionaly check for bad things:
+<textarea>
+let or=indexedDB.open("MineKhan");or.onsuccess = e => { let db = or.result;let trans = db.transaction('worlds', "readonly");let store = trans.objectStore('worlds'); let req = store.getAll(); req.onsuccess=()=>{ for(let i of req.result){ var link = document.createElement("a"); link.download = i.data.name+'.minekhan'; link.href = URL.createObjectURL(new Blob([JSON.stringify(i.data)])); link.click(); Object.revokeObjectURL(link.href); } }}
+</textarea>
+The files should have been downloaded afterwards.-->
+</div>
+	<P>If you have screenshots or videos of <b>MineKhan</b> from <b>2022 and before</b>, it would be helpful to put them in the upload below so more history can be found.</P>
+	<input type="file" onchange="uploadit(this)">
+	<script>
+		async function uploadit(e){
+			let r
+			try{
+				r = await (await fetch('/images/'+encodeURIComponent((new Date(e.files[0].lastModified).toLocaleString())+" "+e.files[0].name), {
+					method:'POST',
+					body: await e.files[0].arrayBuffer()
+				})).json()
+			}catch(e){
+				alert(e.message)
+				return
+			}
+			if(!r.success) alert(r.message)
+		}
+	</script>
+	</div>
+	<br><br>
+
+
+<!--		<h2>links</h2>
+<pre>
+https://minecraft1123.glitch.me/
+16f81.csb.app
+https://minecrafterikedition.glitch.me/
+https://minekhan2.w3spaces.com/
+https://minekhan.glitch.me/
+</pre>-->
+
     <h2>Website Stats</h2>
-		thingmaker: I miss the age when minekhan was great from 2021 to 2023. It was so great and fun and exciting and interconnected and cool. There were posts and people on the website and they could actually be changed by other people! In minekhan, there was multiplayer and survival mode and physics and a lot of people and more. I spent a few hours every day adding new features or blocks.<br>Will it ever be like this again? sadly, that greatness is hard to achieve, because it would be hard to get so many people to come. Now, it is quiet and lonely on here, which is why i miss that time.
-		<!--<iframe src="minekhan/live-servers.html?nonav" loading="lazy" style="width:100%;height:50vh;border:none;" onload="this.contentWindow.Notification=class{requestPermission(){}}"></iframe>-->
+    <a id="showStats">Show</a>
+    <p id="users-inactive">Note: Most users are inactive</p>
+    <span id="users"></span>
+    <a id="showUsers" style="display:none;">Show</a><br>
+    <span id="posts"></span><br>
+    <span id="worlds"></span><br>
+    <span id="maps"></span>
 
     <h2>MineKhan videos</h2>
 		<b>These ones are disappearing. archive them before they disappear!!</b>
@@ -269,7 +402,7 @@ body[theme=dark] .side a:hover{
         ["https://www.youtube.com/watch?v=6ZXXlJTMhKQ","MineKhan Build Battle!!!","Crackersthehacker"],
         ["https://www.youtube.com/watch?v=t9U2OsNXVFY","How to use blockTxt and blockImg in MineKhan Alpha 1.0.5!","akimball08 (TomMustBe12) | Note: the code in the video is originally made by thingMaker"],
         ["https://www.youtube.com/watch?v=G5PIxwCbdEM","Just a normal Parkour Day in MineKhan Alpha 1.0.5","akimball08 (TomMustBe12)"],
-        ["https://www.youtube.com/watch?v=bwlAb_Pr6zI","I Do Something Dumb","ThrustBacon"],
+        ["https://www.youtube.com/watch?v=G5PIxwCbdEM","I Do Something Dumb","ThrustBacon"],
         ["https://www.youtube.com/watch?v=tOdM_t7JZ6c","KhaHack - Best MineKhan Hacked Client","akimball08 (TomMustBe12)"],
         ["https://www.youtube.com/watch?v=yj_4_Zo9YB4","MC lets play ep 1","Doodle  2",true],
         ["https://www.youtube.com/watch?v=4I2j3_UYs7g","Building The Among Us Skeld Map On MineKhan Part 2","Raeshawna",true],
@@ -302,7 +435,7 @@ body[theme=dark] .side a:hover{
       ].reverse()
       let videosEl = document.querySelector("#videos")
       function showVideos(amount){
-        videosEl.innerHTML = `<div class="grid-item">This list stopped updating in 2024. There may have been new ones since then, but it is rare now.</div>`
+        videosEl.innerHTML = ""
         let j=0
         for(let i of videos){
           j++
@@ -334,119 +467,84 @@ body[theme=dark] .side a:hover{
           videosEl.appendChild(div)
         }
       }
-      showVideos(5)
+      showVideos(6)
     </script>
 
     <h2>MineKhan on other places</h2>
     <a href="https://www.reddit.com/r/PhoenixSC/comments/x5qz55/minecraft_ripoffs_are_weird/">https://www.reddit.com/r/PhoenixSC/comments/x5qz55/minecraft_ripoffs_are_weird/</a><br>
     <a href="https://www.deviantart.com/yasmintt/art/Minekhan-repl-co-pics-945471226">https://www.deviantart.com/yasmintt/art/Minekhan-repl-co-pics-945471226</a><br>
     <a href="https://www.deviantart.com/yasmintt/art/Minekhan-Play-with-anybody-945480121">https://www.deviantart.com/yasmintt/art/Minekhan-Play-with-anybody-945480121</a><br>
-		<a href="https://www.reddit.com/r/replit/comments/1kqlw9o/are_there_any_good_tutorials_that_show_how_to/">reddit.com/r/replit Are there any good tutorials that show how to make a Minecraft clone using Minekhan on replit?</a><br>
+    
+    <h2>Highest records</h2>
+    <span id="records"></span>
 
-		<h2>What happened on the website and minekhan before?</h2>
-		<a href="https://drive.google.com/drive/folders/1jdHjy28nLdo3Ciwk71fmOrn8EdP_NzC1">fuller History from thingmaker</a><br>
-		If you have old stuff, <a href="/old.html">look at this</a>.
+    <!--<h2>Recent updates for MineKhan</h2>
+    <div id="updates"></div>
 
-	</div>
+    <h2>Want to make a external server on MineKhan?</h2>
+    <p>It's the one that stays on and doesn't need you to keep it open.</p>
+    <p>Step 1: Set up a node js server</p>
+    <p>Step 2: Follow <a href='https://www.npmjs.com/package/minekhan-server'>these instructions</a>.</p>
+    <p>Step 3: Ask to put it on the server list.</p>-->
+<!--<br><br><br><br>
+    <div style="overflow:hidden;width:300px;height:200px;"><img style="float: right;" src="https://img.youtube.com/vi/oqlXipxYFfM/maxresdefault.jpg" loading="lazy"><a href="https://guestsneezeplayz.itch.io/falconcraft">link to thing without credit</a></div>
+  </div>-->
 
-	<div class="side">
-		<div class="dropdown"> <a href="index (2025 mar 12).html">Old website (May 2021 - April 25, 2025)</a> <div class="dropdown-content">
-			<a href="https://github.com/aaaathing/websitethingmaker">Website source code</a>
-			<a href="https://drive.google.com/file/d/1SQNeXnzlSJkb0DgX-qx_CUdXA9-rHbNw/view?usp=drive_link">database (may 2025) (posts,users,maps,wiki)</a> <a href="https://drive.google.com/file/d/1Mr8ABXTjNopGtb100E3geBHxcU7t-DtL/view?usp=drive_link">database (jul 10, 2024) (posts,users,maps,wiki, people's cloud saves)</a>
-		</div></div>
-		<div class="dropdown"> <a href="/minekhan/">MineKhan</a> <div class="dropdown-content">
-			<a href="/minekhan/offdown.html">Offline download</a>
-			<a href="/minekhan/history/">MineKhan older versions</a>
-			<a>MineKhan mods (find in KA programs)</a>
-			<a href="/minekhan/live-servers.html">MineKhan live list of servers</a>
-			<a href="https://github.com/aaaathing/MineKhan">Source code / Repository</a>
-		</div></div>
-		<a href="/mcs.html">Lake and mountains</a>
-		<a href="https://drive.google.com/drive/folders/1jdHjy28nLdo3Ciwk71fmOrn8EdP_NzC1">History of website and minekhan, from thingmaker</a>
-		<div class="dropdown"> <a>Tools</a> <div class="dropdown-content">
-			<a href="/websocket-test/">Websocket tester</a>
-			<a href="/tools/">MineKhan tools</a>
-			<a href="/random.html">Randomizer</a>
-			<a href="/code%20editor/Programs.html">Code editor</a>
-			<a href="/grapher/">Grapher</a>
-			<a href="/code%20editor/pythoninterpreter.html">Python interpreter</a>
-			<a href="/chat/">chat by TomMustBe12</a>
-			<a href="/music/">A tool for making music</a>
-		</div></div>
-		<div class="dropdown"> <a>Interesting</a> <div class="dropdown-content">
-			<a href="/scratch/scratchjs.html">Scratch to javascript converter (actually runs scratch projects)</a>
-			<a href="/multiplayer/">Multiplayer drawing</a>
-			<a href="/platformer/">Platformer (lots of levels)</a>
-			<a href="/fullscreen-os/">Fullscreen OS</a>
-			<a href="/dino/">dino</a>
-			<a href="/redstone/">Redstone simulator (old)</a>
-			<a href="/text-meaning-distorter/">Text meaning distorter</a>
-			<a href="/particleLife/">Particle life</a>
-		</div></div>
-		<a href="https://drive.google.com/drive/folders/1KCM3Cu2otCW8y0GYtI-cQXjfL-SXe0Yy">More stuff</a>
-		<h3>By thingmaker</h3>
-		<script>
-			let side = document.querySelector(".side")
-			let index = []
-			function add(prefix){
-				let url = new URL(prefix,location).href
-				return fetch(new URL("index.json",url).href).then(a => a.json()).then(a => {
-					for(let i in a){
-						if(!a[i].created) throw new Error("missing created time")
-						let el = document.createElement("div")
-						el.innerHTML = `<a href="${new URL(i,url).href}">${a[i].name||nameify(i)}<br><span style="opacity:0.5">${a[i].created}</span></a>`
-						el.created = Date.parse(a[i].created)
-						index.push(el)
-					}
-				}).catch(e => {console.error(e); index.unshift(document.createTextNode(prefix+"/index.json | "+e))})
-
-				function nameify(a){
-					if(a.endsWith("/")) a = a.substring(0,a.length-1)
-					let i = a.lastIndexOf("/")
-					if(i !== -1) a = a.substring(i+1)
-					i = a.lastIndexOf(".")
-					if(i !== -1) a = a.substring(0,i)
-					return a
-				}
-			}
-			Promise.all([
-				add(""),
-				add("/stuff/"),
-			]).then(() => {
-				index.sort((a,b) => b.created - a.created || 0)
-				for(let i of index) side.appendChild(i)
-			})
-		</script>
-	</div>
+		<a href="/history.html">
+		<h2>History</h2>
+		<p>Find out what happened on this before.</p>
+		</a>
 </div>
 
 <div id="cookie-banner" style="display: none">
   <p>
-    This website uses cookies for log in and because google analytics uses cookies.
+    This website uses cookies for log in and because google analytics uses cookies.<br>
+    Click &times; to close and don't show again, which will use local storage.
   </p>
   <button class="close">&times;</button>
 </div>
 <script>
-	// newest first
-	let backgrounds = `
-Jun 15, 2025  https://sondoongcave.info/wp-content/uploads/2022/03/ho-troi.png
-Jun 6, 2025  https://cdn.sanity.io/images/oyzyxja8/v2/7f5713f69dee53f64ae5bf456cc3ec14787c26a2-1700x2000.jpg
-May 12, 2025  https://images.stockcake.com/public/e/f/4/ef4b86d8-f9f8-43af-ab0e-2baf15abc8cc_large/starry-forest-night-stockcake.jpg
-	`.trim().split("\n").map(r => r.split("  "))
-	document.body.classList.add("bgImg")
-	document.body.style.setProperty("--bgImg", "url("+backgrounds[0][1]+")")
-	/*let selectBg = document.createElement("select")
-	for(let b of backgrounds){
-		let o = document.createElement("option")
-		o.value = b[1]
-		o.textContent = b[0]
-		selectBg.appendChild(o)
-	}
-	document.querySelector(".header").appendChild(selectBg)*/
+  {
+		let r = {"Players in a multiplayer world at a time in MineKhan":7,"Players at a time in multiplayer in MineKhan":12,"Longest time player-hosted server stayed open (minutes) in MineKhan":1439}
+    var el = document.querySelector("#records")
+    for(var i in r){
+      el.innerHTML += `${i}: ${r[i]}<br>`
+    }
+  }
+  document.querySelector("#showStats").onclick = function(){
+    this.style.display = "none"
+    fetch("/server/users").then(r => r.json()).then(r => {
+      var el=document.querySelector("#users")
+      el.innerHTML = "There are currently "+r.length+" users."
+      var show = document.querySelector("#showUsers")
+      show.style.display = ""
+      show.onclick = () => {
+        show.style.display = "none"
+        for(var i=0; i<r.length; i++){
+          r[i] = r[i].replace("user:", '')
+          r[i] = "<a href='/user?user="+escape(r[i])+"'>"+r[i]+"</a>"
+        }
+        el.innerHTML = "Users:<br>"+r.join("<br>")
+      }
+    })
+    fetch("/server/posts").then(r => r.json()).then(r => {
+      document.querySelector("#posts").innerHTML = "There are currently "+r.length+" posts."
+    })
+    fetch("/server/worlds").then(r => r.json()).then(r => {
+      document.querySelector("#worlds").innerHTML = "There are currently "+r.length+" worlds."
+    })
+    fetch("/server/maps").then(r => r.json()).then(r => {
+      document.querySelector("#maps").innerHTML = "There are currently "+Object.keys(r).length+" maps and other stuff."
+    })
+  }
+  /*fetch("/minekhan/recentUpdates").then(r => r.text()).then(r => {
+    document.getElementById('updates').innerHTML = r.replace(/\n/g,"<br>")
+  })*/
 </script>
 
 <script src="/assets/common.js"></script> <!--This has swal in it-->
 <script>
+	//localforageScript.addEventListener("load", async() => {
 	if (localStorage.getItem("cookieSeen") !== "true") {
 		document.querySelector("#cookie-banner").style.display = ""
 	};
@@ -456,7 +554,5 @@ May 12, 2025  https://images.stockcake.com/public/e/f/4/ef4b86d8-f9f8-43af-ab0e-
 	}
 </script>
 
-
-</div>
 </body>
 </html>
