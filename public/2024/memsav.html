@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<style>
+	body,html{
+		margin:0;
+		width:100%;
+		height:100%;
+		font-family:serif;
+		font-size:24px;
+		overflow:hidden;
+	}
+	.screen{
+		position:absolute;
+		top:0;
+		left:0;
+		width:100%;
+		height:100%;
+		background:white;
+	}
+	.hidden{display: none!important;}
+</style>
+
+<div class="screen" id="startscreen">
+	<h1>save memories</h1>
+	<button class="load">load file</button>
+	<button class="new">new file</button>
+</div>
+<div class="screen" id="listall">
+	<div style="position:sticky;">
+		<button class="add">add</button>
+		<button class="save">save file</button>
+		<span id="savedyet"></span>
+	</div>
+	<div class="list"></div>
+</div>
+<div class="screen" id="add">
+	Time: <input type="date" class="time"><br>
+	<textarea></textarea>
+	<button class="done">done</button>
+	<button class="cancel">cancel</button>
+</div>
+
+<script type="module">
+
+
+const screens = new Map()
+for(let el of document.querySelectorAll(".screen")){
+	screens.set(el.id,el)
+	el.classList.add("hidden")
+}
+/*const screenEventsOpen = new Map()
+function onScreenOpen(name,func){
+	if(screenEventsOpen.get(name)) throw new Error()
+	screenEventsOpen.set(name,func)
+}*/
+let screenStack = []
+function openScreen(name){
+	if(screenStack.includes(name)) throw new Error(name+" already open")
+	let el = screens.get(name)
+	document.body.appendChild(el)//bring to front
+	el.classList.remove("hidden")
+	screenStack.push(name)
+}
+window.openScreen = openScreen
+function closeScreen(name){
+	let idx = screenStack.lastIndexOf(name)
+	if(idx === -1) return
+	screenStack.splice(idx,1)
+	screens.get(name).classList.add("hidden")
+}
+window.closeScreen = closeScreen
+function isScreenOpen(name){
+	return screenStack.includes(name)
+}
+function newHTML(type,stuff, ...inside){
+	let a = document.createElement(type)
+	Object.assign(a,stuff)
+	a.append(...inside)
+	return a
+}
+
+class MemsavEditor{
+	data
+	constructor(fshandle){
+		/**@type {FileSystemFileHandle}*/
+		this.fshandle = fshandle
+		this.load().then(() => this.listall())
+	}
+	async load(){
+		let text = await (await this.fshandle.getFile()).text()
+		this.data = text ? JSON.parse(text) : {"Memsav":"where can this file be opened"}
+		this.data.mems = new Set(this.data.mems)
+	}
+	listall(){
+		openScreen("listall")
+		let el = screens.get("listall").querySelector(".list")
+		let frag = document.createDocumentFragment()
+		for(let i of this.data.mems){
+			frag.appendChild(
+				newHTML("div", {className:"box"}, i.content)
+			)
+		}
+		el.replaceChildren(frag)
+		screens.get("listall").querySelector(".add").onclick = () => this.add()
+		screens.get("listall").querySelector(".save").onclick = () => this.save()
+	}
+	async save(){
+		let savedyet = document.querySelector("#savedyet")
+		savedyet.textContent = "saving..."
+		try{
+			let s = await this.fshandle.createWritable()
+			await s.write(JSON.stringify({
+				...this.data,
+				mems:Array.from(this.data.mems)
+			}))
+			await s.close()
+			savedyet.textContent = ""
+		}catch(e){
+			savedyet.textContent = "unsaved"
+			throw e
+		}
+	}
+	add(){
+		openScreen("add")
+		screens.get("add").querySelector("textarea").value = ""
+		screens.get("add").querySelector(".cancel").onclick = () => closeScreen("add")
+		screens.get("add").querySelector(".done").onclick = () => {
+			this.data.add({
+				content:screens.get("add").querySelector("textarea").value,
+				time:screens.get("add").querySelector(".time")
+			})
+		}
+		document.querySelector("#savedyet").textContent = "unsaved"
+	}
+}
+
+openScreen("startscreen")
+
+screens.get("startscreen").querySelector(".new").onclick = async function(){
+	const handle = await showSaveFilePicker({suggestedName:"name.memsav"})
+	new MemsavEditor(handle)
+}
+screens.get("startscreen").querySelector(".load").onclick = async function(){
+	const handle = (await showOpenFilePicker())[0]
+	new MemsavEditor(handle)
+}
+</script>
+
+<div id="errorScreen" style="position:absolute;z-index:100;top:0;left:0;width:100%;height:100%;display:none;background:darkblue;color:white;overflow-wrap: break-word;overflow:auto;padding:16px;font-family:monospace;text-align:center;">
+	<h1>Error!</h1>
+	<div onclick='errorScreen.style.display="none"' style="float:right;">&times;</div>
+	<div id='errorData'></div>
+	<br><br>
+	<script>
+		"use strict"
+		{
+		let errorScreen = document.querySelector("#errorScreen")
+    // If there is an error, show error screen
+		let errorData = document.querySelector("#errorData")
+    const errors = []
+    function logError(e){
+      if(typeof e === "string") e = {message:e}
+			e.asdf_error_time = Date.now()
+      errors.push(e)
+			let html = "<br><div style='border-top:1px solid white; padding-top:8px;'>"
+			if(e.stack){
+				html += e.stack.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\n/g,"<br>").replace(/ /g,"&nbsp;")
+			}else{
+				html += e.message.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+				if(e.lineno || e.colno) html += "<br>Error occured at "
+				if(e.lineno) html += "line "+e.lineno
+				if(e.colno) html += " column "+e.colno
+			}
+			html += "</div>"
+			errorData.insertAdjacentHTML('beforeend',html)
+      errorScreen.style.display = "block"
+    }
+    addEventListener("error", logError)
+		addEventListener("unhandledrejection", e => logError(e.reason))
+		}
+	</script>
+</div>

@@ -1,0 +1,91 @@
+<script>
+void async function(){
+let{instance}=await WebAssembly.instantiateStreaming(fetch("theformats.wasm"),{
+	wasi_snapshot_preview1:{
+		proc_exit:console.log,
+		fd_close:console.log,
+		fd_write:console.log,
+		fd_seek:console.log,
+		fd_read:console.log
+	},
+	env:{
+		_throw:ptr=>{
+			ptr = wasmMemoryUint32[ptr/4+1]
+			let str = ""
+			while(wasmMemory[ptr]){
+				str+=String.fromCharCode(wasmMemory[ptr++])
+			}
+			throw new Error("from wasm: "+str)
+		},
+		printy:(ptr,objectify)=>{
+			let str='',i=ptr
+			//if(points)i=memarr[i]|memarr[i+1]<<8|memarr[i+2]<<16|memarr[i+3]<<24
+			while(memarr[i]){
+				str+=String.fromCharCode(memarr[i++])
+			}
+			if(objectify)str=eval("("+str+")")
+			console.log(str)
+		},
+		getNow:Date.now,
+		externYieldThread:console.log,
+		clientSendChunkUpdatesData:console.log,
+		emscripten_notify_memory_growth:console.log,
+		externSyncSend:(w,t,x,y,z,typecode,ab,ae,bb,be)=>{
+			window.arra=new Uint32Array(memarr.slice(ab,ae).buffer)
+			window.arrb=new Uint32Array(memarr.slice(bb,be).buffer)
+			console.log(x,y,z,typecode,arra,arrb)
+		},
+	}
+})
+function createString(str){
+	let arr = new TextEncoder().encode(str)
+	let p = instance.exports.allocString(arr.length)
+	memarr.set(arr, p)
+	return p
+}
+const memarr=new Uint8Array(instance.exports.memory.buffer)
+window.memarr=memarr
+const wasmMemoryUint32=new Uint32Array(memarr.buffer)
+const wasmMemory=memarr
+instance.exports._initialize()
+let partarr=instance.exports.partTypesArrCreate()
+instance.exports.partTypesArrAdd(partarr,false,false)
+instance.exports.partTypesArrAdd(partarr,true,false)
+instance.exports.partTypesArrAdd(partarr,true,false)
+window.worldp=instance.exports.worldNew(2,2,0,partarr)
+instance.exports.worldChunkNew(worldp,0,0,0,0)
+instance.exports.worldChunkNew(worldp,0,-4,0,0)
+/*instance.exports.worldChunkNew(worldp,-4,0,0,0)
+instance.exports.worldChunkNew(worldp,-8,0,0,0)
+instance.exports.worldChunkNew(worldp,-12,0,0,0)
+instance.exports.worldChunkNew(worldp,8,8,8,0)
+instance.exports.worldChunkNew(worldp,8,0,8,1)*/
+/*let ter=instance.exports.worldTerrainAlloc(worldp)
+let terarr=new Uint32Array(memarr.buffer,ter,64)
+terarr[(2) *16+ (3) *4+ (0)]=1
+terarr[(3) *16+ (2) *4+ (0)]=1
+terarr[(3) *16+ (3) *4+ (0)]=1
+terarr[(2) *16+ (2) *4+ (1)]=1
+terarr[(2) *16+ (3) *4+ (1)]=1
+terarr[(3) *16+ (2) *4+ (1)]=1
+terarr[(3) *16+ (3) *4+ (1)]=1
+terarr[(0) *16+ (3) *4+ (0)]=1
+//terarr[(2) *16+ (0) *4+ (0)]=2
+//terarr[(2 <<2| 2 )<<2| 2]=321
+instance.exports.worldTerrainLoad(worldp,ter,0,0,0)*/
+/*console.time('time')
+//for(let i=0;i<8;i++)
+instance.exports.worldTick(worldp)
+console.timeEnd('time')*/
+window.instance=instance
+}()
+function arrToWasm(arr){// remember to delete allocated things
+	let ba=instance.exports.byteArrayAlloc(arr.length)
+	new Uint32Array(memarr.buffer).set(arr,instance.exports.byteArrayData(ba)/4)
+	return ba
+}
+/*
+instance.exports.externSyncRecieveEdges(worldp,8,0,8,arrToWasm(arra),arrToWasm(arrb))
+instance.exports.externSyncRecieveMove(worldp,8,8,8,arrToWasm(arra),arrToWasm(arrb))
+*/
+</script>

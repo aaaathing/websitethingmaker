@@ -16,6 +16,17 @@ if(location.origin !== origin && location.origin !== "http://localhost"){
 const serverBase = "" // url
 window.doLiveContent = false
 
+// Aug 4, 2025: add message
+if(location.pathname.startsWith("/post") || location.pathname.startsWith("/user") || location.pathname.startsWith("/login") || location.pathname.startsWith("/account")){
+	addBanner(`<big>
+Sorry that Posts, maps, accounts, and others were shut down. <br> I decided to shut it down because I didn't want to maintain it anymore. <br> You people that used to come here probably liked the small isolated community on here. I miss it too. <br> There is still a chat on the <a href="/">home page</a>.<br>
+</big>
+If you want to find the remains, see 'Old website' on the <a href="/">home page</a> on the left.<br>
+<small>Apr 26, 2025: the website went down. May 5, 2025: I finally got it back up by splitting the website in two. May 8, 2025: I decided to shut it down if nothing happens at end of week. May 11, 2025: It was shut down.</small><br>
+`,
+"#FFA372")
+}
+
 const {floor, ceil, abs, round} = Math
 
 var script = document.createElement("script")

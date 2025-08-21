@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<style>
+	html,body{
+		margin:0;
+		width: 100%;
+	  height: 100%;
+	}
+	:not(svg *){
+		box-sizing: border-box;
+	}
+	#main{
+		position: absolute;
+		top:0;
+		left:0;
+		width:100%;
+		height:100%;
+		display:flex;
+		flex-direction: column;
+	}
+	#bar{
+		border:1px solid black;
+		max-height:20%;
+	}
+	#img{
+		width:100%;
+		height:100%;
+	}
+	.selected{
+		outline:4px solid lightblue;
+	}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/svg.js@2.7.1/dist/svg.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/svg.draw.js@2.0.4/dist/svg.draw.min.js"></script>
+<div id="main">
+	<div id="bar">
+		Set color by using keyboard.
+		Delete with backspace.
+		Select by clicking.
+		Draw by dragging.
+		<br>
+		<button onclick="draw.size(+prompt('width'),+prompt('height'))">Set size</button>
+		Color:<input type="color" id="color">
+	</div>
+	<svg id="img">
+		
+	</svg>
+</div>
+<script>
+	let img = document.querySelector("#img")
+	let draw = SVG(img)
+	draw.size(800,600)
+	let dragging = false, curshape = null, curcolor = [0,0,0], selected, curcolorstr = "#000"
+	let lastx,lasty, firstx,firsty
+	img.addEventListener("mousedown", e => {
+		dragging = true
+		curshape = draw.polyline().attr({opacity:0.25}).fill(curcolorstr).draw()
+		lastx = firstx = e.clientX
+		lasty = firsty = e.clientY
+	})
+	addEventListener("mousemove", e => {
+		if(dragging && (lastx-e.clientX)**2 + (lasty-e.clientY)**2 > 400){
+			curshape.draw('point', e)
+			lastx = e.clientX
+			lasty = e.clientY
+		}
+	})
+	addEventListener("mouseup", e => {
+		dragging = false
+		if(curshape){
+			curshape.draw("done")
+			curshape.attr({opacity:null})
+		}
+	})
+	addEventListener("click", e => {
+		if(selected){
+			selected.classList.remove("selected")
+			selected = null
+		}
+		if(curshape){
+			curshape.draw("cancel")
+		}
+		let el = document.elementFromPoint(e.clientX,e.clientY)
+		if(img.contains(el)){
+			selected = el
+			el.classList.add("selected")
+		}
+	})
+
+	let colorEl = document.querySelector("#color")
+	function colorrow(str,c){
+		return (str.split("").map((r,i) => [r,[c,i/(str.length-1)]]))
+	}
+	let colorkeys = new Map([
+		...colorrow('qwertyuiop',0),
+		...colorrow('asdfghjkl',1),
+		...colorrow('zxcvbnm',2)
+	])
+	addEventListener("keydown", e => {
+		if(e.key === "Backspace"){
+			selected.remove()
+			selected = null
+		}else if(colorkeys.has(e.key)){
+			let i = colorkeys.get(e.key)
+			curcolor[i[0]] = Math.round(i[1]*255)
+			curcolorstr = `#${curcolor[0].toString(16).padStart(2,"0")}${curcolor[1].toString(16).padStart(2,"0")}${curcolor[2].toString(16).padStart(2,"0")}`
+			colorEl.value = curcolorstr
+		}
+	})
+
+	function map(v, min, max, min2, max2){
+		return min2 + (max2 - min2) * ((v - min) / (max - min));
+	}
+	function lerp(t, a, b) {
+		return a + t * (b - a);
+	}
+</script>

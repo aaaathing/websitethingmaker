@@ -1,0 +1,47 @@
+https://quick-bench.com/q/n51v5GaeAAMCJyOmxZILwRfsJy0
+https://quick-bench.com/q/4Noo7ZV5ItY_wrrZpEx5c2hKkJE
+
+
+#include <iostream>
+#include <vector>
+#include <bitset>
+#include <chrono>
+struct o{
+    o* t[8];
+    o(uint32_t d=0){
+        if(d<4){
+            t[0]=new o(d+1);
+            t[1]=new o(d+1);
+            t[2]=new o(d+1);
+            t[3]=new o(d+1);
+            t[4]=new o(d+1);
+            t[5]=new o(d+1);
+            t[6]=new o(d+1);
+            t[7]=new o(d+1);
+            }
+        }
+    };
+int main(void)
+{
+    auto a=new o();
+    std::cout<<"start\n";
+    auto start = std::chrono::system_clock::now();
+    int32_t i2=0;
+    for(uint32_t i=0;i<1000;i++){
+        o* x=a;
+        for(uint32_t j=0;j<4;j++){
+            x=(*x).t[i2&7];
+            i2+=123*((uint32_t)(void**)x);
+        }
+    }
+    
+    auto end = std::chrono::system_clock::now();
+ 
+    std::chrono::duration<double> elapsed_seconds = end-start;
+    std::time_t end_time = std::chrono::system_clock::to_time_t(end);
+ 
+    std::cout << "finished computation at " << std::ctime(&end_time)
+              << "elapsed time: " << elapsed_seconds.count() << "s"
+              << "\n"<<i2;
+    return 0;
+}

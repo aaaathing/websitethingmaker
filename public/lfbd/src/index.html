@@ -1,0 +1,1497 @@
+<!DOCTYPE html>
+<title></title>
+<meta charset="utf-8">
+<style>
+	*{
+		box-sizing: border-box;
+	}
+	body,html{
+		margin:0;
+		width:100%;
+		height:100%;
+		font-family:serif;
+		font-size:24px;
+		overflow:hidden;
+	}
+	button{
+		background:#ddd;
+		color:black;
+		padding:32px;
+		border:2px solid #444;
+		font-size:24px;
+		font-family:serif;
+		cursor:pointer;
+		transition: .125s ease-in-out;
+	}
+	button:hover{
+		background:lightgreen;
+		color:green;
+		border-color:brown;
+	}
+	.screen{
+		position:absolute;
+		top:0;
+		left:0;
+		width:100%;
+		height:100%;
+		background:white;
+	}
+	.screen.full{
+		padding:16px;
+		overflow:auto;
+		text-align:center;
+	}
+	.screen.full button{
+		width:100%;
+	}
+	.screen.center{
+		display: flex;
+		flex-direction: column;
+  	align-items: center;
+		justify-content: space-between;
+		padding:10%;
+	}
+	.screen.center button{
+		width:50%;
+	}
+	.hidden{display: none!important;}
+</style>
+<div id="errorScreen" style="position:absolute;z-index:100;top:0;left:0;width:100%;height:100%;display:none;background:darkblue;color:white;overflow-wrap: break-word;overflow:auto;padding:16px;font-family:monospace;text-align:center;">
+	<h1>Error!</h1>
+	<div onclick='errorScreen.style.display="none"' style="float:right;">&times;</div>
+	<div id='errorData'></div>
+	<br><br>
+	<script>
+		"use strict"
+		{
+		let errorScreen = document.querySelector("#errorScreen")
+    // If there is an error, show error screen
+		let errorData = document.querySelector("#errorData")
+    const errors = []
+    function logError(e){
+      if(typeof e === "string") e = {message:e}
+			e.asdf_error_time = Date.now()
+      errors.push(e)
+			let html = "<br><div style='border-top:1px solid white; padding-top:8px;'>"
+			if(e.stack){
+				html += e.stack.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\n/g,"<br>").replace(/ /g,"&nbsp;")
+			}else{
+				html += e.message.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+				if(e.lineno || e.colno) html += "<br>Error occured at "
+				if(e.lineno) html += "line "+e.lineno
+				if(e.colno) html += " column "+e.colno
+			}
+			html += "</div>"
+			errorData.insertAdjacentHTML('beforeend',html)
+      errorScreen.style.display = "block"
+    }
+    addEventListener("error", logError)
+		addEventListener("unhandledrejection", e => logError(e.reason))
+		}
+	</script>
+</div>
+<div id="mainMenu" class="screen full">
+	<h1 data-translate="title"></h1>
+	<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quid sequatur, quid repugnet, vident. Nulla profecto est, quin suam vim retineat a primo ad extremum. Immo videri fortasse. Non enim, si omnia non sequebatur, idcirco non erat ortus illinc. Duo Reges: constructio interrete. Sic vester sapiens magno aliquo emolumento commotus cicuta, si opus erit, dimicabit. Utram tandem linguam nescio? Itaque eos id agere, ut a se dolores, morbos, debilitates repellant. </p>
+	<h2>Atqui iste locus est, Piso, tibi etiam atque etiam confirmandus, inquam;</h2>
+	<p>Sin aliud quid voles, postea. At modo dixeras nihil in istis rebus esse, quod interesset. Non minor, inquit, voluptas percipitur ex vilissimis rebus quam ex pretiosissimis. An me, inquis, tam amentem putas, ut apud imperitos isto modo loquar? Familiares nostros, credo, Sironem dicis et Philodemum, cum optimos viros, tum homines doctissimos. Age sane, inquam. </p>
+	<p><b>Respondeat totidem verbis.</b> Quod autem ratione actum est, id officium appellamus. Prioris generis est docilitas, memoria; Apud imperitos tum illa dicta sunt, aliquid etiam coronae datum; Oculorum, inquit Plato, est in nobis sensus acerrimus, quibus sapientiam non cernimus. Qua tu etiam inprudens utebare non numquam. Immo istud quidem, inquam, quo loco quidque, nisi iniquum postulo, arbitratu meo. Non igitur bene. </p>
+	<h2>Illud dico, ea, quae dicat, praeclare inter se cohaerere.</h2>
+	<p>Ratio quidem vestra sic cogit. Equidem etiam Epicurum, in physicis quidem, Democriteum puto. Ne discipulum abducam, times. Vide, quantum, inquam, fallare, Torquate. Cum ageremus, inquit, vitae beatum et eundem supremum diem, scribebamus haec. Bonum valitudo: miser morbus. Sed tamen est aliquid, quod nobis non liceat, liceat illis. Quam ob rem tandem, inquit, non satisfacit? </p>
+	<h5>Quae cum dixisset paulumque institisset, Quid est?</h5>
+	<p><mark>Sed in rebus apertissimis nimium longi sumus.</mark> Quod autem satis est, eo quicquid accessit, nimium est; Sit ista in Graecorum levitate perversitas, qui maledictis insectantur eos, a quibus de veritate dissentiunt. Et quidem iure fortasse, sed tamen non gravissimum est testimonium multitudinis. Quid enim ab antiquis ex eo genere, quod ad disserendum valet, praetermissum est? Innumerabilia dici possunt in hanc sententiam, sed non necesse est. </p>
+	<p>Traditur, inquit, ab Epicuro ratio neglegendi doloris. Sic enim censent, oportunitatis esse beate vivere. Positum est a nostris in iis esse rebus, quae secundum naturam essent, non dolere; Nihilne est in his rebus, quod dignum libero aut indignum esse ducamus? Cave putes quicquam esse verius. Prioris generis est docilitas, memoria; <i>Quia nec honesto quic quam honestius nec turpi turpius.</i> Dici enim nihil potest verius. Ergo in utroque exercebantur, eaque disciplina effecit tantam illorum utroque in genere dicendi copiam. Habent enim et bene longam et satis litigiosam disputationem. </p>
+	<p>Pudebit te, inquam, illius tabulae, quam Cleanthes sane commode verbis depingere solebat. Longum est enim ad omnia respondere, quae a te dicta sunt. Sed haec quidem liberius ab eo dicuntur et saepius. Huius, Lyco, oratione locuples, rebus ipsis ielunior. Et quidem iure fortasse, sed tamen non gravissimum est testimonium multitudinis. Egone non intellego, quid sit don Graece, Latine voluptas? Quae si potest singula consolando levare, universa quo modo sustinebit? </p>
+	<h3>Explanetur igitur.</h3>
+	<p>Sed haec nihil sane ad rem; Hosne igitur laudas et hanc eorum, inquam, sententiam sequi nos censes oportere? Re mihi non aeque satisfacit, et quidem locis pluribus. Nam aliquando posse recte fieri dicunt nulla expectata nec quaesita voluptate. Quid igitur dubitamus in tota eius natura quaerere quid sit effectum? <b>Sequitur disserendi ratio cognitioque naturae;</b> </p>
+	<p>Sin tantum modo ad indicia veteris memoriae cognoscenda, curiosorum. Fatebuntur Stoici haec omnia dicta esse praeclare, neque eam causam Zenoni desciscendi fuisse. Ut proverbia non nulla veriora sint quam vestra dogmata. Nam bonum ex quo appellatum sit, nescio, praepositum ex eo credo, quod praeponatur aliis. </p>
+	<p>Minime vero, inquit ille, consentit. <b>An potest cupiditas finiri?</b> <i>Si quidem, inquit, tollerem, sed relinquo.</i> Sit, inquam, tam facilis, quam vultis, comparatio voluptatis, quid de dolore dicemus? Sed plane dicit quod intellegit. An vero, inquit, quisquam potest probare, quod perceptfum, quod. Quid de Pythagora? </p>
+	<p>Mihi enim satis est, ipsis non satis. Summum ením bonum exposuit vacuitatem doloris; Atque his de rebus et splendida est eorum et illustris oratio. <i>Faceres tu quidem, Torquate, haec omnia;</i> <b>Sed nimis multa.</b> Videamus animi partes, quarum est conspectus illustrior; Longum est enim ad omnia respondere, quae a te dicta sunt. </p>
+	<h4>Hoc positum in Phaedro a Platone probavit Epicurus sensitque in omni disputatione id fieri oportere.</h4>
+	<p>Vide ne ista sint Manliana vestra aut maiora etiam, si imperes quod facere non possim. Eadem nunc mea adversum te oratio est. <i>Sedulo, inquam, faciam.</i> Vitiosum est enim in dividendo partem in genere numerare. Quod idem cum vestri faciant, non satis magnam tribuunt inventoribus gratiam. Non potes, nisi retexueris illa. </p>
+	<h1>Quod, inquit, quamquam voluptatibus quibusdam est saepe iucundius, tamen expetitur propter voluptatem.</h1>
+	<p>Sed vos squalidius, illorum vides quam niteat oratio. Quicquid porro animo cernimus, id omne oritur a sensibus; Quid ergo attinet dicere: Nihil haberem, quod reprehenderem, si finitas cupiditates haberent? Hoc loco discipulos quaerere videtur, ut, qui asoti esse velint, philosophi ante fiant. Ex quo, id quod omnes expetunt, beate vivendi ratio inveniri et comparari potest. Num igitur eum postea censes anxio animo aut sollicito fuisse? </p>
+	<p>Fortasse id optimum, sed ubi illud: Plus semper voluptatis? Quamquam id quidem, infinitum est in hac urbe; Sed haec in pueris; <i>Negare non possum.</i> Possumusne ergo in vita summum bonum dicere, cum id ne in cena quidem posse videamur? His enim rebus detractis negat se reperire in asotorum vita quod reprehendat. </p>
+	<p>Qui autem esse poteris, nisi te amor ipse ceperit? Naturales divitias dixit parabiles esse, quod parvo esset natura contenta. Atque ego: Scis me, inquam, istud idem sentire, Piso, sed a te opportune facta mentio est. Sin laboramus, quis est, qui alienae modum statuat industriae? </p>
+	<p>Quam nemo umquam voluptatem appellavit, appellat; Multoque hoc melius nos veriusque quam Stoici. Illa videamus, quae a te de amicitia dicta sunt. <i>Huius, Lyco, oratione locuples, rebus ipsis ielunior.</i> </p>
+	<p>Idemque diviserunt naturam hominis in animum et corpus. Non autem hoc: igitur ne illud quidem. Ut id aliis narrare gestiant? Tum Torquatus: Prorsus, inquit, assentior; <b>Videamus animi partes, quarum est conspectus illustrior;</b> Deinde prima illa, quae in congressu solemus: Quid tu, inquit, huc? Non minor, inquit, voluptas percipitur ex vilissimis rebus quam ex pretiosissimis. Fortasse id optimum, sed ubi illud: Plus semper voluptatis? <mark>Hic ambiguo ludimur.</mark> </p>
+	<h6>Quod cum ille dixisset et satis disputatum videretur, in oppidum ad Pomponium perreximus omnes.</h6>
+	<p>Illa tamen simplicia, vestra versuta. Nihilne te delectat umquam -video, quicum loquar-, te igitur, Torquate, ipsum per se nihil delectat? Nunc ita separantur, ut disiuncta sint, quo nihil potest esse perversius. <mark>Omnes enim iucundum motum, quo sensus hilaretur.</mark> Idem etiam dolorem saepe perpetiuntur, ne, si id non faciant, incidant in maiorem. Est enim effectrix multarum et magnarum voluptatum. <b>Negat enim summo bono afferre incrementum diem.</b> Nihilne te delectat umquam -video, quicum loquar-, te igitur, Torquate, ipsum per se nihil delectat? </p>
+	<p>Idque testamento cavebit is, qui nobis quasi oraculum ediderit nihil post mortem ad nos pertinere? Est enim effectrix multarum et magnarum voluptatum. Eiuro, inquit adridens, iniquum, hac quidem de re; Ita est quoddam commune officium sapientis et insipientis, ex quo efficitur versari in iis, quae media dicamus. Atqui, inquam, Cato, si istud optinueris, traducas me ad te totum licebit. Vadem te ad mortem tyranno dabis pro amico, ut Pythagoreus ille Siculo fecit tyranno? Iam enim adesse poterit. Cyrenaici quidem non recusant; An hoc usque quaque, aliter in vita? Satis est tibi in te, satis in legibus, satis in mediocribus amicitiis praesidii. </p>
+	<p>Verum tamen cum de rebus grandioribus dicas, ipsae res verba rapiunt; <b>Hunc vos beatum;</b> <b>Omnes enim iucundum motum, quo sensus hilaretur.</b> An vero, inquit, quisquam potest probare, quod perceptfum, quod. Non laboro, inquit, de nomine. </p>	
+	<button onclick="newWorld()">start</button>
+	<button onclick="openScreen('about')">about</button>
+</div>
+<div id="maathe" class="screen">
+	<canvas style="width:100%;height:100%;image-rendering: pixelated;"></canvas>
+	<div id="analytics" style="position:absolute;top:0;left:0;white-space:pre;color:white;background:#0008;font-size:16px;"></div>
+	<div style="position: absolute;top:calc(50% - 4px);left:calc(50% - 4px);width:4px;height:4px;border-radius: 100%;background:white;"></div>
+</div>
+<div id="connectionLost" class="screen full">
+	<h1 data-translate="connectionLost"></h1>
+	<button data-translate="back" onclick="closeScreen('connectionLost')"></button>
+</div>
+<div id="connecting" class="screen full">
+	<h1 data-translate="connecting"></h1>
+</div>
+<div id="pause" class="screen center" style="background:#0008;">
+	<button data-translate="resume" onclick="closeScreen('pause');getPointer()"></button><br>
+	<button data-translate="exit" onclick="closeScreen('pause');exit()"></button>
+</div>
+<div id="about" class="screen full">
+	<button data-translate="back" onclick="closeScreen('about')"></button>
+<pre>
+lfbd
+Started march 17, 2024
+WASM version started may 18, 2024
+Made mostly by thingmaker
+Uses webgpu-utils
+Contains c++ standard library
+Some code from:
+https://gist.github.com/munrocket/236ed5ba7e409b8bdf1ff6eca5dcdc39
+</pre>
+</div>
+<script id="shaderMain" type="wgsl">
+struct Stuff{
+	fov:f32,
+	cameraPos:vec3f,
+	cameraUp:vec3f,
+	cameraRight:vec3f,
+	cameraForward:vec3f,
+	chunksWidth:u32,
+};
+struct NodePtr{
+	ntype:u32,
+	pntr:u32
+};
+
+@group(0) @binding(0) var<storage, read> chunkData: array<u32>;
+@group(0) @binding(1) var out_texture: texture_storage_2d<PRESENTATIONFORMAT, write>;
+@group(0) @binding(2) var<storage, read> chunkList: array<u32>;
+@group(0) @binding(3) var<uniform> stuff: Stuff;
+@group(0) @binding(4) var<storage, read> textures: array<vec4f>;
+@group(0) @binding(5) var<storage, read> chunkOffsets: array<u32>;
+
+@compute @workgroup_size(1) fn computeSomething(
+	@builtin(global_invocation_id) id : vec3u
+)  {
+	let size = textureDimensions(out_texture);
+	let minS = f32(min(size.x,size.y));
+	let pos = (vec2f(id.xy)*2. - vec2f(size)) * vec2f(1.,-1.) / minS;
+	const roundToWhatSize = 8.;
+	let roundToWhatFloat = max(max(abs(pos.x),abs(pos.y))*roundToWhatSize,1.);
+	let roundToWhat = round(roundToWhatFloat);
+	let inArtifact = abs(roundToWhatFloat-(ceil(roundToWhatFloat)-(0.5)))*minS<roundToWhat*roundToWhatSize*2.;//covers most black parts
+	let roundToWhatU = u32(roundToWhat);
+	if(//draw less near edges
+		((id.x/roundToWhatU)*roundToWhatU != id.x || (id.y/roundToWhatU)*roundToWhatU != id.y)
+		&& (!inArtifact || (id.x/(roundToWhatU+(1)))*(roundToWhatU+(1)) != id.x || (id.y/(roundToWhatU+(1)))*(roundToWhatU+(1)) != id.y)
+		&& (!inArtifact || (id.x/(roundToWhatU-(1)))*(roundToWhatU-(1)) != id.x || (id.y/(roundToWhatU-(1)))*(roundToWhatU-(1)) != id.y)
+	){return;}
+	let posWithFov = pos * tan(stuff.fov*0.5);
+	let dir = normalize(posWithFov.x*stuff.cameraRight + posWithFov.y*stuff.cameraUp + stuff.cameraForward);
+	let hit = raycastOctree(stuff.cameraPos,dir);
+	if hit.data != 0xffffffff{
+		textureStore(out_texture, id.xy, textures[hit.data]);
+		//*(0.75+0.25*f32(xxhash32_3d(vec3u(hit.position)))/4294967296.)
+	}else{
+		//textureStore(out_texture, id.xy, vec4f(f32(hit.nodes)/50.,0.,0.,1.));
+		textureStore(out_texture, id.xy, vec4f(0.,0.25,0.5,1.));
+	}
+}
+
+// from https://gist.github.com/munrocket/236ed5ba7e409b8bdf1ff6eca5dcdc39
+// https://github.com/Cyan4973/xxHash
+// https://www.shadertoy.com/view/Xt3cDn
+fn xxhash32_3d(p: vec3u) -> u32 {
+	let p2 = 2246822519u; let p3 = 3266489917u;
+	let p4 = 668265263u; let p5 = 374761393u;
+	var h32 =  p.z + p5 + p.x*p3;
+	h32 = p4 * ((h32 << 17) | (h32 >> (32 - 17)));
+	h32 += p.y * p3;
+	h32 = p4 * ((h32 << 17) | (h32 >> (32 - 17)));
+	h32 = p2 * (h32^(h32 >> 15));
+	h32 = p3 * (h32^(h32 >> 13));
+	return h32^(h32 >> 16);
+}
+
+struct RaycastReturn{
+	data:u32,
+	position:vec3f,
+	nodes:u32
+};
+const leaf:u32 = 0x80000000;//31th bit
+const idxToSize = array(256.,128.,64.,32.,16.,8.,4.,2.,1.);
+const idxToSizeLength = 9;
+const maxDepth = 8;
+fn raycastOctree(origin:vec3f, dir:vec3f)->RaycastReturn{
+	var treepos = floor(origin/idxToSize[0])*idxToSize[0];
+	var chi = u32(floor(treepos.x/idxToSize[0]))*stuff.chunksWidth*stuff.chunksWidth + u32(floor(treepos.y/idxToSize[0]))*stuff.chunksWidth + u32(floor(treepos.z/idxToSize[0]));
+	var stack = array<NodePtr,maxDepth+1>();
+	var stackWhere = array<vec3u,maxDepth+1>();
+	var stackNew = array<bool,maxDepth+1>();
+	var stackWidth = array<u32,maxDepth+1>();
+	stack[0] = NodePtr(chunkList[(chi<<1)],chunkList[(chi<<1)+1]);
+	stackNew[0] = true;
+	var idx:u32 = 0;
+	let DeltaDistance = abs(vec3(length(dir)) / dir); //some stuff from https://compute.toys/view/78
+	let dirb = vec3(dir.x>=0.,dir.y>=0.,dir.z>=0.);
+	let dirbf = vec3f(dirb);
+	let dirzero = vec3(dir.x==0.,dir.y==0.,dir.z==0.);
+	let dirsign = sign(dir);
+	var pSideDistance = vec3f(0.);
+	var SideDistance = (dirsign * (treepos - origin) + (dirsign * .5 * idxToSize[0]) + .5 * idxToSize[0]) * DeltaDistance;
+	var Normal = vec3<f32>(0.);
+	let allChunkSize = f32(stuff.chunksWidth)*idxToSize[0];
+	var chunkOffset = chunkOffsets[chi]>>2;
+	var it=0; var nodes:u32 = 0; var first = false;
+	while(it<500 && idx<maxDepth+1){//infinite loop protect
+		it++;
+		first = stackNew[idx];
+		stackNew[idx] = false;
+		switch(stack[idx].ntype){
+			case 1:{//octree
+				if(first){//go to correct child node
+					nodes++;
+					let maxDist = min(min(pSideDistance.x,pSideDistance.y),pSideDistance.z);
+					let whereIntersect = origin+max(maxDist,0.)*dir;
+					idx++;
+					let which = vec3(whereIntersect.x-treepos.x>=idxToSize[idx], whereIntersect.y-treepos.y>=idxToSize[idx], whereIntersect.z-treepos.z>=idxToSize[idx]);
+					stackWhere[idx- 1] = vec3u((u32(which.x)<<2) | (u32(which.y)<<1) | u32(which.z), 0,0);
+					stack[idx] = NodePtr(chunkData[chunkOffset+(stack[idx- 1].pntr+(stackWhere[idx- 1].x<<1))], chunkData[chunkOffset+(stack[idx- 1].pntr+(stackWhere[idx- 1].x<<1))+1]);
+					stackNew[idx] = true;
+					treepos += vec3f(which)*idxToSize[idx];
+					SideDistance = (dirsign * (treepos - origin) + (dirsign * .5 * idxToSize[idx]) + .5 * idxToSize[idx]) * DeltaDistance;
+					continue; //don't switch octree
+				}
+			}
+			case 2:{
+				if(first){
+					let maxDist = min(min(pSideDistance.x,pSideDistance.y),pSideDistance.z);
+					let whereIntersect = origin+max(maxDist,0.)*dir;
+					stackWhere[idx] = vec3u(treepos);
+					stackWidth[idx] = chunkData[chunkOffset+stack[idx].pntr];
+					treepos += clamp(floor(whereIntersect-treepos), vec3f(0.), vec3f(f32(stackWidth[idx])- 1.));
+					SideDistance = (dirsign * (treepos - origin) + (dirsign * .5 * idxToSize[idxToSizeLength- 1]) + .5 * idxToSize[idxToSizeLength- 1]) * DeltaDistance;
+					continue;
+				}else{
+					Normal = step(SideDistance, min(SideDistance.yxy, SideDistance.zzx));
+					pSideDistance = SideDistance;
+					SideDistance += Normal*idxToSize[idxToSizeLength- 1]*DeltaDistance;
+					
+					let pos = treepos-vec3f(stackWhere[idx]);
+					let id = chunkData[chunkOffset+stack[idx].pntr+1+ ((u32(pos.x)*stackWidth[idx] + u32(pos.y))*stackWidth[idx] + u32(pos.z))];
+					nodes++;
+					if(id!=0&&id!=0xffffffff){//not air and not void
+						return RaycastReturn(id, treepos, nodes);
+					}
+
+					let prevTreepos = treepos;
+					treepos += Normal*idxToSize[idxToSizeLength- 1]*dirsign;
+					if(all(treepos >= vec3f(stackWhere[idx])) && all(treepos < vec3f(stackWhere[idx]+stackWidth[idx]))){
+						continue;
+					}
+					treepos = floor(prevTreepos/idxToSize[idx])*idxToSize[idx];
+					SideDistance = (dirsign * (treepos - origin) + (dirsign * .5 * idxToSize[idx]) + .5 * idxToSize[idx]) * DeltaDistance;
+				}
+			}
+			default:{//leaf
+				nodes++;
+				let id = stack[idx].pntr;
+				if(id!=0&&id!=0xffffffff){//not air and not void
+					return RaycastReturn(id, treepos, nodes);
+				}
+			}
+		}
+		if(idx == 0 ){//chunk has changed
+			Normal = step(SideDistance, min(SideDistance.yxy, SideDistance.zzx));
+			pSideDistance = SideDistance;
+			SideDistance += Normal*idxToSize[0]*DeltaDistance;
+			treepos += Normal*idxToSize[0]*dirsign;
+			if(treepos.x<0 || treepos.y<0 || treepos.z<0 || treepos.x >= allChunkSize || treepos.y >= allChunkSize || treepos.z >= allChunkSize){
+				return RaycastReturn(0xffffffff,vec3f(0.),nodes);
+			}
+			chi = u32(floor(treepos.x/idxToSize[0]))*stuff.chunksWidth*stuff.chunksWidth + u32(floor(treepos.y/idxToSize[0]))*stuff.chunksWidth + u32(floor(treepos.z/idxToSize[0]));
+			stack[0] = NodePtr(chunkList[(chi<<1)],chunkList[(chi<<1)+1]);
+			stackNew[0] = true;
+			chunkOffset = chunkOffsets[chi]>>2;
+		}else if(stack[idx- 1].ntype == 1){ //previous is octree, changed node
+			Normal = step(SideDistance, min(SideDistance.yxy, SideDistance.zzx));
+			var pop = false;
+			if(bool(Normal.x)){
+				if(bool(stackWhere[idx- 1].x&4) == (dirsign.x == 1)){
+					pop = true;
+				}else{
+					stackWhere[idx- 1].x ^= 4;
+				}
+			}else if(bool(Normal.y)){
+				if(bool(stackWhere[idx- 1].x&2) == (dirsign.y == 1)){
+					pop = true;
+				}else{
+					stackWhere[idx- 1].x ^= 2;
+				}
+			}else{
+				if(bool(stackWhere[idx- 1].x&1) == (dirsign.z == 1)){
+					pop = true;
+				}else{
+					stackWhere[idx- 1].x ^= 1;
+				}
+			}
+			if(pop){
+				idx--;
+				treepos = floor(treepos/idxToSize[idx])*idxToSize[idx];
+				SideDistance = (dirsign * (treepos - origin) + (dirsign * .5 * idxToSize[idx]) + .5 * idxToSize[idx]) * DeltaDistance;
+			}else{
+				pSideDistance = SideDistance;
+				SideDistance += Normal*idxToSize[idx]*DeltaDistance;
+				treepos += Normal*idxToSize[idx]*dirsign;
+				stack[idx] = NodePtr(chunkData[chunkOffset+(stack[idx- 1].pntr+(stackWhere[idx- 1].x<<1))], chunkData[chunkOffset+(stack[idx- 1].pntr+(stackWhere[idx- 1].x<<1))+1]);
+				stackNew[idx] = true;
+			}
+		}
+	}
+	return RaycastReturn(0xffffffff,vec3f(0.),nodes);
+}
+
+const fullScreen = array(
+	-1.,3.,
+	3.,-1.,
+	-1.,-1.
+);
+@group(0) @binding(0) var fromTextureSampler: sampler;
+@group(0) @binding(1) var fromTexture: texture_2d<f32>;
+@vertex fn drawToScreenVertex(
+	@builtin(vertex_index) vertexIndex : u32
+) -> @builtin(position) vec4f {
+	return vec4f(fullScreen[vertexIndex*2],fullScreen[vertexIndex*2+1], 0.0, 1.0);
+}
+
+@fragment fn drawToScreenFragment(@builtin(position) position: vec4f) -> @location(0) vec4f {
+	let size = textureDimensions(fromTexture);
+	let minS = f32(min(size.x,size.y));
+	let pos = (vec2f(position.xy)*2. - vec2f(size)) / minS;
+	let roundToWhat = round(max(max(abs(pos.x),abs(pos.y))*8.,1.));
+	return textureSample(fromTexture, fromTextureSampler, (trunc(position.xy/roundToWhat)*roundToWhat+0.5)/vec2f(size.xy));
+}
+
+</script>
+<script type="module">
+"use strict"
+function LFBD(serverExports,defaultTranslate){
+const screens = new Map()
+for(let el of document.querySelectorAll(".screen")){
+	screens.set(el.id,el)
+	el.classList.add("hidden")
+}
+let screenStack = []
+const translate = defaultTranslate
+function openScreen(name){
+	if(screenStack.includes(name)) throw new Error(name+" already open")
+	let el = screens.get(name)
+	for(let t of el.querySelectorAll("*[data-translate]")){
+		t.textContent = translate[t.dataset.translate]
+	}
+	document.body.appendChild(el)//bring to front
+	el.classList.remove("hidden")
+	screenStack.push(name)
+}
+window.openScreen = openScreen
+function closeScreen(name){
+	let idx = screenStack.lastIndexOf(name)
+	if(idx === -1) return
+	screenStack.splice(idx,1)
+	screens.get(name).classList.add("hidden")
+}
+window.closeScreen = closeScreen
+function isScreenOpen(name){
+	return screenStack.includes(name)
+}
+const canvas = document.querySelector("#maathe canvas")
+let analytics = {lastUpdate:0}
+const analyticsEl = document.querySelector("#analytics")
+const numFormat = new Intl.NumberFormat
+const { ServerWorld } = serverExports
+const {round,floor,ceil,abs,max,min,sin,cos,sqrt,PI,trunc,imul} = Math
+const PI2 = PI*0.5, PId = PI*2
+const tickSpeed = 20, tickTime = 1000/tickSpeed, tickTimeLimit = tickTime*0.8
+
+//if(location.protocol !== "file:"){
+window.LFBD = {math:LFBD.math}
+window.LFBDS = function(){LFBD.math.checkSolution()}
+//}
+//!leafbuild math not is but as to or and so can to but each so and which to now but is to are each so could but not is it though but and so!
+new Function(`
+LFBD
+.
+math=
+{
+checkSolution
+:function
+(
+)
+{
+if(
+fetch(
+"checksolution")
+===
+getInput()
+)
+alert
+("correct")
+else while('incoreect')
+this.retry(
+)}
+,begin(
+){
+createInput(
+)
+showQuestion("solve"
++
+random())
+}
+}`)()
+
+const nodeSize = 2
+class World{
+	loadDist = settings.loadDist
+	canSendChunkUpdates
+	chunkUpdates = []
+	//chunkUpdateSize = 0
+	chunkDataBuffer = chunkDataBuffer
+	chunkDataListBuffer
+	chunkPtrsBuffer
+	updateChunkBuffer = false
+	constructor(){
+		const encoder = wgdevice.createCommandEncoder();
+		encoder.clearBuffer(this.chunkDataBuffer)
+		wgdevice.queue.submit([encoder.finish()]);
+		//chunkList contains pointer to node in tree
+		this.chunkList = []
+		//chunkPtrs contains pointer to chunk which contains tree
+		this.chunkPtrs = []
+		this.chunkDatas = []
+		this.chunkAlloc = new OutsideAllocator(this.chunkDataBuffer.size)
+		/*this.loaded = []
+		this.chunkDataBuffer = chunkDataBuffer
+		this.chunkData = chunkData
+		this.chunkDataSpace = []
+		this.chunkDataEnd = 0
+		this.updateChunkBuffer = false*/
+	}
+	setWorldInfo(data){
+		this.chunkSize = data.chunkSize
+		this.chunkBits = data.chunkBits
+	}
+	indexOfChunk(x,y,z){
+		x = (x>>this.chunkBits)-this.offsetX
+		y = (y>>this.chunkBits)-this.offsetY
+		z = (z>>this.chunkBits)-this.offsetZ
+		if(x>=this.loadWidth||x<0||y>=this.loadWidth||y<0||z>=this.loadWidth||z<0) return -1
+		return (x*this.loadWidth + y)*this.loadWidth + z
+	}
+	updateDataPtr
+	chunkUpdate({x,y,z,data:updateData}){
+		const pstart=performance.now()
+		const i = this.indexOfChunk(x,y,z)
+		if(i === -1) return
+		const chunkData = this.chunkDatas[i]
+		let sizeBefore = chunkData.arr.byteLength
+		this.updateDataPtr = 0
+		const thatptr = this.updateTree(updateData,chunkData, updateData[this.updateDataPtr++],this.chunkList[i<<1],this.chunkList[(i<<1)+1]);
+		this.chunkList[i*nodeSize+1] = thatptr; this.chunkList[i*nodeSize] = updateData[0]
+		//if(chunkData.arr.length>4)debugger
+		if(sizeBefore !== chunkData.arr.byteLength){
+			this.chunkAlloc.free(this.chunkPtrs[i])
+			this.chunkPtrs[i] = this.chunkAlloc.alloc(chunkData.arr.byteLength)
+		}
+		this.updateChunkBuffer = true
+		wgdevice.queue.writeBuffer(this.chunkDataBuffer,this.chunkPtrs[i], chunkData.arr)
+		const pend=performance.now()
+		if(pend-pstart>10)console.log("chunk update",pend-pstart)
+		//if(updateData.length>30)debugger
+	}
+	updateTree(updateData,chunkData, utype, cdtype,cdptr){
+		let newcdptr = cdptr
+		if(utype === 1){
+			if(cdtype !== 1){//window.tres+=56+12
+				this.removeTree(chunkData,cdtype,cdptr)
+				newcdptr = chunkData.alloc(16,this.chunkDataResize)
+				chunkData.arr[newcdptr+0] = chunkData.arr[newcdptr+2] = chunkData.arr[newcdptr+4] = chunkData.arr[newcdptr+6] = chunkData.arr[newcdptr+8] = chunkData.arr[newcdptr+10] = chunkData.arr[newcdptr+12] = chunkData.arr[newcdptr+14] = 0//leaf
+			}
+			const dow = updateData[this.updateDataPtr++]
+			if(dow&1){ const nutype = updateData[this.updateDataPtr++]; const thatptr = this.updateTree(updateData,chunkData, nutype, chunkData.arr[newcdptr+0],chunkData.arr[newcdptr+1]); chunkData.arr[newcdptr+0] = nutype; chunkData.arr[newcdptr+1] = thatptr }
+			if(dow&2){ const nutype = updateData[this.updateDataPtr++]; const thatptr = this.updateTree(updateData,chunkData, nutype, chunkData.arr[newcdptr+2],chunkData.arr[newcdptr+3]); chunkData.arr[newcdptr+2] = nutype; chunkData.arr[newcdptr+3] = thatptr }
+			if(dow&4){ const nutype = updateData[this.updateDataPtr++]; const thatptr = this.updateTree(updateData,chunkData, nutype, chunkData.arr[newcdptr+4],chunkData.arr[newcdptr+5]); chunkData.arr[newcdptr+4] = nutype; chunkData.arr[newcdptr+5] = thatptr }
+			if(dow&8){ const nutype = updateData[this.updateDataPtr++]; const thatptr = this.updateTree(updateData,chunkData, nutype, chunkData.arr[newcdptr+6],chunkData.arr[newcdptr+7]); chunkData.arr[newcdptr+6] = nutype; chunkData.arr[newcdptr+7] = thatptr }
+			if(dow&16){ const nutype = updateData[this.updateDataPtr++]; const thatptr = this.updateTree(updateData,chunkData, nutype, chunkData.arr[newcdptr+8],chunkData.arr[newcdptr+9]); chunkData.arr[newcdptr+8] = nutype; chunkData.arr[newcdptr+9] = thatptr }
+			if(dow&32){ const nutype = updateData[this.updateDataPtr++]; const thatptr = this.updateTree(updateData,chunkData, nutype, chunkData.arr[newcdptr+10],chunkData.arr[newcdptr+11]); chunkData.arr[newcdptr+10] = nutype; chunkData.arr[newcdptr+11] = thatptr }
+			if(dow&64){ const nutype = updateData[this.updateDataPtr++]; const thatptr = this.updateTree(updateData,chunkData, nutype, chunkData.arr[newcdptr+12],chunkData.arr[newcdptr+13]); chunkData.arr[newcdptr+12] = nutype; chunkData.arr[newcdptr+13] = thatptr }
+			if(dow&128){ const nutype = updateData[this.updateDataPtr++]; const thatptr = this.updateTree(updateData,chunkData, nutype, chunkData.arr[newcdptr+14],chunkData.arr[newcdptr+15]); chunkData.arr[newcdptr+14] = nutype; chunkData.arr[newcdptr+15] = thatptr }
+		}else if(utype === 2){
+			const w = updateData[this.updateDataPtr++]
+			const len = w*w*w
+			if(cdtype !== 2 || chunkData.arr[cdptr] !== w){
+				this.removeTree(chunkData,cdtype,cdptr)
+				newcdptr = chunkData.alloc(1+len,this.chunkDataResize)
+				chunkData.arr[newcdptr] = w
+			}
+			if(updateData[this.updateDataPtr++]){
+				chunkData.arr.set(updateData.subarray(this.updateDataPtr,this.updateDataPtr+len),newcdptr+1)
+				this.updateDataPtr += len
+			}else{
+				const amount = updateData[this.updateDataPtr++]
+				let ui = this.updateDataPtr
+				for(let i=0; i<amount; i++){
+					chunkData.arr[newcdptr+1+updateData[ui]] = updateData[ui+1]
+					ui+=2
+				}
+				this.updateDataPtr = ui
+			}
+		}else{// type=0, leaf
+			if(cdtype !== 0){//window.tres+=20
+				this.removeTree(chunkData,cdtype,cdptr)
+			}
+			return updateData[this.updateDataPtr++]
+		}
+		return newcdptr
+	}
+	removeTree(chunkData,cdtype,cdptr){
+		if(cdtype === 1){
+			let cdi = cdptr
+			this.removeTree(chunkData,chunkData.arr[cdi++],chunkData.arr[cdi++])
+			this.removeTree(chunkData,chunkData.arr[cdi++],chunkData.arr[cdi++])
+			this.removeTree(chunkData,chunkData.arr[cdi++],chunkData.arr[cdi++])
+			this.removeTree(chunkData,chunkData.arr[cdi++],chunkData.arr[cdi++])
+			this.removeTree(chunkData,chunkData.arr[cdi++],chunkData.arr[cdi++])
+			this.removeTree(chunkData,chunkData.arr[cdi++],chunkData.arr[cdi++])
+			this.removeTree(chunkData,chunkData.arr[cdi++],chunkData.arr[cdi++])
+			this.removeTree(chunkData,chunkData.arr[cdi++],chunkData.arr[cdi++])
+			chunkData.free(cdptr)
+		}else if(cdtype === 2){
+			chunkData.free(cdptr)
+		}
+	}
+	chunkDataResize = arr => new arr.constructor(arr.buffer.transfer(arr.buffer.byteLength<<1))
+	/*chunkUpdate({x,y,z,depth,data,basePtr,idxs}){
+		const {chunkData, chunkDataSpace} = this
+		let chi = this.indexOfChunk(x,y,z), ptr = this.loaded[chi], prevPtr = undefined
+		if(chi === -1) return//update for unloaded chunk, most likely lag
+		for(let i=0, sd=this.chunkBits-1; i<this.chunkBits-depth-1; i++, sd--){
+			prevPtr = ptr
+			chi = idxs[i]
+			ptr = this.chunkData[ptr+chi]
+		}
+		if(prevPtr === undefined){
+			if(!(ptr&0x80000000)) this.removeTreeFromBuffer(ptr)
+			this.loaded[chi] = this.addTreeToBuffer(basePtr,data)
+		}else{
+			if(!(ptr&0x80000000)) this.removeTreeFromBuffer(ptr)
+			this.chunkData[prevPtr+chi] = this.addTreeToBuffer(basePtr,data)
+		}
+		if(this.chunkDataEnd>this.chunkData.length) throw new Error("chunk data out of memory")
+		this.updateChunkBuffer = true
+	}*//*
+	let idxs = []
+	for(let j=0, sd=this.chunkBits-1; j<this.chunkBits-depth-1; j++, sd--){
+		idxs.push((x>>>sd&1)<<2 | (y>>>sd&1)<<1 | z>>>sd&1)
+	}*/
+	resize(){
+		const prevLoadWidth = this.loadWidth || 0
+		const offsetXChange = (this.offsetX-this.prevOffsetX)||0
+		const offsetYChange = (this.offsetY-this.prevOffsetY)||0
+		const offsetZChange = (this.offsetZ-this.prevOffsetZ)||0
+		this.prevOffsetX = this.offsetX
+		this.prevOffsetY = this.offsetY
+		this.prevOffsetZ = this.offsetZ
+		this.loadWidth = this.loadDist*2+1
+		/*const encoder = wgdevice.createCommandEncoder();
+		chunksResizeUniforms.set({
+			chunksWidth:this.loadWidth,
+			prevChunksWidth:prevLoadWidth,
+			offsetXChange, offsetYChange, offsetZChange
+		})
+		wgdevice.queue.writeBuffer(chunksResizeUniformsBuffer, 0, chunksResizeUniforms.arrayBuffer)
+
+		let prevBuffer = this.chunkDataListBuffer
+		if(!prevBuffer){
+			prevBuffer = wgdevice.createBuffer({
+				size:8,
+				usage: GPUBufferUsage.STORAGE
+			})
+		}
+		const size = this.loadWidth*this.loadWidth*this.loadWidth
+		this.chunkDataListBuffer = wgdevice.createBuffer({
+			size:size*4*2,
+			usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC
+		})
+
+		let pass = encoder.beginComputePass();
+		pass.setPipeline(chunkResizePipeline);
+		pass.setBindGroup(0, wgdevice.createBindGroup({
+			label: 'bind group for chunk resize',
+			layout: chunkResizePipeline.getBindGroupLayout(0),
+			entries: [
+				{ binding: 0, resource: {buffer:this.chunkDataBuffer}},
+				{binding:1, resource:{buffer:this.chunkDataListBuffer}},
+				{ binding: 2, resource: {buffer:chunksResizeUniformsBuffer}},
+				{ binding: 3, resource: {buffer:prevBuffer}},
+				{ binding: 4, resource: {buffer:this.chunkDataAllocStateBuffer}},
+			],
+		}));
+		pass.dispatchWorkgroups(1);
+		pass.end();
+		wgdevice.queue.submit([encoder.finish()]);
+		let nnn=performance.now()
+		wgdevice.queue.onSubmittedWorkDone().then(() => {
+			prevBuffer.destroy()
+			let time = performance.now()-nnn; if(time>10)console.log('resize',time)
+		})*/
+		const size = this.loadWidth*this.loadWidth*this.loadWidth
+		const prevChunkList = this.chunkList
+		this.chunkList = []
+		const prevChunkPtrs = this.chunkPtrs
+		this.chunkPtrs = []
+		const prevChunkDatas = this.chunkDatas
+		this.chunkDatas = []
+		this.chunkList.length = size*nodeSize
+		this.chunkPtrs.length = size
+		this.chunkDatas.length = size
+		let i = 0
+		for(let cx=0; cx<prevLoadWidth; cx++) for(let cy=0; cy<prevLoadWidth; cy++) for(let cz=0; cz<prevLoadWidth; cz++){
+			if(max(cx-offsetXChange,cy-offsetYChange,cz-offsetZChange)<this.loadWidth && min(cx-offsetXChange,cy-offsetYChange,cz-offsetZChange)>=0){
+				let i2 = (cx-offsetXChange)*this.loadWidth*this.loadWidth + (cy-offsetYChange)*this.loadWidth + cz-offsetZChange
+				this.chunkList[i2*nodeSize] = prevChunkList[i*nodeSize]
+				this.chunkList[i2*nodeSize+1] = prevChunkList[i*nodeSize+1]
+				this.chunkPtrs[i2] = prevChunkPtrs[i]
+				this.chunkDatas[i2] = prevChunkDatas[i]
+			}else this.chunkAlloc.free(prevChunkPtrs[i])
+			i++
+		}
+		i = 0
+		for(let cx=0; cx<this.loadWidth; cx++) for(let cy=0; cy<this.loadWidth; cy++) for(let cz=0; cz<this.loadWidth; cz++){
+			if(max(cx+offsetXChange,cy+offsetYChange,cz+offsetZChange)>=prevLoadWidth || min(cx+offsetXChange,cy+offsetYChange,cz+offsetZChange)<0){
+				//new chunk
+				this.chunkPtrs[i] = this.chunkAlloc.alloc(16)//arbitrary size
+				this.chunkDatas[i] = new InsideAllocator(new Uint32Array(new ArrayBuffer(16)))
+				this.chunkList[i*nodeSize] = 0
+				this.chunkList[i*nodeSize+1] = 0xffffffff//empty
+			}
+			i++
+		}
+
+		if(!this.chunkDataListBuffer || prevLoadWidth !== this.loadWidth){
+			if(this.chunkDataListBuffer) this.chunkDataListBuffer.destroy()
+			this.chunkDataListBuffer = wgdevice.createBuffer({
+				size:size*4*nodeSize,
+				usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC
+			})
+			this.chunkPtrsBuffer = wgdevice.createBuffer({
+				size:size*4,
+				usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC
+			})
+		}
+		//wgdevice.queue.writeBuffer(this.chunkDataListBuffer,0, new Uint32Array(this.chunkList))
+		//wgdevice.queue.writeBuffer(this.chunkPtrsBuffer,0, new Uint32Array(this.chunkPtrs))
+		this.updateChunkBuffer = true
+	}
+	tick(){
+		const offx = (p.x>>this.chunkBits)-this.loadDist, offy = (p.y>>this.chunkBits)-this.loadDist, offz = (p.z>>this.chunkBits)-this.loadDist
+		if(this.offsetX !== offx || this.offsetY !== offy || this.offsetZ !== offz){
+			this.offsetX = offx
+			this.offsetY = offy
+			this.offsetZ = offz
+			this.resize()
+		}
+	}
+	render() {
+		if(this.updateChunkBuffer){
+			this.updateChunkBuffer = false
+			//this.chunkDataList.set(this.loaded)
+			//wgdevice.queue.writeBuffer(this.chunkDataBuffer,0,this.chunkData)
+			wgdevice.queue.writeBuffer(this.chunkDataListBuffer,0,new Uint32Array(this.chunkList))
+			wgdevice.queue.writeBuffer(this.chunkPtrsBuffer,0, new Uint32Array(this.chunkPtrs))
+		}
+		let xs = sin(-p.rx), xc = cos(-p.rx), ys = sin(-p.ry), yc = cos(-p.ry)
+		mainUniforms.set({
+			fov:Math.PI*0.5,
+			cameraPos:[p.x-this.offsetX*this.chunkSize,p.y-this.offsetY*this.chunkSize,p.z-this.offsetZ*this.chunkSize],
+			cameraUp:[xs*ys,xc,xs*yc],
+			cameraRight:[yc,0,-ys],
+			cameraForward:[xc*ys,-xs,xc*yc],
+			chunksWidth:this.loadWidth
+		})
+		wgdevice.queue.writeBuffer(mainUniformsBuffer, 0, mainUniforms.arrayBuffer);
+		let encoder = wgdevice.createCommandEncoder();
+		if(this.chunkUpdates.length){
+			for(let update of this.chunkUpdates){
+				this.chunkUpdate(update)
+			}
+			this.chunkUpdates.length = 0
+			/*const chunkUpdatesBuffer = wgdevice.createBuffer({
+				size:this.chunkUpdateSize*4,
+				usage: GPUBufferUsage.STORAGE,
+				mappedAtCreation:true
+			})
+			let arr = new Uint32Array(chunkUpdatesBuffer.getMappedRange())
+			let idx = 0
+			for(let thing of this.chunkUpdates){//flatten
+				arr.set(thing,idx)
+				idx += thing.length
+			}
+			debugger;this.chunkUpdates.length = this.chunkUpdateSize = 0;return
+			chunkUpdatesBuffer.unmap()
+			chunkUpdateUniforms.set({
+				chunksWidth:this.loadWidth,
+				offsetX:this.offsetX,
+				offsetY:this.offsetY,
+				offsetZ:this.offsetZ,
+				chunkBits:this.chunkBits
+			})
+			wgdevice.queue.writeBuffer(chunkUpdateUniformsBuffer, 0, chunkUpdateUniforms.arrayBuffer);
+			let pass = encoder.beginComputePass();
+			pass.setPipeline(chunkUpdatePipeline);
+			pass.setBindGroup(0, wgdevice.createBindGroup({
+				label: 'bind group for chunk update',
+				layout: chunkUpdatePipeline.getBindGroupLayout(0),
+				entries: [
+					{ binding: 0, resource: {buffer:this.chunkDataBuffer}},
+					{binding:1, resource:{buffer:this.chunkDataListBuffer}},
+					{ binding: 2, resource: {buffer:chunkUpdatesBuffer}},
+					{ binding: 3, resource: {buffer:chunkUpdateUniformsBuffer}},
+					{ binding: 4, resource: {buffer:this.chunkDataAllocStateBuffer}},
+				],
+			}));
+			pass.dispatchWorkgroups(1);
+			pass.end();
+			let nnn=performance.now()//tessst
+			wgdevice.queue.onSubmittedWorkDone().then(() => {
+				chunkUpdatesBuffer.destroy()
+				let time = performance.now()-nnn; if(time>10)console.log('update',time)
+			})
+			this.chunkUpdates.length = this.chunkUpdateSize = 0*/
+		}
+		if(this.canSendChunkUpdates){
+			wgdevice.queue.onSubmittedWorkDone().then(this.canSendChunkUpdates)
+			this.canSendChunkUpdates = null
+		}
+    let pass = encoder.beginComputePass();
+    pass.setPipeline(renderComputePipeline);
+    pass.setBindGroup(0, wgdevice.createBindGroup({
+			label: 'bind group for render',
+			layout: renderComputePipeline.getBindGroupLayout(0),
+			entries: [
+				{ binding: 0, resource: {buffer:this.chunkDataBuffer}},
+				{ binding: 1, resource: fullScreenTexture/*wgctx.getCurrentTexture()*/.createView()},
+				{binding:2, resource:{buffer:this.chunkDataListBuffer}},
+				{binding:3, resource:{buffer:mainUniformsBuffer}},
+				{binding:4,resource:{buffer:textureBuffer}},
+				{binding:5, resource:{buffer:this.chunkPtrsBuffer}},
+			],
+		}));
+    pass.dispatchWorkgroups(width, height);
+    pass.end();
+
+		encoder.copyTextureToTexture({texture:fullScreenTexture},{texture:drawScreenTexture},{width,height})
+		drawScreenRenderPassDescriptor.colorAttachments[0].view = wgctx.getCurrentTexture().createView();
+ 		pass = encoder.beginRenderPass(drawScreenRenderPassDescriptor);
+    pass.setPipeline(drawScreenPipeline);
+    pass.setBindGroup(0, wgdevice.createBindGroup({
+			label: 'bind group for draw to screen',
+			layout: drawScreenPipeline.getBindGroupLayout(0),
+			entries: [
+				{ binding: 0, resource: drawScreenTextureSampler},
+				{ binding: 1, resource: drawScreenTexture.createView()}
+			],
+		}));
+    pass.draw(3)
+    pass.end()
+    wgdevice.queue.submit([encoder.finish()]);
+  }
+}
+window.World = World
+/*Put in console
+async function ttt(a){
+let encoder = wgdevice.createCommandEncoder();
+b=wgdevice.createBuffer({size:a.size,usage:GPUBufferUsage.COPY_DST|GPUBufferUsage.MAP_READ})
+encoder.copyBufferToBuffer(a,0,b,0,a.size)
+wgdevice.queue.submit([encoder.finish()])
+await wgdevice.queue.onSubmittedWorkDone()
+await b.mapAsync(GPUMapMode.READ)
+console.log(new Uint32Array(b.getMappedRange()).slice())
+b.unmap()
+b.destroy()
+}
+setTimeout(()=>ttt(world.chunkDataBuffer),1000)
+ttt(world.chunkDataListBuffer)
+*/
+
+class OutsideAllocator{
+	freed = new Set()
+	used = new Map()
+	constructor(size = 128){
+		this.freed.add({i:0,size, prev:null,next:null})
+	}
+	alloc(size){
+		let fit
+		for(let r of this.freed){
+			if(size<=r.size){
+				fit = r
+				break
+			}
+		}
+		if(!fit) throw new Error("OutsideAllocator out of memory")
+		if(fit.size === size){
+			this.freed.delete(fit)
+			this.used.set(fit.i,fit)
+			return fit.i
+		}else{
+			const i = fit.i
+			fit.i += size
+			fit.size -= size
+			let newO = {i,size, prev:fit.prev,next:fit}
+			fit.prev = newO
+			if(newO.prev) newO.prev.next = newO
+			this.used.set(i,newO)
+			return i
+		}
+	}
+	free(i){
+		let o = this.used.get(i)
+		this.used.delete(i)
+		if(this.freed.has(o.prev)){
+			let oldO = o
+			o = o.prev
+			o.size += oldO.size
+			o.next = oldO.next
+			o.next.prev = o
+		}
+		if(this.freed.has(o.next)){
+			let oldO = o.next
+			this.freed.delete(oldO)
+			o.size += oldO.size
+			o.next = oldO.next
+			if(o.next) o.next.prev = o
+		}
+		this.freed.add(o)
+	}
+	getSize(i){
+		return this.used.get(i).size
+	}
+}
+const insideAllocUnempty = 1<<31
+class InsideAllocator{
+	cur = 0
+	constructor(arr){
+		this.arr = arr
+	}
+	alloc(size,lengthenArr){
+		let {arr} = this
+		let i = this.cur;
+		let v = arr[i+1];
+		let resetTimes = 0;
+		while(((v&insideAllocUnempty) || ((v&(~insideAllocUnempty))!==size+2 && (v&(~insideAllocUnempty))<=size+2+2 && v != 0))){
+			i += v&(~insideAllocUnempty);
+			v = arr[i+1];
+			if(i+2+size+2>arr.length){
+				if(resetTimes){
+					while(i+2+size+2>arr.length) arr = this.arr = lengthenArr(arr)
+				}else{
+					i = 0;
+					v = arr[i+1]
+					resetTimes++;
+				}
+			}
+		}
+		this.cur = i;
+		//if same emptyness length is 0, it is at the end
+		//after this, v should not have unemptyChunkData in it
+		arr[i+1] = (2+size)|insideAllocUnempty;
+		if(size+2 != v){
+			let i2 = i+2+size;
+			arr[i2] = 2+size;
+			if(v != 0){ //not at end
+				arr[i2+1] = v-size- 2;
+				arr[i+v] = v-size- 2;
+			}
+		}
+		return i+2;
+	}
+	free(xptr){
+		const {arr} = this
+		let i = xptr - 2;
+		arr[i+1] = arr[i+1]&(~insideAllocUnempty);
+		let prevI = i-arr[i];
+		let prevNext = arr[prevI+1];
+		if(arr[i] && !(prevNext&insideAllocUnempty) && i != 0){//previous is empty, merge
+			let newNext = prevNext+arr[i+1];
+			if(this.cur == i){this.cur = prevI;}
+			i = prevI;
+			arr[i+1] = newNext;
+			arr[i+newNext] = newNext;
+		}
+		let nextI = i+arr[i+1];
+		let nextNext = arr[nextI+1];
+		if(arr[i+1] && !(nextNext&insideAllocUnempty)){//next is empty, merge
+			let newNext = arr[i+1]+nextNext;
+			if(this.cur == nextI){this.cur = i;}
+			arr[i+1] = newNext;
+			arr[i+newNext] = newNext;
+		}
+	}
+}
+
+class ConnectionOfMessagePort extends EventTarget{
+	constructor(port){
+		super()
+		this.port = port
+		this._ItHasClosed = false
+		port.onmessage = e => {
+			if(e.data === "_ItHasClosed."){
+				if(!this._ItHasClosed){
+					this._ItHasClosed = true
+					port.close()
+					this.dispatchEvent(new CloseEvent("close"))
+				}
+			}else this.dispatchEvent(new MessageEvent("message",{data:e.data}))
+		}
+	}
+	send(data, transfer){
+		this.port.postMessage(data, transfer)
+	}
+	close(){
+		if(!this._ItHasClosed){
+			this._ItHasClosed = true
+			this.port.postMessage("_ItHasClosed.")
+			this.port.close()
+			this.dispatchEvent(new CloseEvent("close"))
+		}
+	}
+	static create(){
+		const channel = new MessageChannel()
+		return [new this(channel.port1),new this(channel.port2)]
+	}
+}
+/*class ConnectionDirectMessage extends EventTarget{
+	#other
+	#hasClosed = false
+	init(other){
+		this.#other = other
+	}
+	send(data){
+		this.#other.dispatchEvent(new MessageEvent("message",{data}))
+	}
+	close(){
+		if(this.#hasClosed) return
+		const e = new CustomEvent("close")
+		this.#other.dispatchEvent(e)
+		this.dispatchEvent(e)
+		this.#hasClosed = true
+		this.#other.#hasClosed = true
+	}
+	static create(){
+		const a = new this()
+		const b = new this()
+		a.init(b)
+		b.init(a)
+		return [a,b]
+	}
+}*/
+
+
+let serverWorld, world, p
+let c
+function newWorld(){
+	serverWorld = new ServerWorld()
+	let thing = ConnectionOfMessagePort.create()
+	serverWorld.addPlayer(thing[0])
+	window.serverWorld = serverWorld
+	joinWorld(thing[1])
+/*	setTimeout(()=>{const{partIds}=serverWorld
+serverWorld.setAll(-3,0,2,{id:partIds.stone})
+serverWorld.setAll(-4,0,2,{id:partIds.stone})
+serverWorld.setAll(-3,0,3,{id:partIds.stone})
+serverWorld.setAll(-3,0,4,{id:partIds.stone})
+serverWorld.setAll(-1,1,2,{id:partIds.stone})
+serverWorld.setAll(-1,0,2,{id:partIds.blue})
+serverWorld.setAll(-3,0,3,{id:partIds.blue})
+serverWorld.setAll(-4,0,2,{id:partIds.blue})
+serverWorld.setAll(-2,0,0,{id:partIds.stone})
+serverWorld.setAll(-3,1,0,{id:partIds.stone})
+setTimeout(()=>serverWorld.setAll(-3,5,0,{id:partIds.blue}),200)
+	},1000)//tesst*/
+}
+window.newWorld = newWorld
+function joinWorld(connection){
+	openScreen("connecting")
+	world = new World()
+	window.world = world
+	c = connection
+	if(window.parent.tickid) clearInterval(window.parent.tickid)
+	let canSendPos = true, lastSendPos = 0
+	c.sendPos = function(){
+		const dnow = Date.now()
+		if(!canSendPos || dnow-lastSendPos < 100) return
+		canSendPos = false
+		lastSendPos = dnow
+		c.send({type:"pos",x:p.x,y:p.y,z:p.z,loadDist:world.loadDist})
+	}
+	const canSendChunkUpdates = () => c.send("canSendChunkUpdates")
+	c.addEventListener("message", e => {
+		const pkt = e.data
+		switch(pkt.type){
+			case "worldInfo":
+				initTextures(pkt.partTextures)
+				world.setWorldInfo(pkt)
+				world.tick()
+				closeScreen("connecting")
+				openScreen("maathe")
+				canSendChunkUpdates()
+				getPointer()
+				break
+			case "canSendPos":
+				canSendPos = true
+				break
+			case "chunkUpdate":
+				/*world.chunkUpdates.push([pkt.x,pkt.y,pkt.z,pkt.data.length])
+				world.chunkUpdates.push(pkt.data)
+				world.chunkUpdateSize += 4+pkt.data.length*/
+				world.chunkUpdates.push(pkt)
+				break
+			case "chunkUpdatesEnd":
+				world.canSendChunkUpdates = canSendChunkUpdates
+				break
+		}
+	})
+	c.addEventListener("close", () => {
+		clearInterval(window.parent.tickid)
+		c = null
+		world = null
+		if(serverWorld){
+			serverWorld.close()
+			serverWorld = null
+		}
+		releasePointer()
+		closeScreen("maathe")
+		closeScreen("connecting")
+		openScreen("connectionLost")
+	})
+	tickLoop()
+}
+window.exit = function(){
+	c.close();
+}
+class Player{
+	constructor(controlMap){
+		this.height = 1.7*16
+		this.width = 0.65*16
+		this.cOffsetY = 0.7*16
+		this.x = 0
+		this.y = this.height*0.5+this.cOffsetY//5*256
+		this.z = 0
+		this.rx = 0
+		this.ry = 0
+		this.controlMap = controlMap
+		this.velx = 0
+		this.vely = 0
+		this.velz = 0
+	}
+	tick(){
+		const cm = this.controlMap
+		let mx = 0, mz = 0
+		if(cm.forward.pressed) mz = 1
+		if(cm.backward.pressed) mz = -1
+		if(cm.left.pressed) mx = -1
+		if(cm.right.pressed) mx = 1
+		let c = cos(this.ry)
+		let s = sin(this.ry)
+		this.velx += (c * mx - s * mz) * 0.3
+		this.velz += (s * mx + c * mz) * 0.3
+		if(cm.up.pressed) this.vely += 0.3
+		if(cm.down.pressed) this.vely -= 0.3
+		this.velx *= 0.88
+		this.vely *= 0.88
+		this.velz *= 0.88
+		this.x += this.velx
+		this.y += this.vely
+		this.z += this.velz
+		this.rx += mmoveY
+		this.ry += mmoveX
+		mmoveX = mmoveY = 0
+		if(this.rx>PI2) this.rx = PI2
+		if(this.rx<-PI2) this.rx = -PI2
+		if(this.ry>PId) this.ry -= PId
+		if(this.ry<0) this.ry += PId
+	}
+}
+function renderLoop(){
+	let start = Date.now()
+	if(isScreenOpen("maathe") && !isScreenOpen("pause")){
+		world.render()
+	}
+	analytics.frameTime += Date.now()-start
+	analytics.frames++
+	let dnow = Date.now()
+	if(dnow-analytics.lastUpdate>500){
+		analytics.avgFrameTime = analytics.frameTime/analytics.frames//inaccurate because excludes webgpu stuff
+		analytics.fps = analytics.frames*1000/(dnow-analytics.lastUpdate)
+		analytics.avgTickTime = analytics.tickTime/analytics.ticks
+		analytics.tps = analytics.ticks*1000/(dnow-analytics.lastUpdate)
+		analytics.frames = 0
+		analytics.frameTime = 0
+		analytics.ticks = 0
+		analytics.tickTime = 0
+		analytics.lastUpdate = dnow
+		analyticsEl.textContent = 
+`FPS: ${numFormat.format(round(analytics.fps))}
+TPS: ${numFormat.format(round(analytics.tps))}
+Average tick time: ${numFormat.format(analytics.avgTickTime)} ms
+Position: ${round(p.x)}, ${round(p.y)}, ${round(p.z)}`
+	}
+	requestAnimationFrame(renderLoop)
+}
+async function tickLoop(){
+	const tickStart = performance.now(), tickEndTime = Date.now()+tickTimeLimit
+	if(isScreenOpen("maathe") && !isScreenOpen("pause") || serverWorld && serverWorld.players.length>1){
+		world.tick()
+		p.tick()
+		if(serverWorld) await serverWorld.tick(tickEndTime)
+		c.sendPos()
+	}
+	const end = performance.now()
+	window.parent.tickid = setTimeout(tickLoop, tickTime - (end - tickStart))
+	analytics.ticks++
+	analytics.tickTime += end-tickStart
+}
+
+let defaultSettings = {
+	resolution:0.5,
+	loadDist:1,
+	mouseSense:300
+}
+let settings = {...defaultSettings}
+let controlMap = {}, controlKeys = {}
+function setControl(name, key, Name, isGameControl = false, shift = false, ctrl = false, alt = false){
+	if(controlMap[name]){
+		var c = controlMap[name]
+		delete controlKeys[c.key]
+		controlKeys[key] = c
+		c.key = key
+		c.shift = shift
+		c.ctrl = ctrl
+		c.alt = alt
+	}else{
+		controlMap[name] = {
+			key,
+			default:key,
+			name,
+			Name,
+			isGameControl,
+			shift,
+			ctrl,
+			alt,
+			get pressed() {
+				return Boolean(Key[this.key]
+					&& (!this.shift || Key.ShiftLeft || Key.ShiftRight)
+					&& (!this.ctrl || Key.ControlLeft || Key.ControlRight)
+					&& (!this.alt || Key.AltLeft || Key.AltRight))
+			},
+			// Check to see if all of an event's data matches this key map
+			event(e) {
+				return Boolean(e.key === this.key
+					&& (!this.shift || e.shiftKey)
+					&& (!this.ctrl || e.ctrlKey)
+					&& (!this.alt || e.altKey))
+			}
+		}
+		controlKeys[key] = controlMap[name]
+		defaultSettings["control_"+name] = key
+	}
+	settings["control_"+name] = key
+}
+setControl("forward","w","Forward",true)
+setControl("backward","s","Backward",true)
+setControl("left","a","Left",true)
+setControl("right","d","Right",true)
+setControl("up"," ","Up",true)
+setControl("down","shift","Down",true)
+let Key = {}
+function keydown(e){
+	let k
+	if(e.type === "keydown"){
+		k = e.key.toLowerCase()
+		if (e.preventDefault && k === " ") {
+			e.preventDefault()
+		}
+		if (e.repeat || Key[k]) {
+			return
+		}
+		Key[k] = true
+	}else if(e.type === "mousedown" || e.type === "touchstart"){
+		switch(e.button) {
+			case 0:
+				k = "leftMouse"
+				Key.leftMouse = true
+				break
+			case 1:
+				k = "middleMouse"
+				Key.middleMouse = true
+				break
+			case 2:
+				k = "rightMouse"
+				Key.rightMouse = true
+				break
+		}
+		if(e.target === canvas && document.pointerLockElement !== canvas){
+			getPointer()
+		}
+	}else if(e.type === "controlName"){
+		k = controlMap[e.key].key
+		Key[k] = true
+	}
+	if(k === ";"){
+		noPause = true
+		releasePointer()
+	}
+}
+function keyup(e){
+	let k
+	if(e.type === "keyup"){
+		k = e.key.toLowerCase()
+		Key[k] = false
+	}else if(e.type === "mouseup" || e.type === "touchend" || e.type === "touchcancel"){
+		switch(e.button) {
+			case 0:
+				Key.leftMouse = false
+				k = "leftMouse"
+				break
+			case 1:
+				Key.middleMouse = false
+				k = "middleMouse"
+				break
+			case 2:
+				Key.rightMouse = false
+				k = "rightMouse"
+				break
+		}
+	}else if(e.type === "controlName"){
+		k = controlMap[e.key].key
+		Key[k] = false
+	}
+}
+addEventListener("keydown",keydown)
+addEventListener("keyup",keyup)
+addEventListener("mousedown",keydown)
+addEventListener("mouseup",keyup)
+function getPointer() {
+	if (canvas.requestPointerLock) {
+		canvas.requestPointerLock().catch(console.error)
+	}
+}
+window.getPointer = getPointer
+function releasePointer() {
+	if (document.exitPointerLock) {
+		document.exitPointerLock()
+	}
+}
+let mmoveX = 0, mmoveY = 0
+addEventListener("mousemove",function(e){
+	if (document.pointerLockElement === canvas) {
+		const ms = settings.mouseSense/30000
+		mmoveX -= e.movementX*ms
+		mmoveY -= e.movementY*ms
+	}
+})
+let noPause = false
+document.addEventListener("pointerlockchange",function() {
+	if(!noPause && document.pointerLockElement !== canvas && isScreenOpen("maathe") && !isScreenOpen("pause")){
+		openScreen("pause")
+	}
+	noPause = false
+	for (let key in Key) {
+		Key[key] = false
+	}
+})
+
+let wgctx, wgdevice, renderComputePipeline, chunkDataBuffer, fullScreenTexture, chunkUpdatePipeline
+let drawScreenPipeline, drawScreenRenderPassDescriptor, drawScreenTexture, drawScreenTextureSampler
+let textureBuffer, chunksResizeUniforms, chunksResizeUniformsBuffer, chunkResizePipeline, chunkUpdateUniforms
+let wgpuutils, mainUniforms, mainUniformsBuffer, shaderMainDefs
+//let chunkData = new Uint32Array(400000)
+const renderPassDescriptor = {
+	colorAttachments: [
+		{
+			// view: <- to be filled out when we render
+			clearValue: [0.3, 0.3, 0.3, 1],
+			loadOp: 'clear',
+			storeOp: 'store',
+		},
+	],
+};
+async function initRender(){
+	if(!navigator.gpu) throw new Error("No WebGPU. Either your computer or your web browser is bad")
+	const webgpuUtilsSrc = "https://cdn.jsdelivr.net/npm/webgpu-utils@1.9.2/dist/1.x/webgpu-utils.module.min.js"
+	wgpuutils = await import(webgpuUtilsSrc)
+	const adapter = await navigator.gpu.requestAdapter();
+	if(!adapter) throw new Error("No WebGPU. It is your problem")
+	const presentationFormat = adapter.features.has('bgra8unorm-storage') ? navigator.gpu.getPreferredCanvasFormat() : 'rgba8unorm';
+  wgdevice = await adapter.requestDevice({
+    requiredFeatures: presentationFormat === 'bgra8unorm' ? ['bgra8unorm-storage'] : [],
+  });
+	window.wgdevice = wgdevice
+	wgdevice.lost.then(function(i){
+		reportError("It is lost. "+i.message)
+	})
+	wgctx = canvas.getContext('webgpu');
+  wgctx.configure({
+    device:wgdevice,
+    format: presentationFormat,
+		usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.STORAGE_BINDING,
+  });
+	const shaderMain = document.querySelector("#shaderMain").text.replaceAll("PRESENTATIONFORMAT",presentationFormat)
+	.replace(/\{StartRepeat (.*?)\}([\s\S]*?)\{EndRepeat\}/g, function(_,arr,str){
+		arr = JSON.parse(arr)
+		for(let thing of arr){
+			if(thing instanceof Array){
+				let r = ""
+				for(let elem of thing){
+					r += str.replaceAll("${elem}",elem)
+				}
+				str = r
+			}else{
+				let r = ""
+				thing = +thing
+				for(let i=0;i<thing;i++){
+					r += str.replaceAll("${i}",i).replaceAll("${i+1}",i+1)
+				}
+				str = r
+			}
+		}
+		return str
+	})
+	const module = wgdevice.createShaderModule({code:shaderMain})
+	shaderMainDefs = wgpuutils.makeShaderDataDefinitions(shaderMain)
+	renderComputePipeline = wgdevice.createComputePipeline({
+		label:"render",
+    layout: 'auto',
+		compute:{
+      module,
+      entryPoint: 'computeSomething',
+    },
+  });
+	/*let buffsize=8// used for tree-based-alloc
+	for(let i=0;i<20;i++) buffsize=2*buffsize+1 //similar to 2x+1*/
+	chunkDataBuffer = wgdevice.createBuffer({
+		size:10000000*4,
+		usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST
+	})
+	mainUniforms = wgpuutils.makeStructuredView(shaderMainDefs.uniforms.stuff)
+	mainUniformsBuffer = wgdevice.createBuffer({
+		size: mainUniforms.arrayBuffer.byteLength,
+		usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+	});
+	drawScreenPipeline = wgdevice.createRenderPipeline({
+    label: 'draw to screen',
+    layout: 'auto',
+    vertex: {
+      module,
+      entryPoint: 'drawToScreenVertex',
+    },
+    fragment: {
+      module,
+      entryPoint: 'drawToScreenFragment',
+      targets: [{ format: presentationFormat }],
+    },
+  });
+	fullScreenTexture = wgdevice.createTexture({
+    size: [width, height],
+    format: presentationFormat,
+    usage: GPUTextureUsage.STORAGE_BINDING | GPUTextureUsage.COPY_SRC,
+  });
+	drawScreenTexture = wgdevice.createTexture({
+    size: [width, height],
+    format: presentationFormat,
+    usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
+  });
+	drawScreenTextureSampler = wgdevice.createSampler();
+	drawScreenRenderPassDescriptor = {
+		label: 'full screen render pass',
+		colorAttachments: [
+			{
+				// view: <- to be filled out when we render
+				clearValue: [0.3, 0.3, 0.3, 1],
+				loadOp: 'clear',
+				storeOp: 'store',
+			},
+		],
+	}
+}
+function initTextures(partTextures){
+	let arr = []
+	for(let i=0; i<partTextures.length; i++){
+		const c = partTextures[i]
+		if(Array.isArray(c)){
+			for(let ci=0; ci<c.length; ci++){
+				arr[i*4+ci*262144] = (c[ci]>>24&255)/255
+				arr[i*4+ci*262144+1] = (c[ci]>>16&255)/255
+				arr[i*4+ci*262144+2] = (c[ci]>>8&255)/255
+				arr[i*4+ci*262144+3] = (c[ci]&255)/255
+			}
+		}else{
+			arr[i*4] = (c>>24&255)/255
+			arr[i*4+1] = (c>>16&255)/255
+			arr[i*4+2] = (c>>8&255)/255
+			arr[i*4+3] = (c&255)/255
+		}
+	}
+	textureBuffer = wgdevice.createBuffer({
+		size: arr.length*4,
+		usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
+	})
+	wgdevice.queue.writeBuffer(textureBuffer,0,new Float32Array(arr))
+}
+let width, height
+function onresize(){
+	canvas.width = width = round(innerWidth*settings.resolution)
+	canvas.height = height = round(innerHeight*settings.resolution)
+	if(wgctx){
+		let prev = fullScreenTexture
+		fullScreenTexture = wgdevice.createTexture({
+			size: [width, height],
+			format: fullScreenTexture.format,
+			usage: fullScreenTexture.usage,
+		})
+		prev.destroy()
+
+		prev = drawScreenTexture
+		drawScreenTexture = wgdevice.createTexture({
+			size: [width, height],
+			format: drawScreenTexture.format,
+			usage: drawScreenTexture.usage,
+		})
+		prev.destroy()
+	}
+}
+addEventListener("resize",onresize)
+
+void async function(){//initialize
+	p = new Player(controlMap)
+	onresize()
+	await initRender()
+	openScreen("mainMenu")
+	renderLoop()
+}()
+}
+
+import {LFBDS} from "./server.js"
+LFBD(
+	LFBDS({workerCount:(navigator.hardwareConcurrency||1)-1||1}),
+	{
+		"title":"title",
+		"connectionLost":"Connection lost!",
+		"back":"Back",
+		"connecting":"Connecting...",
+		"resume":"Resume",
+		"exit":"Exit"
+	}
+)
+</script>
